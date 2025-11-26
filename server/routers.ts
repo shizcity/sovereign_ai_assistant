@@ -77,7 +77,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const { createMessage, getConversationById, updateConversation } = await import("./db");
-        const { invokeLLM } = await import("./_core/llm");
+        const { routeLLMRequest } = await import("./llm-router");
         
         // Verify conversation ownership
         const conversation = await getConversationById(input.conversationId, ctx.user.id);
@@ -103,20 +103,15 @@ export const appRouter = router({
           content: msg.content,
         }));
         
-        // Call LLM
-        const response = await invokeLLM({
-          messages: llmMessages,
-        });
-        
-        const rawContent = response.choices[0]?.message?.content;
-        const assistantMessage = typeof rawContent === "string" ? rawContent : "No response";
+        // Route to appropriate LLM provider based on selected model
+        const response = await routeLLMRequest(llmMessages, input.model);
         
         // Save assistant message
         const messageId = await createMessage({
           conversationId: input.conversationId,
           role: "assistant",
-          content: assistantMessage,
-          model: input.model,
+          content: response.content,
+          model: response.model,
         });
         
         // Update conversation timestamp
@@ -124,8 +119,10 @@ export const appRouter = router({
         
         return {
           id: messageId,
-          content: assistantMessage,
-          model: input.model,
+          content: response.content,
+          model: response.model,
+          provider: response.provider,
+          usage: response.usage,
         };
       }),
   }),
