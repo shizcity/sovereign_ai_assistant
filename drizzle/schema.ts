@@ -25,4 +25,47 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Conversations table - stores chat sessions
+ */
+export const conversations = mysqlTable("conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  defaultModel: varchar("defaultModel", { length: 50 }).notNull().default("gpt-4"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = typeof conversations.$inferInsert;
+
+/**
+ * Messages table - stores individual messages within conversations
+ */
+export const messages = mysqlTable("messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  role: mysqlEnum("role", ["user", "assistant", "system"]).notNull(),
+  content: text("content").notNull(),
+  model: varchar("model", { length: 50 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;
+
+/**
+ * User settings table - stores user preferences
+ */
+export const userSettings = mysqlTable("userSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  defaultModel: varchar("defaultModel", { length: 50 }).notNull().default("gpt-4"),
+  theme: varchar("theme", { length: 20 }).default("light"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = typeof userSettings.$inferInsert;
