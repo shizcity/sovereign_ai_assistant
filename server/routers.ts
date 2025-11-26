@@ -134,7 +134,21 @@ export const appRouter = router({
   settings: router({
     get: protectedProcedure.query(async ({ ctx }) => {
       const { getUserSettings } = await import("./db");
-      return getUserSettings(ctx.user.id);
+      const settings = await getUserSettings(ctx.user.id);
+      
+      // Return default settings if none exist
+      if (!settings) {
+        return {
+          id: 0,
+          userId: ctx.user.id,
+          defaultModel: "gpt-4",
+          theme: "dark",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+      
+      return settings;
     }),
     
     update: protectedProcedure

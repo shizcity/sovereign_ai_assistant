@@ -45,5 +45,8 @@
 - [x] Write vitest tests for multi-LLM routing
 - [x] Test authentication flow
 - [x] Test cross-device sync (manual verification)
-- [ ] Create project checkpoint
-- [ ] Document deployment instructions
+- [x] Create project checkpoint
+- [x] Document deployment instructions
+
+## Bug Fixes
+- [x] Fix settings query returning undefined when user has no settings yet
