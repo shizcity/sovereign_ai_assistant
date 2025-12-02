@@ -48,6 +48,12 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    cleanupEmpty: protectedProcedure.mutation(async ({ ctx }) => {
+      const { deleteEmptyConversations } = await import("./db");
+      const deletedCount = await deleteEmptyConversations(ctx.user.id);
+      return { deletedCount };
+    }),
+    
     updateTitle: protectedProcedure
       .input(z.object({
         id: z.number(),

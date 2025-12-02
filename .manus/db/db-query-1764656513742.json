@@ -1,0 +1,150 @@
+{
+  "query": "SELECT id, title, userId, folderId, createdAt FROM conversations ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, title, userId, folderId, createdAt FROM conversations ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "150078",
+      "title": "Context Test",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:58"
+    },
+    {
+      "id": "150074",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:55"
+    },
+    {
+      "id": "150075",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:55"
+    },
+    {
+      "id": "150073",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:55"
+    },
+    {
+      "id": "150072",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:55"
+    },
+    {
+      "id": "150076",
+      "title": "Updated Title",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:55"
+    },
+    {
+      "id": "150069",
+      "title": "Tagged Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150070",
+      "title": "Multi-Tag Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150068",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "30014",
+      "createdAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150071",
+      "title": "Tag Removal Test",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150067",
+      "title": "Context Test",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:49"
+    },
+    {
+      "id": "150061",
+      "title": "Multi-Tag Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150065",
+      "title": "Updated Title",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150060",
+      "title": "Tagged Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150064",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150063",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150058",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150057",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150059",
+      "title": "Test Conversation",
+      "userId": "1",
+      "folderId": "30012",
+      "createdAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150062",
+      "title": "Tag Removal Test",
+      "userId": "1",
+      "folderId": "NULL",
+      "createdAt": "2025-12-02 05:50:46"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tuserId\tfolderId\tcreatedAt\n150078\tContext Test\t1\tNULL\t2025-12-02 06:11:58\n150074\tTest Conversation\t1\tNULL\t2025-12-02 06:11:55\n150075\tTest Conversation\t1\tNULL\t2025-12-02 06:11:55\n150073\tTest Conversation\t1\tNULL\t2025-12-02 06:11:55\n150072\tTest Conversation\t1\tNULL\t2025-12-02 06:11:55\n150076\tUpdated Title\t1\tNULL\t2025-12-02 06:11:55\n150069\tTagged Conversation\t1\tNULL\t2025-12-02 06:11:54\n150070\tMulti-Tag Conversation\t1\tNULL\t2025-12-02 06:11:54\n150068\tTest Conversation\t1\t30014\t2025-12-02 06:11:54\n150071\tTag Removal Test\t1\tNULL\t2025-12-02 06:11:54\n150067\tContext Test\t1\tNULL\t2025-12-02 05:50:49\n150061\tMulti-Tag Conversation\t1\tNULL\t2025-12-02 05:50:46\n150065\tUpdated Title\t1\tNULL\t2025-12-02 05:50:46\n150060\tTagged Conversation\t1\tNULL\t2025-12-02 05:50:46\n150064\tTest Conversation\t1\tNULL\t2025-12-02 05:50:46\n150063\tTest Conversation\t1\tNULL\t2025-12-02 05:50:46\n150058\tTest Conversation\t1\tNULL\t2025-12-02 05:50:46\n150057\tTest Conversation\t1\tNULL\t2025-12-02 05:50:46\n150059\tTest Conversation\t1\t30012\t2025-12-02 05:50:46\n150062\tTag Removal Test\t1\tNULL\t2025-12-02 05:50:46\n",
+  "stderr": "",
+  "execution_time_ms": 86
+}

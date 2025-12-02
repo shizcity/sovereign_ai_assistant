@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -169,6 +169,36 @@ export async function getConversationMessages(conversationId: number, userId: nu
   return db.select().from(messages)
     .where(eq(messages.conversationId, conversationId))
     .orderBy(messages.createdAt);
+}
+
+export async function deleteEmptyConversations(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Find conversations with no messages
+  const userConvos = await getUserConversations(userId);
+  const emptyConvos = [];
+  
+  for (const convo of userConvos) {
+    const msgs = await db.select().from(messages)
+      .where(eq(messages.conversationId, convo.id))
+      .limit(1);
+    
+    if (msgs.length === 0) {
+      emptyConvos.push(convo.id);
+    }
+  }
+  
+  // Delete empty conversations
+  if (emptyConvos.length > 0) {
+    await db.delete(conversations)
+      .where(and(
+        eq(conversations.userId, userId),
+        inArray(conversations.id, emptyConvos)
+      ));
+  }
+  
+  return emptyConvos.length;
 }
 
 // User settings queries

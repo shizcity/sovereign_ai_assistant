@@ -128,6 +128,14 @@ export default function Chat() {
     },
   });
 
+  // Cleanup empty conversations mutation
+  const cleanupEmpty = trpc.conversations.cleanupEmpty.useMutation({
+    onSuccess: (data) => {
+      utils.conversations.list.invalidate();
+      toast.success(`Deleted ${data.deletedCount} empty conversation${data.deletedCount !== 1 ? 's' : ''}`);
+    },
+  });
+
   // Send message mutation
   const sendMessage = trpc.messages.send.useMutation({
     onSuccess: () => {
@@ -469,7 +477,7 @@ export default function Chat() {
         </div>
 
         {/* New Conversation Button */}
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 border-b border-white/10 space-y-2">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-[1.02]"
@@ -477,6 +485,19 @@ export default function Chat() {
           >
             <Plus className="w-4 h-4 mr-2" />
             New Conversation
+          </Button>
+          <Button
+            onClick={() => {
+              if (confirm('Delete all empty conversations?')) {
+                cleanupEmpty.mutate();
+              }
+            }}
+            variant="outline"
+            className="w-full border-white/20 text-white hover:bg-white/10"
+            disabled={cleanupEmpty.isPending}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear Empty
           </Button>
         </div>
 

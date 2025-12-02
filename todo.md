@@ -218,3 +218,13 @@
 - [x] Add "Browse Collections" link to Templates page
 - [x] Show template count and creator attribution in category gallery
 - [x] Test category sharing functionality with vitest
+
+## Database Cleanup
+- [x] Remove test conversations from unfiled folder
+
+## Smart Conversation Cleanup
+- [x] Add backend procedure to identify and delete empty conversations
+- [x] Add "Clear Empty Conversations" button to Chat sidebar
+- [x] Show confirmation dialog before cleanup
+- [x] Display count of deleted conversations in success toast
+- [x] Test cleanup functionality
