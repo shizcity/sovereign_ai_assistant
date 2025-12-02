@@ -58,6 +58,65 @@ export const appRouter = router({
         await updateConversation(input.id, ctx.user.id, { title: input.title });
         return { success: true };
       }),
+    
+    export: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getConversationById, getConversationMessages } = await import("./db");
+        const { TRPCError } = await import("@trpc/server");
+        
+        const conversation = await getConversationById(input.conversationId, ctx.user.id);
+        if (!conversation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
+        }
+
+        const messages = await getConversationMessages(input.conversationId, ctx.user.id);
+        
+        // Format as Markdown
+        let markdown = `# ${conversation.title}\n\n`;
+        markdown += `**Created:** ${new Date(conversation.createdAt).toLocaleString()}\n`;
+        markdown += `**Last Updated:** ${new Date(conversation.updatedAt).toLocaleString()}\n`;
+        markdown += `**Default Model:** ${conversation.defaultModel}\n\n`;
+        markdown += `---\n\n`;
+
+        let totalTokens = 0;
+        let totalCost = 0;
+
+        for (const msg of messages) {
+          const role = msg.role === "user" ? "👤 User" : "🤖 Assistant";
+          markdown += `## ${role}\n\n`;
+          markdown += `${msg.content}\n\n`;
+          
+          if (msg.role === "assistant") {
+            const metadata: string[] = [];
+            if (msg.model) metadata.push(`Model: ${msg.model}`);
+            if (msg.totalTokens) {
+              metadata.push(`Tokens: ${msg.totalTokens}`);
+              totalTokens += msg.totalTokens;
+            }
+            if (msg.costUsd) {
+              metadata.push(`Cost: $${msg.costUsd}`);
+              totalCost += parseFloat(msg.costUsd);
+            }
+            if (metadata.length > 0) {
+              markdown += `*${metadata.join(" • ")}*\n\n`;
+            }
+          }
+          
+          markdown += `---\n\n`;
+        }
+
+        // Add summary
+        markdown += `## Summary\n\n`;
+        markdown += `- **Total Messages:** ${messages.length}\n`;
+        markdown += `- **Total Tokens:** ${totalTokens.toLocaleString()}\n`;
+        markdown += `- **Total Cost:** $${totalCost.toFixed(6)}\n`;
+
+        return {
+          markdown,
+          filename: `${conversation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.md`,
+        };
+      }),
   }),
   
   // Message management

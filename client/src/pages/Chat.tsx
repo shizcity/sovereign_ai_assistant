@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
@@ -112,6 +112,30 @@ export default function Chat() {
       content: userMessage.content,
       model: selectedModel,
     });
+  };
+
+  // Export conversation
+  const exportConversation = trpc.conversations.export.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: false }
+  );
+
+  const handleExport = async () => {
+    if (!selectedConversation) return;
+    
+    const result = await exportConversation.refetch();
+    if (result.data) {
+      const blob = new Blob([result.data.markdown], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Conversation exported");
+    }
   };
 
   const handleSendMessage = () => {
@@ -285,16 +309,29 @@ export default function Chat() {
                   <span className="text-sm text-gray-400">Model:</span>
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger className="w-48 bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableModels?.models.map((model) => (
-                        <SelectItem key={model.value} value={model.value}>
-                          {model.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                   <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableModels?.models.map((model) => (
+                <SelectItem key={model.value} value={model.value}>
+                  {model.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {selectedConversation && (
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              size="sm"
+              className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+              disabled={exportConversation.isFetching}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          )}
                 </div>
               </div>
             </div>

@@ -110,3 +110,9 @@
 - [x] Implement backend logic to regenerate last response
 - [x] Show loading state during regeneration
 - [x] Replace old response with new one
+
+## Conversation Export Feature
+- [x] Add export button to conversation header
+- [x] Implement backend endpoint to generate Markdown export
+- [x] Format conversation with metadata (title, date, model, tokens, cost)
+- [x] Trigger file download with proper filename
