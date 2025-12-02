@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -30,8 +29,6 @@ export default function Settings() {
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [defaultModel, setDefaultModel] = useState("gpt-4");
-  const { theme, setTheme: setGlobalTheme } = useTheme();
-  const [localTheme, setLocalTheme] = useState(theme);
 
   const utils = trpc.useUtils();
 
@@ -55,17 +52,11 @@ export default function Settings() {
   useEffect(() => {
     if (settings) {
       setDefaultModel(settings.defaultModel || "gpt-4");
-      setLocalTheme(settings.theme || "dark");
     }
   }, [settings]);
-  
-  // Update global theme when local theme changes
-  useEffect(() => {
-    setGlobalTheme(localTheme as "dark" | "light");
-  }, [localTheme, setGlobalTheme]);
 
   const handleSave = () => {
-    updateSettings.mutate({ defaultModel, theme: localTheme });
+    updateSettings.mutate({ defaultModel });
   };
 
   if (authLoading || settingsLoading) {
@@ -125,33 +116,6 @@ export default function Settings() {
                 <Label className="text-sm text-muted-foreground">Login Method</Label>
                 <p className="text-foreground font-medium capitalize">
                   {user.loginMethod || "Unknown"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Appearance Card */}
-          <Card className="bg-card text-card-foreground border-border">
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>
-                Customize the look and feel of the application
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
-                <Select value={localTheme} onValueChange={setLocalTheme}>
-                  <SelectTrigger id="theme">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="light">Light</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Choose between dark and light theme for better accessibility.
                 </p>
               </div>
             </CardContent>

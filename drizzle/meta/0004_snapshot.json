@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "810b1d43-1c72-4ccb-9728-ed366c932187",
-  "prevId": "a6d11c1c-7ab7-40c3-92a3-e91e7d61d37a",
+  "id": "e5cd1f8b-d8aa-4ccf-a7b8-edf70a52208f",
+  "prevId": "505d27bc-20aa-4c79-bc06-023e083c4ec3",
   "tables": {
     "conversations": {
       "name": "conversations",
@@ -138,7 +138,7 @@
         },
         "costUsd": {
           "name": "costUsd",
-          "type": "varchar(20)",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -197,6 +197,13 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'light'"
+        },
+        "systemPrompt": {
+          "name": "systemPrompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "createdAt": {
           "name": "createdAt",

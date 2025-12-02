@@ -17,7 +17,6 @@ import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { MessageReactions } from "@/components/MessageReactions";
 
 export default function Chat() {
   const { user } = useAuth();
@@ -1017,29 +1016,23 @@ export default function Chat() {
                         </>
                       )}
                       {message.role === "assistant" && (
-                        <>
-                          {/* Reaction Buttons */}
-                          <MessageReactions messageId={message.id} />
-                          
-                          {/* Message Metadata */}
-                          <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-                            <div className="flex items-center gap-3">
-                              {message.model && <span>Model: {message.model}</span>}
-                              {message.totalTokens && <span>{message.totalTokens} tokens</span>}
-                              {message.costUsd && <span>${message.costUsd}</span>}
-                            </div>
-                            {index === messages.length - 1 && (
-                              <button
-                                onClick={handleRegenerateMessage}
-                                disabled={regenerateMessage.isPending}
-                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
-                              >
-                                <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? "animate-spin" : ""}`} />
-                                Regenerate
-                              </button>
-                            )}
+                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+                          <div className="flex items-center gap-3">
+                            {message.model && <span>Model: {message.model}</span>}
+                            {message.totalTokens && <span>{message.totalTokens} tokens</span>}
+                            {message.costUsd && <span>${message.costUsd}</span>}
                           </div>
-                        </>
+                          {index === messages.length - 1 && (
+                            <button
+                              onClick={handleRegenerateMessage}
+                              disabled={regenerateMessage.isPending}
+                              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? "animate-spin" : ""}`} />
+                              Regenerate
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

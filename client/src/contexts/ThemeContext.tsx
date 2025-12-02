@@ -1,52 +1,55 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { trpc } from "@/lib/trpc";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light";
+type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
-  isLoading: boolean;
+  toggleTheme?: () => void;
+  switchable: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Fetch user settings to get theme preference
-  const { data: settings, isLoading: settingsLoading } = trpc.settings.get.useQuery();
-  
-  // Update theme when settings load
-  useEffect(() => {
-    if (settings?.theme) {
-      setThemeState(settings.theme as Theme);
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  switchable?: boolean;
+}
+
+export function ThemeProvider({
+  children,
+  defaultTheme = "light",
+  switchable = false,
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (switchable) {
+      const stored = localStorage.getItem("theme");
+      return (stored as Theme) || defaultTheme;
     }
-    if (!settingsLoading) {
-      setIsLoading(false);
-    }
-  }, [settings, settingsLoading]);
-  
-  // Apply theme to document
+    return defaultTheme;
+  });
+
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
-    
-    // Update meta theme-color for mobile browsers
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", theme === "dark" ? "#000000" : "#ffffff");
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
     }
-  }, [theme]);
-  
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
-  
+
+    if (switchable) {
+      localStorage.setItem("theme", theme);
+    }
+  }, [theme, switchable]);
+
+  const toggleTheme = switchable
+    ? () => {
+        setTheme(prev => (prev === "light" ? "dark" : "light"));
+      }
+    : undefined;
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, isLoading }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, switchable }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -54,8 +57,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+  if (!context) {
+    throw new Error("useTheme must be used within ThemeProvider");
   }
   return context;
 }

@@ -796,38 +796,6 @@ export const appRouter = router({
       }),
   }),
 
-  // Message reactions
-  reactions: router({
-    add: protectedProcedure
-      .input(z.object({
-        messageId: z.number(),
-        emoji: z.string().min(1).max(10),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { addReaction } = await import("./reactions-db");
-        await addReaction(input.messageId, ctx.user.id, input.emoji);
-        return { success: true };
-      }),
-
-    remove: protectedProcedure
-      .input(z.object({
-        messageId: z.number(),
-        emoji: z.string().min(1).max(10),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { removeReaction } = await import("./reactions-db");
-        await removeReaction(input.messageId, ctx.user.id, input.emoji);
-        return { success: true };
-      }),
-
-    list: protectedProcedure
-      .input(z.object({ messageId: z.number() }))
-      .query(async ({ ctx, input }) => {
-        const { getReactionsByMessage } = await import("./reactions-db");
-        return getReactionsByMessage(input.messageId);
-      }),
-  }),
-
   // Available models based on configured API keys
   models: router({
     available: publicProcedure.query(async () => {

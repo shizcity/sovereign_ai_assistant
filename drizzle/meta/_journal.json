@@ -19,15 +19,64 @@
     {
       "idx": 2,
       "version": "5",
-      "when": 1764699967219,
-      "tag": "0002_clammy_vanisher",
+      "when": 1764645101229,
+      "tag": "0002_yielding_crystal",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "5",
-      "when": 1764700257425,
-      "tag": "0003_striped_nehzno",
+      "when": 1764645365599,
+      "tag": "0003_public_wallop",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1764648665730,
+      "tag": "0004_dazzling_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1764650856949,
+      "tag": "0005_famous_ricochet",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1764652377908,
+      "tag": "0006_uneven_lenny_balinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1764653413039,
+      "tag": "0007_unknown_sinister_six",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1764653992829,
+      "tag": "0008_gigantic_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1764655432843,
+      "tag": "0009_condemned_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1764656153884,
+      "tag": "0010_plain_rage",
       "breakpoints": true
     }
   ]
