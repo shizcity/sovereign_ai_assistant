@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -35,6 +35,10 @@ export default function Chat() {
   const [newTagColor, setNewTagColor] = useState("#10B981");
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -245,6 +249,99 @@ export default function Chat() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Conversation exported");
+    }
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast.info("Recording started...");
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      toast.error("Failed to access microphone. Please check permissions.");
+    }
+  };
+
+  const handleStopRecording = async () => {
+    const mediaRecorder = mediaRecorderRef.current;
+    if (!mediaRecorder) return;
+
+    return new Promise<void>((resolve) => {
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        
+        // Stop all tracks to release microphone
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        setIsRecording(false);
+        setIsTranscribing(true);
+        toast.info("Transcribing audio...");
+
+        try {
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            const base64Data = base64.split(',')[1];
+
+            // Send to backend for transcription
+            const response = await fetch("/api/trpc/voice.transcribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                json: {
+                  audio: base64Data,
+                  mimeType: audioBlob.type,
+                },
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Transcription failed");
+            }
+
+            const data = await response.json();
+            const transcribedText = data.result.data.text;
+            
+            // Insert transcribed text into message input
+            setInputMessage(prev => prev ? `${prev}\n${transcribedText}` : transcribedText);
+            toast.success("Transcription complete!");
+            messageInputRef.current?.focus();
+          };
+          reader.readAsDataURL(audioBlob);
+        } catch (error) {
+          console.error("Transcription error:", error);
+          toast.error("Failed to transcribe audio");
+        } finally {
+          setIsTranscribing(false);
+        }
+
+        resolve();
+      };
+
+      mediaRecorder.stop();
+    });
+  };
+
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      handleStopRecording();
+    } else {
+      handleStartRecording();
     }
   };
 
@@ -704,6 +801,18 @@ export default function Chat() {
             <div className="border-t border-white/10 backdrop-blur-xl bg-black/20 p-4">
               <div className="max-w-4xl mx-auto">
                 <div className="flex gap-3">
+                  <Button
+                    onClick={handleToggleRecording}
+                    disabled={sendMessage.isPending || isTranscribing}
+                    className={`${
+                      isRecording
+                        ? "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 animate-pulse"
+                        : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500"
+                    } text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4`}
+                    title={isRecording ? "Stop recording" : "Start voice input"}
+                  >
+                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </Button>
                   <textarea
                     ref={messageInputRef}
                     value={inputMessage}

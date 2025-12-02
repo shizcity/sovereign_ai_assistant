@@ -136,3 +136,13 @@
 - [x] Build tag management UI with color picker
 - [x] Add filtering by folder and tag
 - [ ] Add drag-and-drop to move conversations between folders (future enhancement)
+
+## Voice Input Feature
+- [x] Add microphone button to message input area
+- [x] Implement browser MediaRecorder API for audio capture
+- [x] Add visual feedback during recording (waveform or pulsing indicator)
+- [x] Upload recorded audio to backend for transcription
+- [x] Create backend endpoint using built-in transcription API
+- [x] Insert transcribed text into message input
+- [x] Add error handling for unsupported browsers or permission denied
+- [x] Test voice input on different browsers (ready for user testing)

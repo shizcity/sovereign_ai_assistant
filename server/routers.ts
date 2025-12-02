@@ -455,6 +455,42 @@ export const appRouter = router({
       }),
   }),
 
+  // Voice transcription
+  voice: router({    transcribe: protectedProcedure
+      .input(
+        z.object({
+          audio: z.string(), // base64 encoded audio
+          mimeType: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { transcribeAudio } = await import("./_core/voiceTranscription");
+        
+        // Convert base64 to buffer
+        const audioBuffer = Buffer.from(input.audio, "base64");
+        
+        // Upload to storage and get URL
+        const { storagePut } = await import("./storage");
+        const { url } = await storagePut(
+          `voice-recordings/${Date.now()}.webm`,
+          audioBuffer,
+          input.mimeType
+        );
+        
+        // Transcribe using the uploaded URL
+        const result = await transcribeAudio({
+          audioUrl: url,
+        });
+        
+        // Check if transcription was successful
+        if ('error' in result) {
+          throw new Error(result.error);
+        }
+        
+        return { text: result.text };
+      }),
+  }),
+
   // Available models based on configured API keys
   models: router({
     available: publicProcedure.query(async () => {
