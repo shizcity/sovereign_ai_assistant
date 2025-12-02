@@ -76,15 +76,20 @@ export const appRouter = router({
         model: z.string().default("gpt-4"),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { createMessage, getConversationById, updateConversation } = await import("./db");
+        const { createMessage, getConversationById, updateConversation, getUserSettings, getConversationMessages } = await import("./db");
         const { routeLLMRequest } = await import("./llm-router");
         const { calculateCost, formatCost } = await import("./cost-calculator");
+        const { DEFAULT_SYSTEM_PROMPT } = await import("./default-system-prompt");
         
         // Verify conversation ownership
         const conversation = await getConversationById(input.conversationId, ctx.user.id);
         if (!conversation) {
           throw new Error("Conversation not found");
         }
+        
+        // Get user's system prompt
+        const userSettings = await getUserSettings(ctx.user.id);
+        const systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
         
         // Save user message
         await createMessage({
@@ -94,15 +99,20 @@ export const appRouter = router({
           model: null,
         });
         
-        // Get conversation history for context
-        const { getConversationMessages } = await import("./db");
-        const history = await getConversationMessages(input.conversationId, ctx.user.id);
+        // Get conversation history
+        const messages = await getConversationMessages(input.conversationId, ctx.user.id);
         
-        // Build messages array for LLM
-        const llmMessages = history.map(msg => ({
-          role: msg.role as "user" | "assistant" | "system",
-          content: msg.content,
-        }));
+        // Format messages for LLM with system prompt at the beginning
+        const llmMessages = [
+          {
+            role: "system" as const,
+            content: systemPrompt,
+          },
+          ...messages.map((msg: any) => ({
+            role: msg.role as "user" | "assistant" | "system",
+            content: msg.content,
+          })),
+        ];
         
         // Route to appropriate LLM provider based on selected model
         const response = await routeLLMRequest(llmMessages, input.model);
@@ -149,6 +159,7 @@ export const appRouter = router({
   settings: router({
     get: protectedProcedure.query(async ({ ctx }) => {
       const { getUserSettings } = await import("./db");
+      const { DEFAULT_SYSTEM_PROMPT } = await import("./default-system-prompt");
       const settings = await getUserSettings(ctx.user.id);
       
       // Return default settings if none exist
@@ -156,20 +167,25 @@ export const appRouter = router({
         return {
           id: 0,
           userId: ctx.user.id,
-          defaultModel: "gpt-4",
+          defaultModel: "gemini-pro",
           theme: "dark",
+          systemPrompt: DEFAULT_SYSTEM_PROMPT,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
       }
       
-      return settings;
+      return {
+        ...settings,
+        systemPrompt: settings.systemPrompt || DEFAULT_SYSTEM_PROMPT,
+      };
     }),
     
     update: protectedProcedure
       .input(z.object({
         defaultModel: z.string().optional(),
         theme: z.string().optional(),
+        systemPrompt: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { upsertUserSettings } = await import("./db");
@@ -255,6 +271,55 @@ export const appRouter = router({
         totalCost,
         totalTokens,
         messageCount,
+      };
+    }),
+  }),
+  
+  // Available models based on configured API keys
+  models: router({
+    available: publicProcedure.query(async () => {
+      const { getAPIKey } = await import("./llm-router");
+      
+      const providers = {
+        openai: !!getAPIKey("openai"),
+        anthropic: !!getAPIKey("anthropic"),
+        google: !!getAPIKey("google"),
+        xai: !!getAPIKey("xai"),
+        manus: true, // Always available
+      };
+      
+      // Map providers to available models
+      const availableModels = [];
+      
+      if (providers.openai) {
+        availableModels.push(
+          { value: "gpt-4", label: "GPT-4", provider: "openai" },
+          { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", provider: "openai" }
+        );
+      }
+      
+      if (providers.anthropic) {
+        availableModels.push(
+          { value: "claude-3-opus", label: "Claude 3 Opus", provider: "anthropic" },
+          { value: "claude-3-sonnet", label: "Claude 3 Sonnet", provider: "anthropic" }
+        );
+      }
+      
+      if (providers.google) {
+        availableModels.push(
+          { value: "gemini-pro", label: "Gemini Pro", provider: "google" }
+        );
+      }
+      
+      if (providers.xai) {
+        availableModels.push(
+          { value: "grok-1", label: "Grok-1", provider: "xai" }
+        );
+      }
+      
+      return {
+        providers,
+        models: availableModels,
       };
     }),
   }),

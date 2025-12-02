@@ -71,3 +71,30 @@
 - [ ] Implement spending limits and alerts
 - [ ] Add cost estimation before sending messages
 - [ ] Create admin analytics for total platform usage and costs
+
+## Google Gemini Testing
+- [x] Send test message using Gemini Pro model
+- [x] Verify API response is from Google (not fallback to Manus)
+- [x] Check token usage and cost tracking display
+- [ ] Test Gemini in the UI and verify cost display
+- [ ] Confirm cost calculation is accurate for Gemini pricing
+
+## Model Selector Filtering
+- [x] Create backend endpoint to check available API providers
+- [x] Update Chat UI to only show models with configured API keys
+- [ ] Test that only Gemini Pro is shown in the model selector
+
+## System Prompt Feature
+- [x] Add systemPrompt field to userSettings table
+- [x] Create default system prompt about Sovereign AI Assistant
+- [x] Update message sending to include system prompt
+- [ ] Add system prompt editor in Settings page
+- [ ] Test that AI responds with context about the project
+
+## UI Cleanup & Redesign
+- [x] Remove test conversations from database
+- [x] Redesign chat interface with modern visual design
+- [x] Add animations and transitions for better UX
+- [x] Improve message display with better typography
+- [x] Add dynamic visual elements (gradients, shadows, hover effects)
+- [x] Polish the overall aesthetic

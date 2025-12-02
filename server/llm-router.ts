@@ -53,7 +53,7 @@ export const MODEL_CONFIG: Record<string, { provider: LLMProvider; apiModel: str
 // API Key Management
 // ============================================================================
 
-function getAPIKey(provider: LLMProvider): string | undefined {
+export function getAPIKey(provider: LLMProvider): string | undefined {
   const envKeys: Record<LLMProvider, string> = {
     openai: process.env.OPENAI_API_KEY || "",
     anthropic: process.env.ANTHROPIC_API_KEY || "",
