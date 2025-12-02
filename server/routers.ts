@@ -78,6 +78,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const { createMessage, getConversationById, updateConversation } = await import("./db");
         const { routeLLMRequest } = await import("./llm-router");
+        const { calculateCost, formatCost } = await import("./cost-calculator");
         
         // Verify conversation ownership
         const conversation = await getConversationById(input.conversationId, ctx.user.id);
@@ -106,12 +107,24 @@ export const appRouter = router({
         // Route to appropriate LLM provider based on selected model
         const response = await routeLLMRequest(llmMessages, input.model);
         
-        // Save assistant message
+        // Calculate cost
+        const costBreakdown = calculateCost(input.model, response.usage || {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        });
+        
+        // Save assistant message with cost tracking
         const messageId = await createMessage({
           conversationId: input.conversationId,
           role: "assistant",
           content: response.content,
           model: response.model,
+          provider: response.provider,
+          promptTokens: response.usage?.promptTokens || 0,
+          completionTokens: response.usage?.completionTokens || 0,
+          totalTokens: response.usage?.totalTokens || 0,
+          costUsd: costBreakdown.totalCost.toString(),
         });
         
         // Update conversation timestamp
@@ -123,6 +136,11 @@ export const appRouter = router({
           model: response.model,
           provider: response.provider,
           usage: response.usage,
+          cost: {
+            total: costBreakdown.totalCost,
+            formatted: formatCost(costBreakdown.totalCost),
+            breakdown: costBreakdown,
+          },
         };
       }),
   }),
@@ -158,6 +176,87 @@ export const appRouter = router({
         await upsertUserSettings(ctx.user.id, input);
         return { success: true };
       }),
+  }),
+  
+  // Usage analytics and cost tracking
+  analytics: router({
+    conversationCost: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getConversationMessages } = await import("./db");
+        const messages = await getConversationMessages(input.conversationId, ctx.user.id);
+        
+        let totalCost = 0;
+        let totalTokens = 0;
+        const costsByModel: Record<string, number> = {};
+        
+        for (const msg of messages) {
+          if (msg.role === "assistant" && msg.costUsd) {
+            const cost = parseFloat(msg.costUsd);
+            totalCost += cost;
+            totalTokens += msg.totalTokens || 0;
+            
+            if (msg.model) {
+              costsByModel[msg.model] = (costsByModel[msg.model] || 0) + cost;
+            }
+          }
+        }
+        
+        return {
+          totalCost,
+          totalTokens,
+          messageCount: messages.filter(m => m.role === "assistant").length,
+          costsByModel,
+        };
+      }),
+    
+    userTotalCost: protectedProcedure.query(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const { messages, conversations } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      const db = await getDb();
+      if (!db) {
+        return { totalCost: 0, totalTokens: 0, messageCount: 0 };
+      }
+      
+      // Get all user's conversations
+      const userConversations = await db
+        .select()
+        .from(conversations)
+        .where(eq(conversations.userId, ctx.user.id));
+      
+      const conversationIds = userConversations.map(c => c.id);
+      
+      if (conversationIds.length === 0) {
+        return { totalCost: 0, totalTokens: 0, messageCount: 0 };
+      }
+      
+      // Get all messages from user's conversations
+      const { inArray } = await import("drizzle-orm");
+      const userMessages = await db
+        .select()
+        .from(messages)
+        .where(inArray(messages.conversationId, conversationIds));
+      
+      let totalCost = 0;
+      let totalTokens = 0;
+      let messageCount = 0;
+      
+      for (const msg of userMessages) {
+        if (msg.role === "assistant" && msg.costUsd) {
+          totalCost += parseFloat(msg.costUsd);
+          totalTokens += msg.totalTokens || 0;
+          messageCount++;
+        }
+      }
+      
+      return {
+        totalCost,
+        totalTokens,
+        messageCount,
+      };
+    }),
   }),
 });
 

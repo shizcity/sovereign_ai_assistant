@@ -15,6 +15,20 @@
       "when": 1764130782452,
       "tag": "0001_flimsy_machine_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1764645101229,
+      "tag": "0002_yielding_crystal",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1764645365599,
+      "tag": "0003_public_wallop",
+      "breakpoints": true
     }
   ]
 }

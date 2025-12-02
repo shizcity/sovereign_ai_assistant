@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { MessageSquare, Plus, Send, Trash2, Loader2, Settings as SettingsIcon } from "lucide-react";
+import { MessageSquare, Plus, Send, Trash2, Loader2, Settings as SettingsIcon, DollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -209,6 +209,14 @@ export default function Chat() {
           <Button
             variant="outline"
             className="w-full justify-start"
+            onClick={() => window.location.href = "/analytics"}
+          >
+            <DollarSign className="mr-2 h-4 w-4" />
+            Analytics
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
             onClick={() => window.location.href = "/settings"}
           >
             <SettingsIcon className="mr-2 h-4 w-4" />
@@ -273,14 +281,36 @@ export default function Chat() {
                             : "bg-card text-card-foreground border border-border"
                         }`}
                       >
-                        {msg.role === "assistant" && msg.model && (
-                          <div className="text-xs text-muted-foreground mb-2">
-                            {AI_MODELS.find((m) => m.value === msg.model)?.label || msg.model}
-                          </div>
-                        )}
                         <div className="prose prose-invert max-w-none">
                           <Streamdown>{msg.content}</Streamdown>
                         </div>
+                        {msg.role === "assistant" && (
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-3 pt-2 border-t border-border/50">
+                            {msg.model && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium">{AI_MODELS.find((m) => m.value === msg.model)?.label || msg.model}</span>
+                              </div>
+                            )}
+                            {msg.totalTokens && msg.totalTokens > 0 && (
+                              <>
+                                <span className="opacity-40">•</span>
+                                <span>{msg.totalTokens.toLocaleString()} tokens</span>
+                              </>
+                            )}
+                            {msg.costUsd && parseFloat(msg.costUsd) > 0 && (
+                              <>
+                                <span className="opacity-40">•</span>
+                                <span className="font-mono font-medium text-green-400">${parseFloat(msg.costUsd).toFixed(5)}</span>
+                              </>
+                            )}
+                            {msg.provider && msg.provider !== "manus" && (
+                              <>
+                                <span className="opacity-40">•</span>
+                                <span className="capitalize opacity-70">{msg.provider}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

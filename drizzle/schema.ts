@@ -49,6 +49,11 @@ export const messages = mysqlTable("messages", {
   role: mysqlEnum("role", ["user", "assistant", "system"]).notNull(),
   content: text("content").notNull(),
   model: varchar("model", { length: 50 }),
+  provider: varchar("provider", { length: 20 }),
+  promptTokens: int("promptTokens").default(0),
+  completionTokens: int("completionTokens").default(0),
+  totalTokens: int("totalTokens").default(0),
+  costUsd: varchar("costUsd", { length: 50 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

@@ -60,3 +60,14 @@
 - [x] Update message sending to use new routing service
 - [x] Add API key management documentation
 - [x] Test multi-model routing with placeholder keys
+
+## Cost Tracking & Financial Sustainability
+- [x] Add cost calculation service with pricing for all LLM providers
+- [x] Update messages table to store token usage and cost per message
+- [x] Create usage analytics procedures for tracking spending
+- [x] Display token usage and cost per message in chat UI
+- [x] Add conversation-level cost summary
+- [x] Create usage dashboard showing spending by model and time period
+- [ ] Implement spending limits and alerts
+- [ ] Add cost estimation before sending messages
+- [ ] Create admin analytics for total platform usage and costs
