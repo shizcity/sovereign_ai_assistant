@@ -263,3 +263,12 @@
 - [x] Fix sidebar sizing and scrolling
 - [x] Ensure proper spacing and alignment
 - [x] Test responsive layout
+
+## Theme Toggle Feature
+- [x] Add theme field to userSettings table
+- [x] Add backend procedures to get/update theme preference
+- [x] Build theme toggle UI in Settings page
+- [x] Implement CSS variables for light theme
+- [x] Add theme context provider for global state
+- [x] Apply theme to all pages
+- [x] Test theme switching and persistence

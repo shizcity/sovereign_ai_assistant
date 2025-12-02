@@ -68,7 +68,7 @@ export const userSettings = mysqlTable("userSettings", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
   defaultModel: varchar("defaultModel", { length: 50 }).notNull().default("gpt-4"),
-  theme: varchar("theme", { length: 20 }).default("light"),
+  theme: varchar("theme", { length: 20 }).default("dark"),
   systemPrompt: text("systemPrompt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
