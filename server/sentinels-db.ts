@@ -5,7 +5,12 @@ import { getDb } from "./db";
 export async function getAllSentinels() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(sentinels).where(eq(sentinels.isActive, 1));
+  const results = await db.select().from(sentinels).where(eq(sentinels.isActive, 1));
+  return results.map((sentinel) => ({
+    ...sentinel,
+    personalityTraits: JSON.parse(sentinel.personalityTraits as string),
+    specialties: JSON.parse(sentinel.specializationDomains as string),
+  }));
 }
 
 export async function getSentinelById(id: number) {
@@ -102,12 +107,38 @@ export async function addSentinelToConversation(
   const db = await getDb();
   if (!db) return { success: false };
   
-  await db.insert(conversationSentinels).values({
-    conversationId,
-    sentinelId,
-    role,
-    messageCount: 0,
-  });
+  // Check if this Sentinel is already assigned to this conversation
+  const existing = await db
+    .select()
+    .from(conversationSentinels)
+    .where(
+      and(
+        eq(conversationSentinels.conversationId, conversationId),
+        eq(conversationSentinels.sentinelId, sentinelId)
+      )
+    )
+    .limit(1);
+  
+  if (existing.length > 0) {
+    // Update existing record
+    await db
+      .update(conversationSentinels)
+      .set({ role, lastActiveAt: new Date() })
+      .where(
+        and(
+          eq(conversationSentinels.conversationId, conversationId),
+          eq(conversationSentinels.sentinelId, sentinelId)
+        )
+      );
+  } else {
+    // Insert new record
+    await db.insert(conversationSentinels).values({
+      conversationId,
+      sentinelId,
+      role,
+      messageCount: 0,
+    });
+  }
 
   return { success: true };
 }
@@ -115,10 +146,28 @@ export async function addSentinelToConversation(
 export async function getConversationSentinels(conversationId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db
-    .select()
+  
+  // Join with sentinels table to get full Sentinel data including system prompt
+  const results = await db
+    .select({
+      id: conversationSentinels.id,
+      conversationId: conversationSentinels.conversationId,
+      sentinelId: conversationSentinels.sentinelId,
+      role: conversationSentinels.role,
+      messageCount: conversationSentinels.messageCount,
+      joinedAt: conversationSentinels.joinedAt,
+      lastActiveAt: conversationSentinels.lastActiveAt,
+      // Sentinel data
+      sentinelName: sentinels.name,
+      sentinelSlug: sentinels.slug,
+      systemPrompt: sentinels.systemPrompt,
+      symbolEmoji: sentinels.symbolEmoji,
+    })
     .from(conversationSentinels)
+    .leftJoin(sentinels, eq(conversationSentinels.sentinelId, sentinels.id))
     .where(eq(conversationSentinels.conversationId, conversationId));
+  
+  return results;
 }
 
 export async function removeSentinelFromConversation(conversationId: number, sentinelId: number) {

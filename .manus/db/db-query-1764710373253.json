@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS conversation_sentinels (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  conversationId INT NOT NULL,\n  sentinelId INT NOT NULL,\n  role ENUM('primary', 'collaborator') NOT NULL,\n  messageCount INT DEFAULT 0 NOT NULL,\n  joinedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  lastActiveAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  INDEX idx_conversation (conversationId),\n  INDEX idx_sentinel (sentinelId)\n)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute CREATE TABLE IF NOT EXISTS conversation_sentinels (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  conversationId INT NOT NULL,\n  sentinelId INT NOT NULL,\n  role ENUM('primary', 'collaborator') NOT NULL,\n  messageCount INT DEFAULT 0 NOT NULL,\n  joinedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  lastActiveAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  INDEX idx_conversation (conversationId),\n  INDEX idx_sentinel (sentinelId)\n)",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 201
+}

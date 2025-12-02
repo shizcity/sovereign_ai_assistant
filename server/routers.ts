@@ -131,9 +131,20 @@ export const appRouter = router({
           throw new Error("Conversation not found");
         }
         
-        // Get user's system prompt
-        const userSettings = await getUserSettings(ctx.user.id);
-        const systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+        // Get Sentinel system prompt if one is selected for this conversation
+        const { getConversationSentinels } = await import("./sentinels-db");
+        const conversationSentinels = await getConversationSentinels(input.conversationId);
+        const primarySentinel = conversationSentinels.find((cs: any) => cs.role === 'primary');
+        
+        let systemPrompt;
+        if (primarySentinel && primarySentinel.systemPrompt) {
+          // Use Sentinel's system prompt if one is selected
+          systemPrompt = primarySentinel.systemPrompt;
+        } else {
+          // Fall back to user's custom system prompt or default
+          const userSettings = await getUserSettings(ctx.user.id);
+          systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+        }
         
         // Save user message
         await createMessage({
@@ -242,9 +253,20 @@ export const appRouter = router({
         // Delete all messages after this one (including the old AI response)
         await deleteMessagesAfter(input.messageId);
         
-        // Get user's system prompt
-        const userSettings = await getUserSettings(ctx.user.id);
-        const systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+        // Get Sentinel system prompt if one is selected for this conversation
+        const { getConversationSentinels } = await import("./sentinels-db");
+        const conversationSentinels = await getConversationSentinels(message.conversationId);
+        const primarySentinel = conversationSentinels.find((cs: any) => cs.role === 'primary');
+        
+        let systemPrompt;
+        if (primarySentinel && primarySentinel.systemPrompt) {
+          // Use Sentinel's system prompt if one is selected
+          systemPrompt = primarySentinel.systemPrompt;
+        } else {
+          // Fall back to user's custom system prompt or default
+          const userSettings = await getUserSettings(ctx.user.id);
+          systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+        }
         
         // Get updated conversation history
         const messages = await getConversationMessages(message.conversationId, ctx.user.id);

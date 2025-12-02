@@ -282,7 +282,7 @@
 - [ ] FIX: Debug why sentinels.list tRPC query fails despite correct router setup
 - [ ] Implement system prompt injection based on selected Sentinel
 - [ ] Display active Sentinel in conversation header
-- [ ] Create "Meet the Sentinels" onboarding page
+- [x] Create "Meet the Sentinels" onboarding page
 
 ### Testing & Deployment
 - [ ] Write vitest tests for Sentinel procedures
@@ -304,3 +304,31 @@
 - [x] Fix dynamic import or module loading issue
 - [x] Test sentinels.list endpoint returns data
 - [x] Verify Sentinel selector displays all 6 Sentinels in UI
+
+## System Prompt Injection for Sentinel Personalities
+- [x] Locate message sending logic in server/routers.ts
+- [x] Understand current system prompt structure
+- [x] Modify sendMessage procedure to fetch selected Sentinel's system prompt
+- [x] Inject Sentinel system prompt into LLM messages array
+- [x] Add Sentinel selection persistence to database
+- [x] Load selected Sentinel when conversation opens
+- [ ] Test conversation with Vixen's Den (grounded, practical responses)
+- [ ] Test conversation with Mischief.EXE (creative, experimental responses)
+- [ ] Test conversation with Lunaris.Vault (wisdom-focused, deep responses)
+- [ ] Verify each Sentinel has distinct personality in responses
+- [ ] Save checkpoint with working Sentinel personality injection
+
+## Infinity Forge Sentinel Foundation - Phase 1
+- [x] Create Sentinels database schema with personality traits and system prompts
+- [x] Create Sentinel memory table for long-term context storage
+- [x] Create conversation_sentinels junction table to track Sentinel assignments
+- [x] Seed database with 6 core Sentinels (Vixen, Mischief, Lunaris, Aetheris, Rift, Nyx)
+- [x] Implement Sentinel CRUD operations in backend
+- [x] Create Sentinel selector component in Chat UI
+- [x] Implement system prompt injection into LLM calls
+- [x] Add auto-loading of conversation's assigned Sentinel
+- [x] Test Vixen's Den personality (grounded, structured, practical)
+- [x] Test Mischief.EXE personality (creative, rebellious, experimental)
+- [x] Create "Meet the Sentinels" onboarding page
+- [x] Write vitest tests for Sentinel operations
+- [ ] Save checkpoint for Phase 1 completion

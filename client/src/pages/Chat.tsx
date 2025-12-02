@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2 } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -74,6 +74,22 @@ export default function Chat() {
     { conversationId: selectedConversation! },
     { enabled: !!selectedConversation }
   );
+
+  // Fetch Sentinels for selected conversation
+  const { data: conversationSentinels = [] } = trpc.sentinels.getConversationSentinels.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: !!selectedConversation }
+  );
+
+  // Set selected Sentinel when conversation changes
+  useEffect(() => {
+    const primarySentinel = conversationSentinels.find((cs: any) => cs.role === 'primary');
+    if (primarySentinel) {
+      setSelectedSentinel(primarySentinel.sentinelId);
+    } else {
+      setSelectedSentinel(undefined);
+    }
+  }, [conversationSentinels]);
 
   // Fetch templates
   const { data: templates = [] } = trpc.templates.list.useQuery();
@@ -167,6 +183,13 @@ export default function Chat() {
       setEditingMessageId(null);
       setEditingContent("");
       toast.success("Message updated and response regenerated");
+    },
+  });
+
+  // Add Sentinel to conversation mutation
+  const addSentinelToConversation = trpc.sentinels.addToConversation.useMutation({
+    onSuccess: () => {
+      utils.sentinels.getConversationSentinels.invalidate({ conversationId: selectedConversation! });
     },
   });
 
@@ -806,6 +829,12 @@ export default function Chat() {
               Templates
             </Button>
           </Link>
+          <Link href="/sentinels">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Meet the Sentinels
+            </Button>
+          </Link>
           <Link href="/settings">
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <Settings className="w-4 h-4 mr-2" />
@@ -914,7 +943,17 @@ export default function Chat() {
                 <div className="flex items-center gap-2">
                   <SentinelSelector
                     value={selectedSentinel}
-                    onChange={setSelectedSentinel}
+                    onChange={(sentinelId) => {
+                      setSelectedSentinel(sentinelId);
+                      // Persist Sentinel selection to conversation
+                      if (selectedConversation) {
+                        addSentinelToConversation.mutate({
+                          conversationId: selectedConversation,
+                          sentinelId,
+                          role: 'primary',
+                        });
+                      }
+                    }}
                   />
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger className="w-48 bg-white/5 border-white/10 text-white">

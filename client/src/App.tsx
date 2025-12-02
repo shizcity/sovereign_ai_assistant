@@ -10,6 +10,7 @@ import Analytics from "./pages/Analytics";
 import Templates from "@/pages/Templates";
 import TemplateGallery from "@/pages/TemplateGallery";
 import CategoryGallery from "@/pages/CategoryGallery";
+import Sentinels from "@/pages/Sentinels";
 
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/templates" component={Templates} />
       <Route path="/template-gallery" component={TemplateGallery} />
       <Route path="/category-gallery" component={CategoryGallery} />
+      <Route path="/sentinels" component={Sentinels} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
