@@ -163,6 +163,8 @@ export const templateCategories = mysqlTable("template_categories", {
   userId: int("userId").notNull(), // Foreign key to users - each user has their own categories
   name: varchar("name", { length: 100 }).notNull(),
   color: varchar("color", { length: 7 }).notNull().default("#3b82f6"), // Hex color code
+  isPublic: int("isPublic").default(0).notNull(), // 0 = private, 1 = public/shared
+  creatorName: varchar("creatorName", { length: 255 }), // Name of user who created it
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

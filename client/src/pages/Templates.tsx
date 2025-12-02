@@ -84,6 +84,13 @@ export default function Templates() {
     },
   });
 
+  const toggleCategoryPublic = trpc.templates.toggleCategoryPublic.useMutation({
+    onSuccess: () => {
+      utils.templates.listCategories.invalidate();
+      toast.success("Category visibility updated");
+    },
+  });
+
   const handleCreateTemplate = () => {
     createTemplate.mutate({
       name: newTemplate.name,
@@ -173,6 +180,12 @@ export default function Templates() {
               <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
                 <Globe className="h-4 w-4 mr-2" />
                 Browse Gallery
+              </Button>
+            </Link>
+            <Link href="/category-gallery">
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                <FolderPlus className="h-4 w-4 mr-2" />
+                Browse Collections
               </Button>
             </Link>
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>

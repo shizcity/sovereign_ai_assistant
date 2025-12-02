@@ -207,3 +207,14 @@
 - [x] Implement category filtering in Templates page
 - [x] Add visual category badges with custom colors
 - [x] Test category system with comprehensive vitest tests
+
+## Category Sharing Feature
+- [x] Add isPublic field to templateCategories table
+- [x] Add creatorName field to templateCategories for attribution
+- [x] Implement togglePublic mutation for categories
+- [x] Create listPublicCategories query to fetch shared collections
+- [x] Implement importCategory mutation to copy category with all templates
+- [x] Build Category Gallery page UI
+- [x] Add "Browse Collections" link to Templates page
+- [x] Show template count and creator attribution in category gallery
+- [x] Test category sharing functionality with vitest

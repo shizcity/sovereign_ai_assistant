@@ -657,6 +657,31 @@ export const appRouter = router({
       const { createDefaultCategories } = await import("./template-categories-db");
       return createDefaultCategories(ctx.user.id);
     }),
+    
+    toggleCategoryPublic: protectedProcedure
+      .input(z.object({ id: z.number(), isPublic: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        const { toggleCategoryPublic } = await import("./template-categories-db");
+        await toggleCategoryPublic(input.id, ctx.user.id, input.isPublic);
+        return { success: true };
+      }),
+    
+    listPublicCategories: protectedProcedure.query(async () => {
+      const { listPublicCategories } = await import("./template-categories-db");
+      return listPublicCategories();
+    }),
+    
+    importCategory: protectedProcedure
+      .input(z.object({ categoryId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { importCategory } = await import("./template-categories-db");
+        const newCategoryId = await importCategory(
+          input.categoryId,
+          ctx.user.id,
+          ctx.user.name || "Anonymous"
+        );
+        return { categoryId: newCategoryId };
+      }),
   }),
 
   // Voice transcription
