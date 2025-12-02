@@ -530,6 +530,61 @@ export const appRouter = router({
         const { importTemplate } = await import("./templates-db");
         return importTemplate(input.templateId, ctx.user.id, ctx.user.name || "Anonymous");
       }),
+    
+    // Review operations
+    submitReview: protectedProcedure
+      .input(
+        z.object({
+          templateId: z.number(),
+          rating: z.number().min(1).max(5),
+          reviewText: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { upsertReview } = await import("./template-reviews-db");
+        return upsertReview({
+          templateId: input.templateId,
+          userId: ctx.user.id,
+          userName: ctx.user.name || "Anonymous",
+          rating: input.rating,
+          reviewText: input.reviewText,
+        });
+      }),
+    
+    getReviews: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .query(async ({ input }) => {
+        const { getReviewsByTemplate } = await import("./template-reviews-db");
+        return getReviewsByTemplate(input.templateId);
+      }),
+    
+    getUserReview: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const { getUserReview } = await import("./template-reviews-db");
+        return getUserReview(input.templateId, ctx.user.id);
+      }),
+    
+    deleteReview: protectedProcedure
+      .input(z.object({ reviewId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { deleteReview } = await import("./template-reviews-db");
+        return deleteReview(input.reviewId, ctx.user.id);
+      }),
+    
+    getRating: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .query(async ({ input }) => {
+        const { getTemplateRating } = await import("./template-reviews-db");
+        return getTemplateRating(input.templateId);
+      }),
+    
+    getRatings: protectedProcedure
+      .input(z.object({ templateIds: z.array(z.number()) }))
+      .query(async ({ input }) => {
+        const { getTemplateRatings } = await import("./template-reviews-db");
+        return getTemplateRatings(input.templateIds);
+      }),
   }),
 
   // Voice transcription

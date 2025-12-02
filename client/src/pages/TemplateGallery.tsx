@@ -1,17 +1,32 @@
 import { useState } from "react";
+import { TemplateDetailDialog } from "@/components/TemplateDetailDialog";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, Download, User, Sparkles } from "lucide-react";
+import { Search, Download, User, Sparkles, Star, TrendingUp } from "lucide-react";
 
 export default function TemplateGallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"recent" | "rating">("rating");
+  const [selectedTemplate, setSelectedTemplate] = useState<typeof publicTemplates[0] | null>(null);
 
   const { data: publicTemplates = [], isLoading } = trpc.templates.listPublic.useQuery();
+  
+  // Fetch ratings for all public templates
+  const templateIds = publicTemplates.map(t => t.id);
+  const { data: ratingsData = [] } = trpc.templates.getRatings.useQuery(
+    { templateIds },
+    { enabled: templateIds.length > 0 }
+  );
+  
+  // Create a map of template ID to rating data
+  const ratingsMap = new Map(
+    ratingsData.map(r => [r.templateId, r])
+  );
   const importMutation = trpc.templates.import.useMutation({
     onSuccess: () => {
       toast.success("Template imported", {
@@ -28,18 +43,32 @@ export default function TemplateGallery() {
   // Extract unique categories
   const categories = Array.from(new Set(publicTemplates.map((t) => t.category).filter(Boolean)));
 
-  // Filter templates
-  const filteredTemplates = publicTemplates.filter((template) => {
-    const matchesSearch =
-      !searchQuery ||
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || template.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Filter and sort templates
+  const filteredTemplates = publicTemplates
+    .filter((template) => {
+      const matchesSearch =
+        !searchQuery ||
+        template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = !selectedCategory || template.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortBy === "rating") {
+        const ratingA = ratingsMap.get(a.id)?.averageRating || 0;
+        const ratingB = ratingsMap.get(b.id)?.averageRating || 0;
+        return ratingB - ratingA; // Highest rating first
+      } else {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
 
   const handleImport = (templateId: number) => {
     importMutation.mutate({ templateId });
+  };
+  
+  const handleViewDetails = (template: typeof publicTemplates[0]) => {
+    setSelectedTemplate(template);
   };
 
   return (
@@ -86,6 +115,27 @@ export default function TemplateGallery() {
             </Button>
           ))}
         </div>
+        
+        {/* Sort options */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Sort by:</span>
+          <Button
+            variant={sortBy === "rating" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSortBy("rating")}
+          >
+            <Star className="h-3 w-3 mr-1" />
+            Highest Rated
+          </Button>
+          <Button
+            variant={sortBy === "recent" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSortBy("recent")}
+          >
+            <TrendingUp className="h-3 w-3 mr-1" />
+            Most Recent
+          </Button>
+        </div>
       </div>
 
       {/* Templates grid */}
@@ -103,7 +153,11 @@ export default function TemplateGallery() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template) => (
-            <Card key={template.id} className="flex flex-col">
+            <Card 
+              key={template.id} 
+              className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => handleViewDetails(template)}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg">{template.name}</CardTitle>
@@ -124,23 +178,67 @@ export default function TemplateGallery() {
                 </div>
               </CardContent>
 
-              <CardFooter className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="h-4 w-4" />
-                  <span>{template.creatorName || "Anonymous"}</span>
+              <CardFooter className="flex flex-col gap-3">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span>{template.creatorName || "Anonymous"}</span>
+                  </div>
+                  
+                  {/* Rating display */}
+                  {(() => {
+                    const rating = ratingsMap.get(template.id);
+                    const avgRating = rating?.averageRating || 0;
+                    const reviewCount = rating?.reviewCount || 0;
+                    
+                    return (
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= Math.round(avgRating)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-muted-foreground ml-1">
+                          {avgRating > 0 ? avgRating.toFixed(1) : "No ratings"}
+                          {reviewCount > 0 && ` (${reviewCount})`}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleImport(template.id)}
-                  disabled={importMutation.isPending}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Import
-                </Button>
+                <div className="w-full">
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleImport(template.id)}
+                    disabled={importMutation.isPending}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Import
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           ))}
         </div>
+      )}
+      
+      {/* Template detail dialog */}
+      {selectedTemplate && (
+        <TemplateDetailDialog
+          template={selectedTemplate}
+          open={!!selectedTemplate}
+          onOpenChange={(open) => !open && setSelectedTemplate(null)}
+          onImport={() => {
+            handleImport(selectedTemplate.id);
+            setSelectedTemplate(null);
+          }}
+        />
       )}
     </div>
   );

@@ -167,3 +167,17 @@
 - [x] Add attribution display in gallery
 - [x] Implement search and filtering in gallery
 - [x] Test sharing functionality with multiple users
+
+## Template Rating & Review System
+- [x] Create templateReviews table with rating, review text, and timestamps
+- [x] Add foreign keys to link reviews to templates and users
+- [x] Implement review CRUD operations (create, list, update, delete)
+- [x] Add procedure to calculate average rating per template
+- [x] Create endpoint to get reviews for a specific template
+- [x] Add sorting by rating in gallery (highest rated first)
+- [x] Display average rating with star icons in gallery cards
+- [x] Build review submission form with star rating selector
+- [x] Show reviews list on template detail view
+- [x] Add edit/delete controls for user's own reviews
+- [x] Implement review validation (one review per user per template)
+- [x] Test rating and review system with comprehensive vitest tests

@@ -138,3 +138,19 @@ export const promptTemplates = mysqlTable("prompt_templates", {
 
 export type PromptTemplate = typeof promptTemplates.$inferSelect;
 export type InsertPromptTemplate = typeof promptTemplates.$inferInsert;
+/**
+ * Template reviews - ratings and reviews for shared templates
+ */
+export const templateReviews = mysqlTable("template_reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  templateId: int("templateId").notNull(), // Foreign key to promptTemplates
+  userId: int("userId").notNull(), // Foreign key to users
+  userName: varchar("userName", { length: 255 }).notNull(), // Cached user name for display
+  rating: int("rating").notNull(), // 1-5 stars
+  reviewText: text("reviewText"), // Optional review text
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TemplateReview = typeof templateReviews.$inferSelect;
+export type InsertTemplateReview = typeof templateReviews.$inferInsert;
