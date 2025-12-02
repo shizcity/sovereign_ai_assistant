@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -42,6 +42,13 @@ export default function Templates() {
       setEditDialogOpen(false);
       setSelectedTemplate(null);
       toast.success("Template updated");
+    },
+  });
+
+  const togglePublic = trpc.templates.togglePublic.useMutation({
+    onSuccess: () => {
+      utils.templates.list.invalidate();
+      toast.success("Sharing settings updated");
     },
   });
 
@@ -118,6 +125,16 @@ export default function Templates() {
           </div>
 
           <div className="flex gap-2">
+            <Link href="/template-gallery">
+              <Button
+                variant="outline"
+                className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Browse Gallery
+              </Button>
+            </Link>
+            
             {templates.length === 0 && (
               <Button
                 onClick={() => createDefaults.mutate()}
@@ -249,6 +266,17 @@ export default function Templates() {
                           )}
                         </div>
                         <div className="flex gap-1">
+                          {!template.isDefault && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-white"
+                              onClick={() => togglePublic.mutate({ id: template.id, isPublic: !template.isPublic })}
+                              title={template.isPublic ? "Make private" : "Make public"}
+                            >
+                              {template.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -274,13 +302,19 @@ export default function Templates() {
                           {template.prompt}
                         </p>
                       </div>
-                      {template.isDefault && (
-                        <div className="mt-3">
+                      <div className="mt-3 flex gap-2">
+                        {template.isDefault && (
                           <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
                             Default Template
                           </span>
-                        </div>
-                      )}
+                        )}
+                        {template.isPublic && (
+                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1">
+                            <Globe className="w-3 h-3" />
+                            Public
+                          </span>
+                        )}
+                      </div>
                     </Card>
                   ))}
                 </div>

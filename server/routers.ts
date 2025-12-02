@@ -482,7 +482,8 @@ export const appRouter = router({
           ...input,
           userId: ctx.user.id,
           isDefault: 0,
-        });
+          isPublic: 0,
+        }, ctx.user.name || "Anonymous");
       }),
     update: protectedProcedure
       .input(
@@ -512,6 +513,23 @@ export const appRouter = router({
       await createDefaultTemplates(ctx.user.id);
       return { success: true };
     }),
+    togglePublic: protectedProcedure
+      .input(z.object({ id: z.number(), isPublic: z.boolean() }))
+      .mutation(async ({ input, ctx }) => {
+        const { toggleTemplatePublic } = await import("./templates-db");
+        await toggleTemplatePublic(input.id, ctx.user.id, input.isPublic);
+        return { success: true };
+      }),
+    listPublic: protectedProcedure.query(async () => {
+      const { getPublicTemplates } = await import("./templates-db");
+      return getPublicTemplates();
+    }),
+    import: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { importTemplate } = await import("./templates-db");
+        return importTemplate(input.templateId, ctx.user.id, ctx.user.name || "Anonymous");
+      }),
   }),
 
   // Voice transcription

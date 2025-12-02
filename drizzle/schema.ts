@@ -130,6 +130,8 @@ export const promptTemplates = mysqlTable("prompt_templates", {
   prompt: text("prompt").notNull(),
   category: varchar("category", { length: 100 }),
   isDefault: int("isDefault").default(0).notNull(), // 0 = false, 1 = true
+  isPublic: int("isPublic").default(0).notNull(), // 0 = private, 1 = public/shared
+  creatorName: varchar("creatorName", { length: 255 }), // Name of user who created it
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -155,3 +155,15 @@
 - [x] Add template management page
 - [x] Implement template variables/placeholders for customization
 - [x] Test template system with comprehensive vitest tests
+
+## Template Sharing Feature
+- [x] Add isPublic field to promptTemplates table
+- [x] Add createdBy username/attribution field
+- [x] Update backend procedures to support public template browsing
+- [x] Create endpoint to toggle template public/private status
+- [x] Create endpoint to import/copy shared templates
+- [x] Build public template gallery page
+- [x] Add sharing toggle to template management UI
+- [x] Add attribution display in gallery
+- [x] Implement search and filtering in gallery
+- [x] Test sharing functionality with multiple users

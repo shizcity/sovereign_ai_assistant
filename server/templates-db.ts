@@ -2,11 +2,16 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "./db";
 import { promptTemplates, type InsertPromptTemplate, type PromptTemplate } from "../drizzle/schema";
 
-export async function createTemplate(template: InsertPromptTemplate): Promise<PromptTemplate> {
+export async function createTemplate(template: InsertPromptTemplate, creatorName?: string): Promise<PromptTemplate> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const [newTemplate] = await db.insert(promptTemplates).values(template).$returningId();
+  const templateData = {
+    ...template,
+    creatorName: creatorName || template.creatorName,
+  };
+  
+  const [newTemplate] = await db.insert(promptTemplates).values(templateData).$returningId();
   const [created] = await db.select().from(promptTemplates).where(eq(promptTemplates.id, newTemplate.id));
   return created!;
 }
@@ -109,4 +114,49 @@ export async function createDefaultTemplates(userId: number): Promise<void> {
   ];
   
   await db.insert(promptTemplates).values(defaultTemplates);
+}
+
+export async function getPublicTemplates(): Promise<PromptTemplate[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(promptTemplates)
+    .where(eq(promptTemplates.isPublic, 1))
+    .orderBy(promptTemplates.createdAt);
+}
+
+export async function toggleTemplatePublic(id: number, userId: number, isPublic: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(promptTemplates)
+    .set({ isPublic: isPublic ? 1 : 0 })
+    .where(and(eq(promptTemplates.id, id), eq(promptTemplates.userId, userId)));
+}
+
+export async function importTemplate(templateId: number, userId: number, userName: string): Promise<PromptTemplate> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get the original template
+  const [original] = await db.select().from(promptTemplates)
+    .where(and(eq(promptTemplates.id, templateId), eq(promptTemplates.isPublic, 1)));
+  
+  if (!original) {
+    throw new Error("Template not found or not public");
+  }
+  
+  // Create a copy for the importing user
+  const imported: InsertPromptTemplate = {
+    userId,
+    name: original.name,
+    description: original.description,
+    prompt: original.prompt,
+    category: original.category,
+    isDefault: 0,
+    isPublic: 0, // Imported templates are private by default
+    creatorName: original.creatorName, // Preserve original creator attribution
+  };
+  
+  return createTemplate(imported);
 }
