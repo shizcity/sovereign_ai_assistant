@@ -171,3 +171,17 @@ export const templateCategories = mysqlTable("template_categories", {
 
 export type TemplateCategory = typeof templateCategories.$inferSelect;
 export type InsertTemplateCategory = typeof templateCategories.$inferInsert;
+
+/**
+ * Message reactions - emoji reactions for AI responses
+ */
+export const messageReactions = mysqlTable("message_reactions", {
+  id: int("id").autoincrement().primaryKey(),
+  messageId: int("messageId").notNull(), // Foreign key to messages
+  userId: int("userId").notNull(), // Foreign key to users
+  emoji: varchar("emoji", { length: 10 }).notNull(), // Emoji character (👍, 👎, ❤️, etc.)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MessageReaction = typeof messageReactions.$inferSelect;
+export type InsertMessageReaction = typeof messageReactions.$inferInsert;

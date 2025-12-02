@@ -272,3 +272,13 @@
 - [x] Add theme context provider for global state
 - [x] Apply theme to all pages
 - [x] Test theme switching and persistence
+
+## Message Reactions Feature
+- [x] Add messageReactions table to database schema
+- [x] Create backend procedures for adding/removing reactions
+- [x] Create backend procedure for getting reactions by message
+- [x] Build reaction button UI component with emoji picker
+- [x] Integrate reactions into Chat.tsx AI message display
+- [x] Add visual feedback for active reactions
+- [x] Write vitest tests for reaction operations
+- [x] Test reaction functionality in browser

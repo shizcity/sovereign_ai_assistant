@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `message_reactions` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageId` int NOT NULL,\n\t`userId` int NOT NULL,\n\t`emoji` varchar(10) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `message_reactions_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute CREATE TABLE IF NOT EXISTS `message_reactions` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`messageId` int NOT NULL,\n\t`userId` int NOT NULL,\n\t`emoji` varchar(10) NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `message_reactions_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 213
+}
