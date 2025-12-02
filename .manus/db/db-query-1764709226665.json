@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, slug, name, archetype, primaryfunction FROM sentinels LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, slug, name, archetype, primaryfunction FROM sentinels LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "slug": "vixens-den",
+      "name": "Vixen's Den",
+      "archetype": "The Grounded Guardian",
+      "primaryfunction": "Stability, structure, and practical implementation"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tslug\tname\tarchetype\tprimaryfunction\n1\tvixens-den\tVixen's Den\tThe Grounded Guardian\tStability, structure, and practical implementation\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

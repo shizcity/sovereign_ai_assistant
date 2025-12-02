@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, name, slug, isActive FROM sentinels LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, name, slug, isActive FROM sentinels LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Vixen's Den",
+      "slug": "vixens-den",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "name": "Mischief.EXE",
+      "slug": "mischief-exe",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "name": "Lunaris.Vault",
+      "slug": "lunaris-vault",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "name": "Aetheris.Flow",
+      "slug": "aetheris-flow",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "name": "Rift.EXE",
+      "slug": "rift-exe",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "name": "Nyx",
+      "slug": "nyx",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tslug\tisActive\n1\tVixen's Den\tvixens-den\t1\n2\tMischief.EXE\tmischief-exe\t1\n3\tLunaris.Vault\tlunaris-vault\t1\n4\tAetheris.Flow\taetheris-flow\t1\n5\tRift.EXE\trift-exe\t1\n6\tNyx\tnyx\t1\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

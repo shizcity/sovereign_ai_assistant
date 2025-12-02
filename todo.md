@@ -295,3 +295,12 @@
 - Dynamic import of sentinels-db may be failing at runtime
 - Need to verify table names match between schema and database
 
+
+## Debug Sentinel Selector 500 Error
+- [x] Check server logs for detailed error message
+- [x] Test sentinels-db.ts functions in isolation
+- [x] Verify schema table exports match database table names
+- [x] Fix schema.ts column names to match actual database columns
+- [x] Fix dynamic import or module loading issue
+- [x] Test sentinels.list endpoint returns data
+- [x] Verify Sentinel selector displays all 6 Sentinels in UI

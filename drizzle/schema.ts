@@ -182,17 +182,16 @@ export const sentinels = mysqlTable("sentinels", {
   archetype: varchar("archetype", { length: 255 }).notNull(),
   primaryFunction: text("primaryFunction").notNull(),
   energySignature: text("energySignature"),
+  personalityTraits: text("personalityTraits"), // JSON array
   communicationStyle: text("communicationStyle").notNull(),
-  interactionPatterns: text("interactionPatterns"),
-  relationshipApproach: text("relationshipApproach"),
   specializationDomains: text("specializationDomains"), // JSON array
   idealUseCases: text("idealUseCases"), // JSON array
-  systemPrompt: text("systemPrompt").notNull(),
-  colorPrimary: varchar("colorPrimary", { length: 20 }).notNull(),
-  colorSecondary: varchar("colorSecondary", { length: 20 }).notNull(),
-  colorAccent: varchar("colorAccent", { length: 20 }).notNull(),
+  primaryColor: varchar("primaryColor", { length: 20 }).notNull(),
+  secondaryColor: varchar("secondaryColor", { length: 20 }).notNull(),
+  accentColor: varchar("accentColor", { length: 20 }).notNull(),
   symbolEmoji: varchar("symbolEmoji", { length: 10 }).notNull(),
-  avatarConcept: text("avatarConcept"),
+  systemPrompt: text("systemPrompt").notNull(),
+  displayOrder: int("displayOrder").default(0).notNull(),
   isActive: int("isActive").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
