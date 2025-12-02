@@ -128,7 +128,7 @@ export const promptTemplates = mysqlTable("prompt_templates", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   prompt: text("prompt").notNull(),
-  category: varchar("category", { length: 100 }),
+  categoryId: int("categoryId"), // Foreign key to templateCategories
   isDefault: int("isDefault").default(0).notNull(), // 0 = false, 1 = true
   isPublic: int("isPublic").default(0).notNull(), // 0 = private, 1 = public/shared
   creatorName: varchar("creatorName", { length: 255 }), // Name of user who created it
@@ -154,3 +154,18 @@ export const templateReviews = mysqlTable("template_reviews", {
 
 export type TemplateReview = typeof templateReviews.$inferSelect;
 export type InsertTemplateReview = typeof templateReviews.$inferInsert;
+
+/**
+ * Template categories - custom user-defined categories for organizing templates
+ */
+export const templateCategories = mysqlTable("template_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Foreign key to users - each user has their own categories
+  name: varchar("name", { length: 100 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull().default("#3b82f6"), // Hex color code
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TemplateCategory = typeof templateCategories.$inferSelect;
+export type InsertTemplateCategory = typeof templateCategories.$inferInsert;

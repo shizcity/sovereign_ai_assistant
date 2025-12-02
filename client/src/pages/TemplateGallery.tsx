@@ -48,8 +48,8 @@ export default function TemplateGallery() {
     },
   });
 
-  // Extract unique categories
-  const categories = Array.from(new Set(publicTemplates.map((t) => t.category).filter(Boolean)));
+  // TODO: Fetch categories and map categoryId to category names
+  const categories: string[] = [];
 
   // Filter and sort templates
   const filteredTemplates = publicTemplates
@@ -58,7 +58,7 @@ export default function TemplateGallery() {
         !searchQuery ||
         template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = !selectedCategory || template.category === selectedCategory;
+      const matchesCategory = true; // TODO: Update to use categoryId
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
@@ -172,11 +172,7 @@ export default function TemplateGallery() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2 pr-8">
                     <CardTitle className="text-lg">{template.name}</CardTitle>
-                    {template.category && (
-                      <Badge variant="secondary" className="shrink-0">
-                        {template.category}
-                      </Badge>
-                    )}
+                    {/* TODO: Add category badge based on categoryId */}
                   </div>
                   {template.description && (
                     <CardDescription className="line-clamp-2">
@@ -281,11 +277,7 @@ export default function TemplateGallery() {
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg">{template.name}</CardTitle>
-                  {template.category && (
-                    <Badge variant="secondary" className="shrink-0">
-                      {template.category}
-                    </Badge>
-                  )}
+                  {/* TODO: Add category badge based on categoryId */}
                 </div>
                 {template.description && (
                   <CardDescription className="line-clamp-2">{template.description}</CardDescription>

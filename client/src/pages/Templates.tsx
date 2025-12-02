@@ -1,12 +1,14 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock, FolderPlus, Palette } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -15,23 +17,30 @@ export default function Templates() {
   const { user } = useAuth();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   
   const [newTemplate, setNewTemplate] = useState({
     name: "",
     description: "",
     prompt: "",
-    category: "",
+    categoryId: null as number | null,
+  });
+
+  const [newCategory, setNewCategory] = useState({
+    name: "",
+    color: "#3b82f6",
   });
 
   const utils = trpc.useUtils();
   const { data: templates = [] } = trpc.templates.list.useQuery();
+  const { data: categories = [] } = trpc.templates.listCategories.useQuery();
 
   const createTemplate = trpc.templates.create.useMutation({
     onSuccess: () => {
       utils.templates.list.invalidate();
       setCreateDialogOpen(false);
-      setNewTemplate({ name: "", description: "", prompt: "", category: "" });
+      setNewTemplate({ name: "", description: "", prompt: "", categoryId: null });
       toast.success("Template created");
     },
   });
@@ -45,13 +54,6 @@ export default function Templates() {
     },
   });
 
-  const togglePublic = trpc.templates.togglePublic.useMutation({
-    onSuccess: () => {
-      utils.templates.list.invalidate();
-      toast.success("Sharing settings updated");
-    },
-  });
-
   const deleteTemplate = trpc.templates.delete.useMutation({
     onSuccess: () => {
       utils.templates.list.invalidate();
@@ -59,19 +61,36 @@ export default function Templates() {
     },
   });
 
-  const createDefaults = trpc.templates.createDefaults.useMutation({
+  const togglePublic = trpc.templates.togglePublic.useMutation({
     onSuccess: () => {
       utils.templates.list.invalidate();
-      toast.success("Default templates created");
+      toast.success("Template visibility updated");
+    },
+  });
+
+  const createCategory = trpc.templates.createCategory.useMutation({
+    onSuccess: () => {
+      utils.templates.listCategories.invalidate();
+      setCategoryDialogOpen(false);
+      setNewCategory({ name: "", color: "#3b82f6" });
+      toast.success("Category created");
+    },
+  });
+
+  const createDefaultCategories = trpc.templates.createDefaultCategories.useMutation({
+    onSuccess: () => {
+      utils.templates.listCategories.invalidate();
+      toast.success("Default categories created");
     },
   });
 
   const handleCreateTemplate = () => {
-    if (!newTemplate.name || !newTemplate.prompt) {
-      toast.error("Name and prompt are required");
-      return;
-    }
-    createTemplate.mutate(newTemplate);
+    createTemplate.mutate({
+      name: newTemplate.name,
+      description: newTemplate.description,
+      prompt: newTemplate.prompt,
+      categoryId: newTemplate.categoryId,
+    });
   };
 
   const handleUpdateTemplate = () => {
@@ -81,7 +100,7 @@ export default function Templates() {
       name: selectedTemplate.name,
       description: selectedTemplate.description,
       prompt: selectedTemplate.prompt,
-      category: selectedTemplate.category,
+      categoryId: selectedTemplate.categoryId,
     });
   };
 
@@ -90,100 +109,154 @@ export default function Templates() {
     setEditDialogOpen(true);
   };
 
-  // Group templates by category
-  const templatesByCategory: Record<string, typeof templates> = {};
-  templates.forEach((template) => {
-    const category = template.category || "Uncategorized";
-    if (!templatesByCategory[category]) {
-      templatesByCategory[category] = [];
+  const handleDeleteTemplate = (id: number) => {
+    if (confirm("Are you sure you want to delete this template?")) {
+      deleteTemplate.mutate({ id });
     }
-    templatesByCategory[category].push(template);
+  };
+
+  const handleTogglePublic = (id: number, currentStatus: boolean) => {
+    togglePublic.mutate({ id, isPublic: !currentStatus });
+  };
+
+  const handleCreateCategory = () => {
+    createCategory.mutate(newCategory);
+  };
+
+  // Group templates by category
+  const templatesByCategory: Record<string, typeof templates> = {
+    "Uncategorized": [],
+  };
+  
+  categories.forEach((cat) => {
+    templatesByCategory[cat.name] = [];
   });
 
-  if (!user) {
-    return <div>Please log in</div>;
-  }
+  templates.forEach((template) => {
+    const category = categories.find((c) => c.id === template.categoryId);
+    const categoryName = category?.name || "Uncategorized";
+    if (!templatesByCategory[categoryName]) {
+      templatesByCategory[categoryName] = [];
+    }
+    templatesByCategory[categoryName].push(template);
+  });
+
+  // Get category color
+  const getCategoryColor = (categoryId: number | null) => {
+    if (!categoryId) return "#6b7280"; // Gray for uncategorized
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.color || "#3b82f6";
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-950">
-      <div className="container max-w-6xl py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <ArrowLeft className="w-4 h-4 mr-2" />
+            <Link href="/chat">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Chat
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Prompt Templates
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <FileText className="h-8 w-8" />
+                My Templates
               </h1>
-              <p className="text-gray-400 mt-1">Create and manage reusable prompts for common tasks</p>
+              <p className="text-white/60 mt-1">Create and manage reusable prompt templates</p>
             </div>
           </div>
-
           <div className="flex gap-2">
             <Link href="/template-gallery">
-              <Button
-                variant="outline"
-                className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-              >
-                <Globe className="w-4 h-4 mr-2" />
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                <Globe className="h-4 w-4 mr-2" />
                 Browse Gallery
               </Button>
             </Link>
-            
-            {templates.length === 0 && (
-              <Button
-                onClick={() => createDefaults.mutate()}
-                variant="outline"
-                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-                disabled={createDefaults.isPending}
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create Default Templates
-              </Button>
-            )}
-            
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Template
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  New Category
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 border-white/10 max-w-2xl">
+              <DialogContent className="bg-slate-900 border-white/10 text-white">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Create New Template</DialogTitle>
-                  <DialogDescription className="text-gray-400">
-                    Create a reusable prompt template for common tasks
+                  <DialogTitle>Create Category</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    Create a custom category to organize your templates
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name" className="text-white">Template Name</Label>
+                    <Label htmlFor="category-name">Category Name</Label>
+                    <Input
+                      id="category-name"
+                      value={newCategory.name}
+                      onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                      placeholder="e.g., Marketing, Development"
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category-color">Color</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="category-color"
+                        type="color"
+                        value={newCategory.color}
+                        onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                        className="w-20 h-10 bg-white/5 border-white/10"
+                      />
+                      <Input
+                        value={newCategory.color}
+                        onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                        placeholder="#3b82f6"
+                        className="flex-1 bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={handleCreateCategory}
+                    disabled={!newCategory.name}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Create Category
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create Template</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    Create a new reusable prompt template
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Template Name</Label>
                     <Input
                       id="name"
                       value={newTemplate.name}
                       onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-                      placeholder="e.g., Brainstorming Session"
+                      placeholder="e.g., Blog Post Outline"
                       className="bg-white/5 border-white/10 text-white"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="category" className="text-white">Category (Optional)</Label>
-                    <Input
-                      id="category"
-                      value={newTemplate.category}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, category: e.target.value })}
-                      placeholder="e.g., Writing, Development, Business"
-                      className="bg-white/5 border-white/10 text-white"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="description" className="text-white">Description (Optional)</Label>
+                    <Label htmlFor="description">Description (Optional)</Label>
                     <Input
                       id="description"
                       value={newTemplate.description}
@@ -193,24 +266,51 @@ export default function Templates() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="prompt" className="text-white">Prompt Template</Label>
+                    <Label htmlFor="category">Category (Optional)</Label>
+                    <Select
+                      value={newTemplate.categoryId?.toString() || "none"}
+                      onValueChange={(value) =>
+                        setNewTemplate({ ...newTemplate, categoryId: value === "none" ? null : parseInt(value) })
+                      }
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/10 text-white">
+                        <SelectItem value="none">No category</SelectItem>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id.toString()}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="prompt">Prompt Template</Label>
                     <Textarea
                       id="prompt"
                       value={newTemplate.prompt}
                       onChange={(e) => setNewTemplate({ ...newTemplate, prompt: e.target.value })}
-                      placeholder="Write your prompt here. Use [PLACEHOLDERS] for variables that will be filled in later."
+                      placeholder="Enter your prompt template here. Use [VARIABLE] for placeholders."
                       className="bg-white/5 border-white/10 text-white min-h-[200px]"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Tip: Use [TOPIC], [AUDIENCE], [TONE], etc. as placeholders
+                    <p className="text-sm text-white/40 mt-1">
+                      Tip: Use [VARIABLE] syntax for placeholders (e.g., [TOPIC], [AUDIENCE])
                     </p>
                   </div>
                 </div>
                 <DialogFooter>
                   <Button
                     onClick={handleCreateTemplate}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500"
-                    disabled={createTemplate.isPending}
+                    disabled={!newTemplate.name || !newTemplate.prompt}
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     Create Template
                   </Button>
@@ -220,122 +320,125 @@ export default function Templates() {
           </div>
         </div>
 
-        {/* Templates Grid */}
-        {templates.length === 0 ? (
-          <Card className="bg-white/5 border-white/10 p-12 text-center">
-            <FileText className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No templates yet</h3>
-            <p className="text-gray-400 mb-6">
-              Create your first template or load the default templates to get started
-            </p>
-            <div className="flex gap-4 justify-center">
+        {/* Quick Actions */}
+        {templates.length === 0 && categories.length === 0 && (
+          <Card className="bg-white/5 border-white/10 mb-8">
+            <CardContent className="p-6">
+              <p className="text-white/60 mb-4">Get started by creating default categories for your templates</p>
               <Button
-                onClick={() => createDefaults.mutate()}
-                variant="outline"
-                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
-                disabled={createDefaults.isPending}
+                onClick={() => createDefaultCategories.mutate()}
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create Default Templates
+                <Sparkles className="h-4 w-4 mr-2" />
+                Create Default Categories
               </Button>
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Custom Template
-              </Button>
-            </div>
+            </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(templatesByCategory).map(([category, categoryTemplates]) => (
-              <div key={category}>
-                <h2 className="text-xl font-semibold text-white mb-4">{category}</h2>
+        )}
+
+        {/* Templates by Category */}
+        <div className="space-y-8">
+          {Object.entries(templatesByCategory).map(([categoryName, categoryTemplates]) => {
+            if (categoryTemplates.length === 0) return null;
+            
+            const category = categories.find((c) => c.name === categoryName);
+            const categoryColor = category?.color || "#6b7280";
+
+            return (
+              <div key={categoryName}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: categoryColor }}
+                  />
+                  <h2 className="text-2xl font-bold">{categoryName}</h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {categoryTemplates.length}
+                  </Badge>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {categoryTemplates.map((template) => (
                     <Card
                       key={template.id}
-                      className="bg-white/5 border-white/10 p-6 hover:bg-white/10 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20"
+                      className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white mb-1">{template.name}</h3>
-                          {template.description && (
-                            <p className="text-sm text-gray-400">{template.description}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-1">
-                          {!template.isDefault && (
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-lg">{template.name}</CardTitle>
+                          <div className="flex gap-1">
                             <Button
-                              variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-white"
-                              onClick={() => togglePublic.mutate({ id: template.id, isPublic: !template.isPublic })}
-                              title={template.isPublic ? "Make private" : "Make public"}
+                              variant="ghost"
+                              onClick={() => handleTogglePublic(template.id, template.isPublic === 1)}
+                              className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10"
+                              title={template.isPublic === 1 ? "Make private" : "Make public"}
                             >
-                              {template.isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                              {template.isPublic === 1 ? (
+                                <Globe className="h-4 w-4" />
+                              ) : (
+                                <Lock className="h-4 w-4" />
+                              )}
                             </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-white"
-                            onClick={() => handleEditTemplate(template)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          {!template.isDefault && (
                             <Button
-                              variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-red-400"
-                              onClick={() => deleteTemplate.mutate({ id: template.id })}
+                              variant="ghost"
+                              onClick={() => handleEditTemplate(template)}
+                              className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteTemplate(template.id)}
+                              className="h-8 w-8 p-0 text-white/60 hover:text-red-400 hover:bg-white/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-black/30 rounded p-3 mt-3">
-                        <p className="text-xs text-gray-300 line-clamp-4 font-mono">
-                          {template.prompt}
-                        </p>
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        {template.isDefault && (
-                          <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                            Default Template
-                          </span>
+                        {template.description && (
+                          <CardDescription className="text-white/60">
+                            {template.description}
+                          </CardDescription>
                         )}
-                        {template.isPublic && (
-                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1">
-                            <Globe className="w-3 h-3" />
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-white/40 line-clamp-3">{template.prompt}</p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between items-center">
+                        {template.isPublic === 1 && (
+                          <Badge variant="secondary" className="bg-green-600/20 text-green-400 border-green-600/30">
                             Public
-                          </span>
+                          </Badge>
                         )}
-                      </div>
+                        {template.isDefault === 1 && (
+                          <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
+                            Default
+                          </Badge>
+                        )}
+                      </CardFooter>
                     </Card>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
 
-        {/* Edit Dialog */}
+        {/* Edit Template Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="bg-gray-900 border-white/10 max-w-2xl">
+          <DialogContent className="bg-slate-900 border-white/10 text-white max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white">Edit Template</DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Update your prompt template
+              <DialogTitle>Edit Template</DialogTitle>
+              <DialogDescription className="text-white/60">
+                Update your template details
               </DialogDescription>
             </DialogHeader>
             {selectedTemplate && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="edit-name" className="text-white">Template Name</Label>
+                  <Label htmlFor="edit-name">Template Name</Label>
                   <Input
                     id="edit-name"
                     value={selectedTemplate.name}
@@ -344,16 +447,7 @@ export default function Templates() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-category" className="text-white">Category</Label>
-                  <Input
-                    id="edit-category"
-                    value={selectedTemplate.category || ""}
-                    onChange={(e) => setSelectedTemplate({ ...selectedTemplate, category: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-description" className="text-white">Description</Label>
+                  <Label htmlFor="edit-description">Description</Label>
                   <Input
                     id="edit-description"
                     value={selectedTemplate.description || ""}
@@ -362,7 +456,34 @@ export default function Templates() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-prompt" className="text-white">Prompt Template</Label>
+                  <Label htmlFor="edit-category">Category</Label>
+                  <Select
+                    value={selectedTemplate.categoryId?.toString() || "none"}
+                    onValueChange={(value) =>
+                      setSelectedTemplate({ ...selectedTemplate, categoryId: value === "none" ? null : parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-white/10 text-white">
+                      <SelectItem value="none">No category</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: cat.color }}
+                            />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-prompt">Prompt Template</Label>
                   <Textarea
                     id="edit-prompt"
                     value={selectedTemplate.prompt}
@@ -373,11 +494,7 @@ export default function Templates() {
               </div>
             )}
             <DialogFooter>
-              <Button
-                onClick={handleUpdateTemplate}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500"
-                disabled={updateTemplate.isPending}
-              >
+              <Button onClick={handleUpdateTemplate} className="bg-blue-600 hover:bg-blue-700">
                 Save Changes
               </Button>
             </DialogFooter>

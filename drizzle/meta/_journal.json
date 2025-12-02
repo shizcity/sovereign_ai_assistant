@@ -64,6 +64,13 @@
       "when": 1764653992829,
       "tag": "0008_gigantic_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1764655432843,
+      "tag": "0009_condemned_puff_adder",
+      "breakpoints": true
     }
   ]
 }

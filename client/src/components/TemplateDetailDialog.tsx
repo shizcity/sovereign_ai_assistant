@@ -19,7 +19,7 @@ interface TemplateDetailDialogProps {
     name: string;
     description: string | null;
     prompt: string;
-    category: string | null;
+    categoryId: number | null;
     creatorName: string | null;
   };
   open: boolean;
@@ -139,9 +139,7 @@ export function TemplateDetailDialog({
                 </DialogDescription>
               )}
             </div>
-            {template.category && (
-              <Badge variant="secondary">{template.category}</Badge>
-            )}
+            {/* TODO: Add category badge based on categoryId */}
           </div>
         </DialogHeader>
 

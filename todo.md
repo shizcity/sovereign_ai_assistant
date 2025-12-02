@@ -196,3 +196,14 @@
 - [x] Add Try It button to gallery template cards
 - [x] Add copy to clipboard functionality for preview result
 - [x] Test template preview with various variable patterns
+
+## Template Category Management System
+- [x] Create templateCategories table with name, color, and user ownership
+- [x] Update promptTemplates table to reference custom categories
+- [x] Implement category CRUD operations (create, list, update, delete)
+- [x] Add default categories for new users
+- [x] Build category management UI with color picker
+- [x] Add category selector to template creation/edit forms
+- [x] Implement category filtering in Templates page
+- [x] Add visual category badges with custom colors
+- [x] Test category system with comprehensive vitest tests

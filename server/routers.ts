@@ -473,7 +473,7 @@ export const appRouter = router({
           name: z.string(),
           description: z.string().optional(),
           prompt: z.string(),
-          category: z.string().optional(),
+          categoryId: z.number().nullable().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -492,7 +492,7 @@ export const appRouter = router({
           name: z.string().optional(),
           description: z.string().optional(),
           prompt: z.string().optional(),
-          category: z.string().optional(),
+          categoryId: z.number().nullable().optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -611,6 +611,52 @@ export const appRouter = router({
           };
         });
       }),
+    
+    // Category management
+    listCategories: protectedProcedure.query(async ({ ctx }) => {
+      const { listCategories } = await import("./template-categories-db");
+      return listCategories(ctx.user.id);
+    }),
+    
+    createCategory: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { createCategory } = await import("./template-categories-db");
+        return createCategory({
+          userId: ctx.user.id,
+          name: input.name,
+          color: input.color,
+        });
+      }),
+    
+    updateCategory: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100).optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { updateCategory } = await import("./template-categories-db");
+        const { id, ...data } = input;
+        await updateCategory(id, ctx.user.id, data);
+        return { success: true };
+      }),
+    
+    deleteCategory: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { deleteCategory } = await import("./template-categories-db");
+        await deleteCategory(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    
+    createDefaultCategories: protectedProcedure.mutation(async ({ ctx }) => {
+      const { createDefaultCategories } = await import("./template-categories-db");
+      return createDefaultCategories(ctx.user.id);
+    }),
   }),
 
   // Voice transcription

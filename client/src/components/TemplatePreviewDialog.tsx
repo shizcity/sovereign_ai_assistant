@@ -20,7 +20,7 @@ interface TemplatePreviewDialogProps {
     name: string;
     description: string | null;
     prompt: string;
-    category: string | null;
+    categoryId: number | null;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -121,9 +121,7 @@ export function TemplatePreviewDialog({
                 </DialogDescription>
               )}
             </div>
-            {template.category && (
-              <Badge variant="secondary">{template.category}</Badge>
-            )}
+            {/* TODO: Add category badge based on categoryId */}
           </div>
         </DialogHeader>
 
