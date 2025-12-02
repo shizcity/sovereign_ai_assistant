@@ -45,7 +45,7 @@ export const MODEL_CONFIG: Record<string, { provider: LLMProvider; apiModel: str
   "gpt-3.5-turbo": { provider: "openai", apiModel: "gpt-3.5-turbo" },
   "claude-3-opus": { provider: "anthropic", apiModel: "claude-3-opus-20240229" },
   "claude-3-sonnet": { provider: "anthropic", apiModel: "claude-3-sonnet-20240229" },
-  "gemini-pro": { provider: "google", apiModel: "gemini-pro" },
+  "gemini-pro": { provider: "google", apiModel: "gemini-flash-latest" },
   "grok-1": { provider: "xai", apiModel: "grok-1" },
 };
 
