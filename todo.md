@@ -263,3 +263,35 @@
 - [x] Fix sidebar sizing and scrolling
 - [x] Ensure proper spacing and alignment
 - [x] Test responsive layout
+
+## Phase 1: Sentinel Foundation Implementation (IN PROGRESS)
+
+### Database & Backend (COMPLETE)
+- [x] Create sentinels table with profiles, personalities, system prompts, visual identities
+- [x] Create sentinelMemory table for relationship tracking per user per Sentinel
+- [x] Create conversationSentinels junction table for multi-Sentinel collaboration
+- [x] Seed sentinels table with 6 Sentinel profiles (Vixen's Den, Mischief.EXE, Lunaris.Vault, Aetheris.Flow, Rift.EXE, Nyx)
+- [x] Create sentinels-db.ts with all database operations
+- [x] Add sentinels router to server/routers.ts with all tRPC procedures
+
+### Frontend (PARTIAL - NEEDS DEBUGGING)
+- [x] Create SentinelSelector component
+- [x] Add Sentinel selector to Chat.tsx interface
+- [x] Add selectedSentinel state management
+- [ ] FIX: Sentinel selector shows "Loading..." indefinitely (500 error from server)
+- [ ] FIX: Debug why sentinels.list tRPC query fails despite correct router setup
+- [ ] Implement system prompt injection based on selected Sentinel
+- [ ] Display active Sentinel in conversation header
+- [ ] Create "Meet the Sentinels" onboarding page
+
+### Testing & Deployment
+- [ ] Write vitest tests for Sentinel procedures
+- [ ] Test Sentinel selection and memory tracking
+- [ ] Save checkpoint with working Sentinel Foundation
+
+### Known Issues
+- sentinels.list endpoint returns 500 error
+- SentinelSelector component stuck in loading state
+- Dynamic import of sentinels-db may be failing at runtime
+- Need to verify table names match between schema and database
+

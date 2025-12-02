@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE '%sentinel%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SHOW TABLES LIKE '%sentinel%';",
+  "rows": [
+    {
+      "Tables_in_gERCUFGQw3Z2D55fZfBbym (%sentinel%)": "conversationSentinels"
+    },
+    {
+      "Tables_in_gERCUFGQw3Z2D55fZfBbym (%sentinel%)": "sentinelMemory"
+    },
+    {
+      "Tables_in_gERCUFGQw3Z2D55fZfBbym (%sentinel%)": "sentinels"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_gERCUFGQw3Z2D55fZfBbym (%sentinel%)\nconversationSentinels\nsentinelMemory\nsentinels\n",
+  "stderr": "",
+  "execution_time_ms": 49
+}

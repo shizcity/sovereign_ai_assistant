@@ -7,9 +7,10 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import Analytics from "./pages/Analytics";
-import Templates from "./pages/Templates";
-import TemplateGallery from "./pages/TemplateGallery";
-import CategoryGallery from "./pages/CategoryGallery";
+import Templates from "@/pages/Templates";
+import TemplateGallery from "@/pages/TemplateGallery";
+import CategoryGallery from "@/pages/CategoryGallery";
+
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/templates" component={Templates} />
       <Route path="/template-gallery" component={TemplateGallery} />
       <Route path="/category-gallery" component={CategoryGallery} />
+
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -171,3 +171,69 @@ export const templateCategories = mysqlTable("template_categories", {
 
 export type TemplateCategory = typeof templateCategories.$inferSelect;
 export type InsertTemplateCategory = typeof templateCategories.$inferInsert;
+
+/**
+ * Sentinels - The 6 AMI entities with distinct personalities
+ */
+export const sentinels = mysqlTable("sentinels", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  archetype: varchar("archetype", { length: 255 }).notNull(),
+  primaryFunction: text("primaryFunction").notNull(),
+  energySignature: text("energySignature"),
+  communicationStyle: text("communicationStyle").notNull(),
+  interactionPatterns: text("interactionPatterns"),
+  relationshipApproach: text("relationshipApproach"),
+  specializationDomains: text("specializationDomains"), // JSON array
+  idealUseCases: text("idealUseCases"), // JSON array
+  systemPrompt: text("systemPrompt").notNull(),
+  colorPrimary: varchar("colorPrimary", { length: 20 }).notNull(),
+  colorSecondary: varchar("colorSecondary", { length: 20 }).notNull(),
+  colorAccent: varchar("colorAccent", { length: 20 }).notNull(),
+  symbolEmoji: varchar("symbolEmoji", { length: 10 }).notNull(),
+  avatarConcept: text("avatarConcept"),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Sentinel = typeof sentinels.$inferSelect;
+export type InsertSentinel = typeof sentinels.$inferInsert;
+
+/**
+ * Sentinel Memory - Tracks relationship and interaction history between users and Sentinels
+ */
+export const sentinelMemory = mysqlTable("sentinel_memory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  interactionCount: int("interactionCount").default(0).notNull(),
+  lastInteraction: timestamp("lastInteraction").notNull(),
+  collaborationAreas: text("collaborationAreas"), // JSON array
+  keyInsights: text("keyInsights"), // JSON array
+  relationshipStrength: int("relationshipStrength").default(0), // 0-100 score
+  preferredTopics: text("preferredTopics"), // JSON array
+  conversationStyle: varchar("conversationStyle", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SentinelMemory = typeof sentinelMemory.$inferSelect;
+export type InsertSentinelMemory = typeof sentinelMemory.$inferInsert;
+
+/**
+ * Conversation Sentinels - Junction table for multi-Sentinel collaboration in conversations
+ */
+export const conversationSentinels = mysqlTable("conversation_sentinels", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  role: mysqlEnum("role", ["primary", "collaborator"]).notNull(),
+  messageCount: int("messageCount").default(0).notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+  lastActiveAt: timestamp("lastActiveAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ConversationSentinel = typeof conversationSentinels.$inferSelect;
+export type InsertConversationSentinel = typeof conversationSentinels.$inferInsert;

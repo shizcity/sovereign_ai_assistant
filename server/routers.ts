@@ -796,6 +796,81 @@ export const appRouter = router({
       }),
   }),
 
+  // Sentinel management
+  sentinels: router({
+    list: publicProcedure.query(async () => {
+      const { getAllSentinels } = await import("./sentinels-db");
+      return getAllSentinels();
+    }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getSentinelById } = await import("./sentinels-db");
+        return getSentinelById(input.id);
+      }),
+
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const { getSentinelBySlug } = await import("./sentinels-db");
+        return getSentinelBySlug(input.slug);
+      }),
+
+    getMemory: protectedProcedure
+      .input(z.object({ sentinelId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getSentinelMemory } = await import("./sentinels-db");
+        return getSentinelMemory(ctx.user.id, input.sentinelId);
+      }),
+
+    getAllMemories: protectedProcedure.query(async ({ ctx }) => {
+      const { getAllSentinelMemories } = await import("./sentinels-db");
+      return getAllSentinelMemories(ctx.user.id);
+    }),
+
+    updateMemory: protectedProcedure
+      .input(z.object({
+        sentinelId: z.number(),
+        interactionCount: z.number().optional(),
+        lastInteraction: z.date().optional(),
+        collaborationAreas: z.array(z.string()).optional(),
+        keyInsights: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateSentinelMemory } = await import("./sentinels-db");
+        return updateSentinelMemory(ctx.user.id, input.sentinelId, input);
+      }),
+
+    addToConversation: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        sentinelId: z.number(),
+        role: z.enum(["primary", "collaborator"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { addSentinelToConversation } = await import("./sentinels-db");
+        return addSentinelToConversation(input.conversationId, input.sentinelId, input.role);
+      }),
+
+    getConversationSentinels: publicProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ input }) => {
+        const { getConversationSentinels } = await import("./sentinels-db");
+        return getConversationSentinels(input.conversationId);
+      }),
+
+    removeFromConversation: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        sentinelId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const { removeSentinelFromConversation } = await import("./sentinels-db");
+        return removeSentinelFromConversation(input.conversationId, input.sentinelId);
+      }),
+  }),
+
   // Available models based on configured API keys
   models: router({
     available: publicProcedure.query(async () => {

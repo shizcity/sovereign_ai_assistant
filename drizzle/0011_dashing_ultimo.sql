@@ -1,0 +1,1 @@
+ALTER TABLE `userSettings` MODIFY COLUMN `theme` varchar(20) DEFAULT 'dark';

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
+import { SentinelSelector } from "@/components/SentinelSelector";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ export default function Chat() {
   const [, setLocation] = useLocation();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState("");
+  const [selectedSentinel, setSelectedSentinel] = useState<number | undefined>();
   const [inputMessage, setInputMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
@@ -910,6 +912,10 @@ export default function Chat() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <SentinelSelector
+                    value={selectedSentinel}
+                    onChange={setSelectedSentinel}
+                  />
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
                     <SelectTrigger className="w-48 bg-white/5 border-white/10 text-white">
                       <SelectValue placeholder="Select model" />
