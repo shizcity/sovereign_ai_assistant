@@ -98,3 +98,9 @@
 - [x] Improve message display with better typography
 - [x] Add dynamic visual elements (gradients, shadows, hover effects)
 - [x] Polish the overall aesthetic
+
+## Conversation Search Feature
+- [x] Add search input in sidebar
+- [x] Implement client-side filtering by conversation title
+- [x] Add search icon and clear button
+- [x] Show "No results" state when search returns empty

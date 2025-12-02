@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { DollarSign, LogOut, MessageSquare, Plus, Send, Settings, Trash2 } from "lucide-react";
+import { DollarSign, LogOut, MessageSquare, Plus, Search, Send, Settings, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
@@ -20,6 +20,7 @@ export default function Chat() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState("");
   const [inputMessage, setInputMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const utils = trpc.useUtils();
@@ -32,6 +33,11 @@ export default function Chat() {
     trpc.conversations.list.useQuery(undefined, {
       enabled: !!user,
     });
+  
+  // Filter conversations by search query
+  const filteredConversations = conversations.filter((conv) =>
+    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   // Set default model when available models are loaded
   useEffect(() => {
@@ -131,6 +137,28 @@ export default function Chat() {
           <p className="text-sm text-gray-400 mt-1">Your AI. Your Identity. Your Sovereignty.</p>
         </div>
 
+        {/* Search Bar */}
+        <div className="p-4 border-b border-white/10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-10 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-white/10"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* New Conversation Button */}
         <div className="p-4">
           <Button
@@ -147,13 +175,21 @@ export default function Chat() {
         <div className="flex-1 overflow-y-auto px-4 space-y-2">
           {conversationsLoading ? (
             <div className="text-center text-gray-400 py-8">Loading conversations...</div>
-          ) : conversations.length === 0 ? (
+          ) : filteredConversations.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No conversations yet</p>
+              <p className="text-sm">{searchQuery ? "No conversations found" : "No conversations yet"}</p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-xs text-blue-400 hover:text-blue-300 mt-2 transition-colors"
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
-            conversations.map((conv) => (
+            filteredConversations.map((conv) => (
               <div
                 key={conv.id}
                 className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
