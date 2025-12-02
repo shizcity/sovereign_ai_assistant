@@ -251,3 +251,15 @@
 - [x] Build inline message editor with save/cancel
 - [x] Add visual indicator for edited messages
 - [x] Test message editing and regeneration
+
+## Folder Cleanup
+- [x] Remove duplicate folders from database
+
+## Unfiled Section Cleanup
+- [x] Remove test and unwanted conversations from unfiled section
+
+## UI Layout Fixes
+- [x] Fix overlapping elements in Chat UI
+- [x] Fix sidebar sizing and scrolling
+- [x] Ensure proper spacing and alignment
+- [x] Test responsive layout

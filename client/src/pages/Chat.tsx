@@ -536,9 +536,9 @@ export default function Chat() {
   return (
     <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950">
       {/* Sidebar */}
-      <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20">
+      <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20 overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-white/10">
+        <div className="p-6 border-b border-white/10 flex-shrink-0">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
             Sovereign AI Assistant
           </h1>
@@ -546,7 +546,7 @@ export default function Chat() {
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 border-b border-white/10 flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -569,7 +569,7 @@ export default function Chat() {
         </div>
 
         {/* New Conversation Button */}
-        <div className="p-4 border-b border-white/10 space-y-2">
+        <div className="p-4 border-b border-white/10 space-y-2 flex-shrink-0">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-[1.02]"
@@ -594,7 +594,7 @@ export default function Chat() {
         </div>
 
         {/* Folder Management */}
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-gray-400">FOLDERS</span>
             <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
@@ -650,7 +650,7 @@ export default function Chat() {
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {/* Unfiled Conversations */}
           {conversationsByFolder.unfiled && conversationsByFolder.unfiled.length > 0 && (
             <div className="p-2">
@@ -769,7 +769,7 @@ export default function Chat() {
         </div>
 
         {/* Bottom Actions */}
-        <div className="p-4 border-t border-white/10 space-y-2">
+        <div className="p-4 border-t border-white/10 space-y-2 flex-shrink-0">
           <div className="flex gap-2 mb-2">
             <Button
               variant="outline"

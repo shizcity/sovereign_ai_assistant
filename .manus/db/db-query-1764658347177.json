@@ -1,0 +1,220 @@
+{
+  "query": "SELECT id, title, createdAt, updatedAt FROM conversations WHERE folderId IS NULL ORDER BY updatedAt DESC",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, title, createdAt, updatedAt FROM conversations WHERE folderId IS NULL ORDER BY updatedAt DESC",
+  "rows": [
+    {
+      "id": "150078",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 06:11:58",
+      "updatedAt": "2025-12-02 06:12:06"
+    },
+    {
+      "id": "150076",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 06:11:55",
+      "updatedAt": "2025-12-02 06:11:56"
+    },
+    {
+      "id": "150071",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 06:11:54",
+      "updatedAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150070",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 06:11:54",
+      "updatedAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150069",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 06:11:54",
+      "updatedAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "150067",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:50:49",
+      "updatedAt": "2025-12-02 05:50:56"
+    },
+    {
+      "id": "150065",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:47"
+    },
+    {
+      "id": "150062",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150061",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150060",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "150056",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:50:18",
+      "updatedAt": "2025-12-02 05:50:26"
+    },
+    {
+      "id": "150053",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:15"
+    },
+    {
+      "id": "150055",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:14"
+    },
+    {
+      "id": "150052",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:14"
+    },
+    {
+      "id": "150049",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:14"
+    },
+    {
+      "id": "150045",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:45:47",
+      "updatedAt": "2025-12-02 05:45:54"
+    },
+    {
+      "id": "150043",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:45:45",
+      "updatedAt": "2025-12-02 05:45:46"
+    },
+    {
+      "id": "150039",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:45:44",
+      "updatedAt": "2025-12-02 05:45:44"
+    },
+    {
+      "id": "150040",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:45:44",
+      "updatedAt": "2025-12-02 05:45:44"
+    },
+    {
+      "id": "150038",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:45:44",
+      "updatedAt": "2025-12-02 05:45:44"
+    },
+    {
+      "id": "150034",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:45:22",
+      "updatedAt": "2025-12-02 05:45:29"
+    },
+    {
+      "id": "150032",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:45:19",
+      "updatedAt": "2025-12-02 05:45:20"
+    },
+    {
+      "id": "150027",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:45:18",
+      "updatedAt": "2025-12-02 05:45:18"
+    },
+    {
+      "id": "150029",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:45:18",
+      "updatedAt": "2025-12-02 05:45:18"
+    },
+    {
+      "id": "150028",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:45:18",
+      "updatedAt": "2025-12-02 05:45:18"
+    },
+    {
+      "id": "150023",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:44:41",
+      "updatedAt": "2025-12-02 05:44:49"
+    },
+    {
+      "id": "150021",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:39"
+    },
+    {
+      "id": "150018",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:38"
+    },
+    {
+      "id": "150017",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:38"
+    },
+    {
+      "id": "150016",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:38"
+    },
+    {
+      "id": "150012",
+      "title": "Context Test",
+      "createdAt": "2025-12-02 05:37:23",
+      "updatedAt": "2025-12-02 05:37:30"
+    },
+    {
+      "id": "150006",
+      "title": "Updated Title",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    },
+    {
+      "id": "150011",
+      "title": "Tag Removal Test",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    },
+    {
+      "id": "150010",
+      "title": "Multi-Tag Conversation",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    },
+    {
+      "id": "150009",
+      "title": "Tagged Conversation",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tcreatedAt\tupdatedAt\n150078\tContext Test\t2025-12-02 06:11:58\t2025-12-02 06:12:06\n150076\tUpdated Title\t2025-12-02 06:11:55\t2025-12-02 06:11:56\n150071\tTag Removal Test\t2025-12-02 06:11:54\t2025-12-02 06:11:54\n150070\tMulti-Tag Conversation\t2025-12-02 06:11:54\t2025-12-02 06:11:54\n150069\tTagged Conversation\t2025-12-02 06:11:54\t2025-12-02 06:11:54\n150067\tContext Test\t2025-12-02 05:50:49\t2025-12-02 05:50:56\n150065\tUpdated Title\t2025-12-02 05:50:46\t2025-12-02 05:50:47\n150062\tTag Removal Test\t2025-12-02 05:50:46\t2025-12-02 05:50:46\n150061\tMulti-Tag Conversation\t2025-12-02 05:50:46\t2025-12-02 05:50:46\n150060\tTagged Conversation\t2025-12-02 05:50:46\t2025-12-02 05:50:46\n150056\tContext Test\t2025-12-02 05:50:18\t2025-12-02 05:50:26\n150053\tUpdated Title\t2025-12-02 05:50:14\t2025-12-02 05:50:15\n150055\tTag Removal Test\t2025-12-02 05:50:14\t2025-12-02 05:50:14\n150052\tMulti-Tag Conversation\t2025-12-02 05:50:14\t2025-12-02 05:50:14\n150049\tTagged Conversation\t2025-12-02 05:50:14\t2025-12-02 05:50:14\n150045\tContext Test\t2025-12-02 05:45:47\t2025-12-02 05:45:54\n150043\tUpdated Title\t2025-12-02 05:45:45\t2025-12-02 05:45:46\n150039\tMulti-Tag Conversation\t2025-12-02 05:45:44\t2025-12-02 05:45:44\n150040\tTag Removal Test\t2025-12-02 05:45:44\t2025-12-02 05:45:44\n150038\tTagged Conversation\t2025-12-02 05:45:44\t2025-12-02 05:45:44\n150034\tContext Test\t2025-12-02 05:45:22\t2025-12-02 05:45:29\n150032\tUpdated Title\t2025-12-02 05:45:19\t2025-12-02 05:45:20\n150027\tTagged Conversation\t2025-12-02 05:45:18\t2025-12-02 05:45:18\n150029\tTag Removal Test\t2025-12-02 05:45:18\t2025-12-02 05:45:18\n150028\tMulti-Tag Conversation\t2025-12-02 05:45:18\t2025-12-02 05:45:18\n150023\tContext Test\t2025-12-02 05:44:41\t2025-12-02 05:44:49\n150021\tUpdated Title\t2025-12-02 05:44:38\t2025-12-02 05:44:39\n150018\tTag Removal Test\t2025-12-02 05:44:38\t2025-12-02 05:44:38\n150017\tMulti-Tag Conversation\t2025-12-02 05:44:38\t2025-12-02 05:44:38\n150016\tTagged Conversation\t2025-12-02 05:44:38\t2025-12-02 05:44:38\n150012\tContext Test\t2025-12-02 05:37:23\t2025-12-02 05:37:30\n150006\tUpdated Title\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n150011\tTag Removal Test\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n150010\tMulti-Tag Conversation\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n150009\tTagged Conversation\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n",
+  "stderr": "",
+  "execution_time_ms": 842
+}

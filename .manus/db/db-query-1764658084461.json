@@ -1,0 +1,122 @@
+{
+  "query": "SELECT * FROM folders ORDER BY name, createdAt",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT * FROM folders ORDER BY name, createdAt",
+  "rows": [
+    {
+      "id": "30002",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    },
+    {
+      "id": "30004",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:38"
+    },
+    {
+      "id": "30006",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:45:18",
+      "updatedAt": "2025-12-02 05:45:18"
+    },
+    {
+      "id": "30008",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:45:44",
+      "updatedAt": "2025-12-02 05:45:44"
+    },
+    {
+      "id": "30010",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:14"
+    },
+    {
+      "id": "30012",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "30014",
+      "userId": "1",
+      "name": "Personal",
+      "color": "#10B981",
+      "createdAt": "2025-12-02 06:11:54",
+      "updatedAt": "2025-12-02 06:11:54"
+    },
+    {
+      "id": "30001",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:37:20",
+      "updatedAt": "2025-12-02 05:37:20"
+    },
+    {
+      "id": "30003",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:44:38",
+      "updatedAt": "2025-12-02 05:44:38"
+    },
+    {
+      "id": "30005",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:45:18",
+      "updatedAt": "2025-12-02 05:45:18"
+    },
+    {
+      "id": "30007",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:45:44",
+      "updatedAt": "2025-12-02 05:45:44"
+    },
+    {
+      "id": "30009",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:50:14",
+      "updatedAt": "2025-12-02 05:50:14"
+    },
+    {
+      "id": "30011",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 05:50:46",
+      "updatedAt": "2025-12-02 05:50:46"
+    },
+    {
+      "id": "30013",
+      "userId": "1",
+      "name": "Work",
+      "color": "#3B82F6",
+      "createdAt": "2025-12-02 06:11:54",
+      "updatedAt": "2025-12-02 06:11:54"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\tcolor\tcreatedAt\tupdatedAt\n30002\t1\tPersonal\t#10B981\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n30004\t1\tPersonal\t#10B981\t2025-12-02 05:44:38\t2025-12-02 05:44:38\n30006\t1\tPersonal\t#10B981\t2025-12-02 05:45:18\t2025-12-02 05:45:18\n30008\t1\tPersonal\t#10B981\t2025-12-02 05:45:44\t2025-12-02 05:45:44\n30010\t1\tPersonal\t#10B981\t2025-12-02 05:50:14\t2025-12-02 05:50:14\n30012\t1\tPersonal\t#10B981\t2025-12-02 05:50:46\t2025-12-02 05:50:46\n30014\t1\tPersonal\t#10B981\t2025-12-02 06:11:54\t2025-12-02 06:11:54\n30001\t1\tWork\t#3B82F6\t2025-12-02 05:37:20\t2025-12-02 05:37:20\n30003\t1\tWork\t#3B82F6\t2025-12-02 05:44:38\t2025-12-02 05:44:38\n30005\t1\tWork\t#3B82F6\t2025-12-02 05:45:18\t2025-12-02 05:45:18\n30007\t1\tWork\t#3B82F6\t2025-12-02 05:45:44\t2025-12-02 05:45:44\n30009\t1\tWork\t#3B82F6\t2025-12-02 05:50:14\t2025-12-02 05:50:14\n30011\t1\tWork\t#3B82F6\t2025-12-02 05:50:46\t2025-12-02 05:50:46\n30013\t1\tWork\t#3B82F6\t2025-12-02 06:11:54\t2025-12-02 06:11:54\n",
+  "stderr": "",
+  "execution_time_ms": 91
+}
