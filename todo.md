@@ -116,3 +116,10 @@
 - [x] Implement backend endpoint to generate Markdown export
 - [x] Format conversation with metadata (title, date, model, tokens, cost)
 - [x] Trigger file download with proper filename
+
+## Keyboard Shortcuts Feature
+- [x] Implement Cmd/Ctrl+K to focus search input
+- [x] Implement Cmd/Ctrl+N to create new conversation
+- [x] Implement Cmd/Ctrl+Enter to send message
+- [x] Implement Esc to clear input or close search
+- [ ] Add keyboard shortcuts help tooltip or modal (future enhancement)

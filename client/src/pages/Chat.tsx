@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
@@ -22,6 +23,8 @@ export default function Chat() {
   const [inputMessage, setInputMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const utils = trpc.useUtils();
 
@@ -59,6 +62,37 @@ export default function Chat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl+K: Focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // Cmd/Ctrl+N: New conversation
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel });
+      }
+      
+      // Esc: Clear search or unfocus input
+      if (e.key === 'Escape') {
+        if (searchQuery) {
+          setSearchQuery('');
+        } else if (document.activeElement === searchInputRef.current) {
+          searchInputRef.current?.blur();
+        } else if (document.activeElement === messageInputRef.current) {
+          messageInputRef.current?.blur();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery]);
 
   // Create conversation mutation
   const createConversation = trpc.conversations.create.useMutation({
@@ -190,12 +224,13 @@ export default function Chat() {
         <div className="p-4 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <Input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search conversations..."
+              placeholder="Search conversations... (⌘K)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-10 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-white/10"
+              className="pl-10 bg-white/5 border-white/10 focus:border-blue-500 transition-colors"
             />
             {searchQuery && (
               <button
@@ -415,10 +450,22 @@ export default function Chat() {
               <div className="max-w-4xl mx-auto">
                 <div className="flex gap-3">
                   <textarea
+                    ref={messageInputRef}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Type your message..."
+                    onKeyDown={(e) => {
+                      // Enter: Send message (Shift+Enter for new line)
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                      // Cmd/Ctrl+Enter: Also send message
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type your message... (⏎ to send, ⇧⏎ for new line)"
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200 hover:bg-white/10"
                     rows={1}
                     disabled={sendMessage.isPending}
