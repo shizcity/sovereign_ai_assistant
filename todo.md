@@ -228,3 +228,6 @@
 - [x] Show confirmation dialog before cleanup
 - [x] Display count of deleted conversations in success toast
 - [x] Test cleanup functionality
+
+## Vite Configuration Fix
+- [x] Fix HMR WebSocket connection error in proxied environment
