@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { TemplateDetailDialog } from "@/components/TemplateDetailDialog";
+import { TemplatePreviewDialog } from "@/components/TemplatePreviewDialog";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, Download, User, Sparkles, Star, TrendingUp, Trophy, Award } from "lucide-react";
+import { Search, Download, User, Sparkles, Star, TrendingUp, Trophy, Award, Eye } from "lucide-react";
 
 export default function TemplateGallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"recent" | "rating">("rating");
   const [selectedTemplate, setSelectedTemplate] = useState<typeof publicTemplates[0] | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<typeof publicTemplates[0] | null>(null);
 
   const { data: publicTemplates = [], isLoading } = trpc.templates.listPublic.useQuery();
   
@@ -216,10 +218,22 @@ export default function TemplateGallery() {
                       </span>
                     </div>
                   </div>
-                  <div className="w-full">
+                  <div className="w-full flex gap-2">
                     <Button
                       size="sm"
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewTemplate(template);
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Try It
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleImport(template.id);
@@ -227,7 +241,7 @@ export default function TemplateGallery() {
                       disabled={importMutation.isPending}
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Import Featured
+                      Import
                     </Button>
                   </div>
                 </CardFooter>
@@ -317,10 +331,19 @@ export default function TemplateGallery() {
                     );
                   })()}
                 </div>
-                <div className="w-full">
+                <div className="w-full flex gap-2">
                   <Button
                     size="sm"
-                    className="w-full"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setPreviewTemplate(template)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Try It
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1"
                     onClick={() => handleImport(template.id)}
                     disabled={importMutation.isPending}
                   >
@@ -343,6 +366,19 @@ export default function TemplateGallery() {
           onImport={() => {
             handleImport(selectedTemplate.id);
             setSelectedTemplate(null);
+          }}
+        />
+      )}
+      
+      {/* Template preview dialog */}
+      {previewTemplate && (
+        <TemplatePreviewDialog
+          template={previewTemplate}
+          open={!!previewTemplate}
+          onOpenChange={(open) => !open && setPreviewTemplate(null)}
+          onImport={() => {
+            handleImport(previewTemplate.id);
+            setPreviewTemplate(null);
           }}
         />
       )}

@@ -188,3 +188,11 @@
 - [x] Add featured badge visual indicator
 - [x] Display featured templates in responsive grid layout
 - [x] Test featured templates display and selection logic
+
+## Template Preview Feature
+- [x] Create TemplatePreviewDialog component with variable input fields
+- [x] Extract variables from template prompt (e.g., [VARIABLE])
+- [x] Implement live preview of generated prompt as user types
+- [x] Add Try It button to gallery template cards
+- [x] Add copy to clipboard functionality for preview result
+- [x] Test template preview with various variable patterns
