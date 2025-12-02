@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -8,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -37,6 +38,9 @@ export default function Chat() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [selectedTemplateForUse, setSelectedTemplateForUse] = useState<any>(null);
+  const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
@@ -66,6 +70,9 @@ export default function Chat() {
     { conversationId: selectedConversation! },
     { enabled: !!selectedConversation }
   );
+
+  // Fetch templates
+  const { data: templates = [] } = trpc.templates.list.useQuery();
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -250,6 +257,39 @@ export default function Chat() {
       URL.revokeObjectURL(url);
       toast.success("Conversation exported");
     }
+  };
+
+  const handleSelectTemplate = (template: any) => {
+    // Extract variables from template content (e.g., [TOPIC], [AUDIENCE])
+    const variableRegex = /\[([A-Z_]+)\]/g;
+    const matches = [...template.prompt.matchAll(variableRegex)];
+    const variables = [...new Set(matches.map(m => m[1]))];
+    
+    if (variables.length > 0) {
+      // Show variable input dialog
+      setSelectedTemplateForUse(template);
+      setTemplateVariables(Object.fromEntries(variables.map(v => [v, ""])));
+    } else {
+      // No variables, use template directly
+      setInputMessage(template.prompt);
+      setIsTemplateDialogOpen(false);
+      toast.success("Template applied");
+    }
+  };
+
+  const handleApplyTemplateWithVariables = () => {
+    if (!selectedTemplateForUse) return;
+    
+    let content = selectedTemplateForUse.prompt;
+    Object.entries(templateVariables).forEach(([key, value]) => {
+      content = content.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+    });
+    
+    setInputMessage(content);
+    setIsTemplateDialogOpen(false);
+    setSelectedTemplateForUse(null);
+    setTemplateVariables({});
+    toast.success("Template applied with variables");
   };
 
   const handleStartRecording = async () => {
@@ -623,6 +663,12 @@ export default function Chat() {
               Analytics
             </Button>
           </Link>
+          <Link href="/templates">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
+              <FileText className="w-4 h-4 mr-2" />
+              Templates
+            </Button>
+          </Link>
           <Link href="/settings">
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <Settings className="w-4 h-4 mr-2" />
@@ -802,6 +848,14 @@ export default function Chat() {
               <div className="max-w-4xl mx-auto">
                 <div className="flex gap-3">
                   <Button
+                    onClick={() => setIsTemplateDialogOpen(true)}
+                    disabled={sendMessage.isPending}
+                    className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4"
+                    title="Use template"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                  </Button>
+                  <Button
                     onClick={handleToggleRecording}
                     disabled={sendMessage.isPending || isTranscribing}
                     className={`${
@@ -859,6 +913,116 @@ export default function Chat() {
           </div>
         )}
       </div>
+
+      {/* Template Selection Dialog */}
+      <Dialog open={isTemplateDialogOpen && !selectedTemplateForUse} onOpenChange={setIsTemplateDialogOpen}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select a Template</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Choose a prompt template to get started quickly
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {templates.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                <p className="text-gray-400 mb-4">No templates available</p>
+                <Link href="/templates">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    Create Templates
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {templates.map((template) => (
+                  <Card
+                    key={template.id}
+                    className="bg-white/5 border-white/10 p-4 hover:bg-white/10 cursor-pointer transition-all"
+                    onClick={() => handleSelectTemplate(template)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white mb-1">{template.name}</h3>
+                        {template.description && (
+                          <p className="text-sm text-gray-400 mb-2">{template.description}</p>
+                        )}
+                        <p className="text-xs text-gray-500 bg-black/30 p-2 rounded line-clamp-2 font-mono">
+                          {template.prompt}
+                        </p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 ml-3">
+                        {template.category}
+                      </span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Variables Dialog */}
+      <Dialog open={!!selectedTemplateForUse} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedTemplateForUse(null);
+          setTemplateVariables({});
+        }
+      }}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Fill Template Variables</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Provide values for the template placeholders
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTemplateForUse && (
+            <div className="space-y-4">
+              <div className="bg-white/5 p-3 rounded border border-white/10">
+                <p className="text-xs text-gray-400 mb-1">Template:</p>
+                <p className="text-sm text-white font-semibold">{selectedTemplateForUse.name}</p>
+              </div>
+              {Object.keys(templateVariables).map((variable) => (
+                <div key={variable}>
+                  <Label htmlFor={`var-${variable}`} className="text-white">
+                    {variable.replace(/_/g, ' ')}
+                  </Label>
+                  <Input
+                    id={`var-${variable}`}
+                    value={templateVariables[variable]}
+                    onChange={(e) =>
+                      setTemplateVariables({ ...templateVariables, [variable]: e.target.value })
+                    }
+                    placeholder={`Enter ${variable.toLowerCase().replace(/_/g, ' ')}`}
+                    className="bg-white/5 border-white/10 text-white"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedTemplateForUse(null);
+                setTemplateVariables({});
+              }}
+              className="border-white/10 text-gray-300 hover:bg-white/5"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleApplyTemplateWithVariables}
+              disabled={Object.values(templateVariables).some(v => !v.trim())}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              Apply Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

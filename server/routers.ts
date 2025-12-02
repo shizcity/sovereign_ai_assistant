@@ -455,6 +455,65 @@ export const appRouter = router({
       }),
   }),
 
+  // Prompt templates
+  templates: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { getTemplatesByUser } = await import("./templates-db");
+      return getTemplatesByUser(ctx.user.id);
+    }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const { getTemplateById } = await import("./templates-db");
+        return getTemplateById(input.id, ctx.user.id);
+      }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string(),
+          description: z.string().optional(),
+          prompt: z.string(),
+          category: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { createTemplate } = await import("./templates-db");
+        return createTemplate({
+          ...input,
+          userId: ctx.user.id,
+          isDefault: 0,
+        });
+      }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          name: z.string().optional(),
+          description: z.string().optional(),
+          prompt: z.string().optional(),
+          category: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { id, ...updates } = input;
+        const { updateTemplate } = await import("./templates-db");
+        await updateTemplate(id, ctx.user.id, updates);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const { deleteTemplate } = await import("./templates-db");
+        await deleteTemplate(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    createDefaults: protectedProcedure.mutation(async ({ ctx }) => {
+      const { createDefaultTemplates } = await import("./templates-db");
+      await createDefaultTemplates(ctx.user.id);
+      return { success: true };
+    }),
+  }),
+
   // Voice transcription
   voice: router({    transcribe: protectedProcedure
       .input(

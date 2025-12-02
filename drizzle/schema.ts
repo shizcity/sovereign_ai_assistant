@@ -118,3 +118,21 @@ export const conversationTags = mysqlTable("conversation_tags", {
 
 export type ConversationTag = typeof conversationTags.$inferSelect;
 export type InsertConversationTag = typeof conversationTags.$inferInsert;
+
+/**
+ * Prompt templates for reusable prompts
+ */
+export const promptTemplates = mysqlTable("prompt_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  prompt: text("prompt").notNull(),
+  category: varchar("category", { length: 100 }),
+  isDefault: int("isDefault").default(0).notNull(), // 0 = false, 1 = true
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PromptTemplate = typeof promptTemplates.$inferSelect;
+export type InsertPromptTemplate = typeof promptTemplates.$inferInsert;

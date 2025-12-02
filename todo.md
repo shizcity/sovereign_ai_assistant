@@ -146,3 +146,12 @@
 - [x] Insert transcribed text into message input
 - [x] Add error handling for unsupported browsers or permission denied
 - [x] Test voice input on different browsers (ready for user testing)
+
+## Prompt Templates Feature
+- [x] Create promptTemplates table in database
+- [x] Add template CRUD operations (create, list, update, delete)
+- [x] Create default templates for common tasks (brainstorming, content writing, code review)
+- [x] Build template selection UI in chat interface
+- [x] Add template management page
+- [x] Implement template variables/placeholders for customization
+- [x] Test template system with comprehensive vitest tests
