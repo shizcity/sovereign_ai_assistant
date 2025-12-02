@@ -156,11 +156,25 @@ export default function Chat() {
     },
   });
 
-  // Export conversation mutation
-  const exportConversation = trpc.conversations.export.useQuery(
+  // Export conversation mutations
+  const exportJSON = trpc.conversations.exportJSON.useQuery(
     { conversationId: selectedConversation! },
     { enabled: false }
   );
+
+  const exportMarkdown = trpc.conversations.exportMarkdown.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: false }
+  );
+
+  const exportAll = trpc.conversations.exportAll.useQuery(undefined, { enabled: false });
+
+  const importConversation = trpc.conversations.import.useMutation({
+    onSuccess: () => {
+      utils.conversations.list.invalidate();
+      toast.success("Conversation imported successfully");
+    },
+  });
 
   // Folder mutations
   const createFolder = trpc.folders.create.useMutation({
@@ -251,20 +265,71 @@ export default function Chat() {
     });
   };
 
-  const handleExport = async () => {
+  const handleExportJSON = async () => {
     if (!selectedConversation) return;
     
-    const result = await exportConversation.refetch();
+    const result = await exportJSON.refetch();
     if (result.data) {
-      const blob = new Blob([result.data.markdown], { type: "text/markdown" });
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = result.data.filename;
+      a.download = `conversation_${selectedConversation}_${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Conversation exported");
+      toast.success("Conversation exported as JSON");
     }
+  };
+
+  const handleExportMarkdown = async () => {
+    if (!selectedConversation) return;
+    
+    const result = await exportMarkdown.refetch();
+    if (result.data) {
+      const conversation = conversations.data?.find(c => c.id === selectedConversation);
+      const filename = `${conversation?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'conversation'}_${Date.now()}.md`;
+      const blob = new Blob([result.data], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Conversation exported as Markdown");
+    }
+  };
+
+  const handleExportAll = async () => {
+    const result = await exportAll.refetch();
+    if (result.data) {
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `all_conversations_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("All conversations exported");
+    }
+  };
+
+  const handleImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          importConversation.mutate({ data });
+        } catch (error) {
+          toast.error("Invalid JSON file");
+        }
+      }
+    };
+    input.click();
   };
 
   const handleSelectTemplate = (template: any) => {
@@ -678,6 +743,28 @@ export default function Chat() {
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-white/10 space-y-2">
+          <div className="flex gap-2 mb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleImport}
+              className="flex-1 text-gray-300 hover:text-white border-white/10"
+              title="Import conversation from JSON"
+            >
+              <Download className="w-4 h-4 mr-1 rotate-180" />
+              Import
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportAll}
+              className="flex-1 text-gray-300 hover:text-white border-white/10"
+              title="Export all conversations"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Export All
+            </Button>
+          </div>
           <Link href="/analytics">
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <DollarSign className="w-4 h-4 mr-2" />
@@ -808,14 +895,28 @@ export default function Chat() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleExport}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportJSON}
+                      className="text-gray-400 hover:text-white"
+                      title="Export as JSON"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      JSON
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportMarkdown}
+                      className="text-gray-400 hover:text-white"
+                      title="Export as Markdown"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      MD
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -231,3 +231,14 @@
 
 ## Vite Configuration Fix
 - [x] Fix HMR WebSocket connection error in proxied environment
+
+## Conversation Export/Import
+- [x] Add backend procedure to export conversation as JSON
+- [x] Add backend procedure to export conversation as Markdown
+- [x] Add backend procedure to export all conversations
+- [x] Add backend procedure to import conversation from JSON
+- [x] Add export buttons to conversation UI (JSON and Markdown)
+- [x] Add bulk export all conversations button
+- [x] Add import button with file upload
+- [x] Validate imported data and handle conflicts
+- [x] Test export/import functionality

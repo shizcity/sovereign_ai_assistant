@@ -76,63 +76,31 @@ export const appRouter = router({
         return { success: true };
       }),
     
-    export: protectedProcedure
+    exportJSON: protectedProcedure
       .input(z.object({ conversationId: z.number() }))
       .query(async ({ ctx, input }) => {
-        const { getConversationById, getConversationMessages } = await import("./db");
-        const { TRPCError } = await import("@trpc/server");
-        
-        const conversation = await getConversationById(input.conversationId, ctx.user.id);
-        if (!conversation) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Conversation not found" });
-        }
+        const { exportConversationAsJSON } = await import("./conversation-export-db");
+        return exportConversationAsJSON(input.conversationId, ctx.user.id);
+      }),
 
-        const messages = await getConversationMessages(input.conversationId, ctx.user.id);
-        
-        // Format as Markdown
-        let markdown = `# ${conversation.title}\n\n`;
-        markdown += `**Created:** ${new Date(conversation.createdAt).toLocaleString()}\n`;
-        markdown += `**Last Updated:** ${new Date(conversation.updatedAt).toLocaleString()}\n`;
-        markdown += `**Default Model:** ${conversation.defaultModel}\n\n`;
-        markdown += `---\n\n`;
+    exportMarkdown: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { exportConversationAsMarkdown } = await import("./conversation-export-db");
+        return exportConversationAsMarkdown(input.conversationId, ctx.user.id);
+      }),
 
-        let totalTokens = 0;
-        let totalCost = 0;
+    exportAll: protectedProcedure.query(async ({ ctx }) => {
+      const { exportAllConversations } = await import("./conversation-export-db");
+      return exportAllConversations(ctx.user.id);
+    }),
 
-        for (const msg of messages) {
-          const role = msg.role === "user" ? "👤 User" : "🤖 Assistant";
-          markdown += `## ${role}\n\n`;
-          markdown += `${msg.content}\n\n`;
-          
-          if (msg.role === "assistant") {
-            const metadata: string[] = [];
-            if (msg.model) metadata.push(`Model: ${msg.model}`);
-            if (msg.totalTokens) {
-              metadata.push(`Tokens: ${msg.totalTokens}`);
-              totalTokens += msg.totalTokens;
-            }
-            if (msg.costUsd) {
-              metadata.push(`Cost: $${msg.costUsd}`);
-              totalCost += parseFloat(msg.costUsd);
-            }
-            if (metadata.length > 0) {
-              markdown += `*${metadata.join(" • ")}*\n\n`;
-            }
-          }
-          
-          markdown += `---\n\n`;
-        }
-
-        // Add summary
-        markdown += `## Summary\n\n`;
-        markdown += `- **Total Messages:** ${messages.length}\n`;
-        markdown += `- **Total Tokens:** ${totalTokens.toLocaleString()}\n`;
-        markdown += `- **Total Cost:** $${totalCost.toFixed(6)}\n`;
-
-        return {
-          markdown,
-          filename: `${conversation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.md`,
-        };
+    import: protectedProcedure
+      .input(z.object({ data: z.any() }))
+      .mutation(async ({ ctx, input }) => {
+        const { importConversation } = await import("./conversation-export-db");
+        const conversationId = await importConversation(input.data, ctx.user.id);
+        return { id: conversationId };
       }),
   }),
   
