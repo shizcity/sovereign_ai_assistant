@@ -157,3 +157,31 @@ export async function getTemplateRatings(templateIds: number[]) {
     reviewCount: Number(r.reviewCount || 0),
   }));
 }
+
+/**
+ * Get featured templates (high-rated with sufficient reviews)
+ * Criteria: average rating >= 4.0 and at least 3 reviews
+ */
+export async function getFeaturedTemplates(limit: number = 6) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get templates with their average ratings
+  const results = await db
+    .select({
+      templateId: templateReviews.templateId,
+      averageRating: sql<number>`AVG(${templateReviews.rating})`,
+      reviewCount: sql<number>`COUNT(*)`,
+    })
+    .from(templateReviews)
+    .groupBy(templateReviews.templateId)
+    .having(sql`AVG(${templateReviews.rating}) >= 4.0 AND COUNT(*) >= 3`)
+    .orderBy(sql`AVG(${templateReviews.rating}) DESC`)
+    .limit(limit);
+
+  return results.map((r: any) => ({
+    templateId: r.templateId,
+    averageRating: Number(r.averageRating || 0),
+    reviewCount: Number(r.reviewCount || 0),
+  }));
+}

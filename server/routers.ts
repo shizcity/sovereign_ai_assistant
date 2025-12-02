@@ -585,6 +585,32 @@ export const appRouter = router({
         const { getTemplateRatings } = await import("./template-reviews-db");
         return getTemplateRatings(input.templateIds);
       }),
+    
+    getFeatured: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+        const { getFeaturedTemplates } = await import("./template-reviews-db");
+        const { getPublicTemplates } = await import("./templates-db");
+        
+        // Get featured template IDs with ratings
+        const featured = await getFeaturedTemplates(input?.limit);
+        
+        // Fetch full template data for featured templates
+        const allPublicTemplates = await getPublicTemplates();
+        const featuredTemplates = allPublicTemplates.filter(t => 
+          featured.some(f => f.templateId === t.id)
+        );
+        
+        // Return templates with their rating data
+        return featuredTemplates.map(template => {
+          const rating = featured.find(f => f.templateId === template.id);
+          return {
+            ...template,
+            averageRating: rating?.averageRating || 0,
+            reviewCount: rating?.reviewCount || 0,
+          };
+        });
+      }),
   }),
 
   // Voice transcription

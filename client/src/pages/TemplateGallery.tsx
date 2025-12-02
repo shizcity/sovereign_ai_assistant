@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, Download, User, Sparkles, Star, TrendingUp } from "lucide-react";
+import { Search, Download, User, Sparkles, Star, TrendingUp, Trophy, Award } from "lucide-react";
 
 export default function TemplateGallery() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,6 +15,12 @@ export default function TemplateGallery() {
   const [selectedTemplate, setSelectedTemplate] = useState<typeof publicTemplates[0] | null>(null);
 
   const { data: publicTemplates = [], isLoading } = trpc.templates.listPublic.useQuery();
+  
+  // Fetch featured templates
+  const { data: featuredTemplates = [] } = trpc.templates.getFeatured.useQuery(
+    { limit: 6 },
+    { enabled: true }
+  );
   
   // Fetch ratings for all public templates
   const templateIds = publicTemplates.map(t => t.id);
@@ -136,6 +142,106 @@ export default function TemplateGallery() {
             Most Recent
           </Button>
         </div>
+      </div>
+
+      {/* Featured Templates Section */}
+      {featuredTemplates.length > 0 && !searchQuery && !selectedCategory && (
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <Trophy className="h-6 w-6 text-yellow-500" />
+            <h2 className="text-2xl font-bold">Featured Templates</h2>
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+              Top Rated
+            </Badge>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredTemplates.map((template) => (
+              <Card
+                key={template.id}
+                className="flex flex-col cursor-pointer hover:shadow-lg transition-all border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-white relative overflow-hidden"
+                onClick={() => handleViewDetails(template)}
+              >
+                {/* Featured badge */}
+                <div className="absolute top-3 right-3">
+                  <Award className="h-6 w-6 text-yellow-500 fill-yellow-100" />
+                </div>
+                
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2 pr-8">
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
+                    {template.category && (
+                      <Badge variant="secondary" className="shrink-0">
+                        {template.category}
+                      </Badge>
+                    )}
+                  </div>
+                  {template.description && (
+                    <CardDescription className="line-clamp-2">
+                      {template.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+
+                <CardContent className="flex-1">
+                  <div className="bg-muted rounded-md p-3 text-sm font-mono text-muted-foreground line-clamp-4">
+                    {template.prompt}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span>{template.creatorName || "Anonymous"}</span>
+                    </div>
+                    
+                    {/* Rating display */}
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${
+                            star <= Math.round(template.averageRating)
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                      <span className="text-sm font-semibold text-yellow-700 ml-1">
+                        {template.averageRating.toFixed(1)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        ({template.reviewCount})
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full">
+                    <Button
+                      size="sm"
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleImport(template.id);
+                      }}
+                      disabled={importMutation.isPending}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Import Featured
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Templates Section */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold">
+          {searchQuery || selectedCategory ? "Search Results" : "All Templates"}
+        </h2>
       </div>
 
       {/* Templates grid */}

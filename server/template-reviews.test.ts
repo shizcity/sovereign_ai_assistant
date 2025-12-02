@@ -208,4 +208,112 @@ describe("template reviews", () => {
       })
     ).rejects.toThrow();
   });
+
+  it("fetches featured templates (4+ stars, 3+ reviews)", async () => {
+    // Create multiple templates and add reviews to test featured logic
+    const template1 = await caller.templates.create({
+      name: "High Rated Template 1",
+      description: "Should be featured",
+      prompt: "Test prompt 1",
+      category: "Featured Test",
+    });
+    await caller.templates.togglePublic({ id: template1.id, isPublic: true });
+
+    const template2 = await caller.templates.create({
+      name: "High Rated Template 2",
+      description: "Should also be featured",
+      prompt: "Test prompt 2",
+      category: "Featured Test",
+    });
+    await caller.templates.togglePublic({ id: template2.id, isPublic: true });
+
+    const template3 = await caller.templates.create({
+      name: "Low Rated Template",
+      description: "Should NOT be featured",
+      prompt: "Test prompt 3",
+      category: "Featured Test",
+    });
+    await caller.templates.togglePublic({ id: template3.id, isPublic: true });
+
+    // Add 5-star reviews to template1 (3 reviews)
+    await caller.templates.submitReview({
+      templateId: template1.id,
+      rating: 5,
+      reviewText: "Excellent!",
+    });
+    
+    // Create another user to add more reviews
+    const user2Data = {
+      openId: "test-user-featured-2",
+      name: "Reviewer 2",
+      email: "reviewer2@test.com",
+    };
+    await upsertUser(user2Data);
+    const user2 = await getUserByOpenId(user2Data.openId);
+    if (!user2) throw new Error("User 2 not found");
+    const caller2 = appRouter.createCaller(createTestContext(user2));
+
+    await caller2.templates.submitReview({
+      templateId: template1.id,
+      rating: 5,
+    });
+
+    const user3Data = {
+      openId: "test-user-featured-3",
+      name: "Reviewer 3",
+      email: "reviewer3@test.com",
+    };
+    await upsertUser(user3Data);
+    const user3 = await getUserByOpenId(user3Data.openId);
+    if (!user3) throw new Error("User 3 not found");
+    const caller3 = appRouter.createCaller(createTestContext(user3));
+
+    await caller3.templates.submitReview({
+      templateId: template1.id,
+      rating: 4,
+    });
+
+    // Add 4-star reviews to template2 (3 reviews)
+    await caller.templates.submitReview({
+      templateId: template2.id,
+      rating: 4,
+    });
+    await caller2.templates.submitReview({
+      templateId: template2.id,
+      rating: 4,
+    });
+    await caller3.templates.submitReview({
+      templateId: template2.id,
+      rating: 5,
+    });
+
+    // Add only 2 reviews to template3 (below threshold)
+    await caller.templates.submitReview({
+      templateId: template3.id,
+      rating: 5,
+    });
+    await caller2.templates.submitReview({
+      templateId: template3.id,
+      rating: 5,
+    });
+
+    // Fetch featured templates
+    const featured = await caller.templates.getFeatured({ limit: 10 });
+
+    // Verify results
+    expect(featured).toBeInstanceOf(Array);
+    
+    // Template1 and Template2 should be featured (4+ stars, 3+ reviews)
+    const featuredIds = featured.map(t => t.id);
+    expect(featuredIds).toContain(template1.id);
+    expect(featuredIds).toContain(template2.id);
+    
+    // Template3 should NOT be featured (only 2 reviews)
+    expect(featuredIds).not.toContain(template3.id);
+
+    // Verify rating data is included
+    const template1Featured = featured.find(t => t.id === template1.id);
+    expect(template1Featured?.averageRating).toBeGreaterThanOrEqual(4.0);
+    expect(template1Featured?.reviewCount).toBeGreaterThanOrEqual(3);
+  });
 });

@@ -181,3 +181,10 @@
 - [x] Add edit/delete controls for user's own reviews
 - [x] Implement review validation (one review per user per template)
 - [x] Test rating and review system with comprehensive vitest tests
+
+## Featured Templates Section
+- [x] Add backend procedure to fetch featured templates (4+ stars, 3+ reviews)
+- [x] Create featured templates UI section on gallery homepage
+- [x] Add featured badge visual indicator
+- [x] Display featured templates in responsive grid layout
+- [x] Test featured templates display and selection logic
