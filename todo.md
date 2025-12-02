@@ -123,3 +123,16 @@
 - [x] Implement Cmd/Ctrl+Enter to send message
 - [x] Implement Esc to clear input or close search
 - [ ] Add keyboard shortcuts help tooltip or modal (future enhancement)
+
+## Folder & Tag Organization Feature
+- [x] Create folders table in database
+- [x] Create tags table with color field
+- [x] Add folderId field to conversations table
+- [x] Create conversation_tags junction table
+- [x] Implement folder CRUD operations (create, list, delete, rename)
+- [x] Implement tag CRUD operations (create, list, delete, update color)
+- [x] Add API endpoints for assigning folders and tags to conversations
+- [x] Build folder sidebar UI with expand/collapse
+- [x] Build tag management UI with color picker
+- [x] Add filtering by folder and tag
+- [ ] Add drag-and-drop to move conversations between folders (future enhancement)

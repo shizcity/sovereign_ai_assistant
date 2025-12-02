@@ -8,20 +8,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
-import { APP_TITLE } from "@/const";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function Chat() {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState("");
   const [inputMessage, setInputMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
+  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [selectedTags, setSelectedTags] = useState<Set<number>>(new Set());
+  
+  // Dialog states
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderColor, setNewFolderColor] = useState("#3B82F6");
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("#10B981");
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
@@ -29,34 +43,25 @@ export default function Chat() {
   const utils = trpc.useUtils();
 
   // Fetch available models
-  const { data: availableModels } = trpc.models.available.useQuery();
-  
-  // Fetch conversations
-  const { data: conversations = [], isLoading: conversationsLoading } =
-    trpc.conversations.list.useQuery(undefined, {
-      enabled: !!user,
-    });
-  
-  // Filter conversations by search query
-  const filteredConversations = conversations.filter((conv) =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  // Set default model when available models are loaded
-  useEffect(() => {
-    if (availableModels && availableModels.models.length > 0 && !selectedModel) {
-      setSelectedModel(availableModels.models[0].value);
-    }
-  }, [availableModels, selectedModel]);
+  const { data: modelsData } = trpc.models.available.useQuery();
+  const availableModels = modelsData?.models || [];
 
+  // Fetch conversations, folders, and tags
+  const { data: conversations = [] } = trpc.conversations.list.useQuery();
+  const { data: folders = [] } = trpc.folders.list.useQuery();
+  const { data: tags = [] } = trpc.tags.list.useQuery();
+  
   // Fetch messages for selected conversation
-  const { data: messages = [], isLoading: messagesLoading } =
-    trpc.messages.list.useQuery(
-      { conversationId: selectedConversation! },
-      {
-        enabled: !!selectedConversation,
-      }
-    );
+  const { data: messages = [] } = trpc.messages.list.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: !!selectedConversation }
+  );
+
+  // Fetch tags for selected conversation
+  const { data: conversationTags = [] } = trpc.tags.getForConversation.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: !!selectedConversation }
+  );
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -115,8 +120,9 @@ export default function Chat() {
   // Send message mutation
   const sendMessage = trpc.messages.send.useMutation({
     onSuccess: () => {
-      utils.messages.list.invalidate();
+      utils.messages.list.invalidate({ conversationId: selectedConversation! });
       setInputMessage("");
+      toast.success("Message sent");
     },
     onError: (error) => {
       toast.error(`Failed to send message: ${error.message}`);
@@ -126,33 +132,105 @@ export default function Chat() {
   // Regenerate message mutation
   const regenerateMessage = trpc.messages.send.useMutation({
     onSuccess: () => {
-      utils.messages.list.invalidate();
+      utils.messages.list.invalidate({ conversationId: selectedConversation! });
       toast.success("Response regenerated");
-    },
-    onError: (error) => {
-      toast.error(`Failed to regenerate: ${error.message}`);
     },
   });
 
-  const handleRegenerate = (messageIndex: number) => {
-    if (!selectedConversation) return;
-    
-    // Find the user message that prompted this AI response
-    const userMessage = messages[messageIndex - 1];
-    if (!userMessage || userMessage.role !== "user") return;
-
-    regenerateMessage.mutate({
-      conversationId: selectedConversation,
-      content: userMessage.content,
-      model: selectedModel,
-    });
-  };
-
-  // Export conversation
+  // Export conversation mutation
   const exportConversation = trpc.conversations.export.useQuery(
     { conversationId: selectedConversation! },
     { enabled: false }
   );
+
+  // Folder mutations
+  const createFolder = trpc.folders.create.useMutation({
+    onSuccess: () => {
+      utils.folders.list.invalidate();
+      setNewFolderName("");
+      setNewFolderColor("#3B82F6");
+      setFolderDialogOpen(false);
+      toast.success("Folder created");
+    },
+  });
+
+  const deleteFolder = trpc.folders.delete.useMutation({
+    onSuccess: () => {
+      utils.folders.list.invalidate();
+      utils.conversations.list.invalidate();
+      toast.success("Folder deleted");
+    },
+  });
+
+  const assignFolder = trpc.conversations.assignFolder.useMutation({
+    onSuccess: () => {
+      utils.conversations.list.invalidate();
+      toast.success("Folder assigned");
+    },
+  });
+
+  // Tag mutations
+  const createTag = trpc.tags.create.useMutation({
+    onSuccess: () => {
+      utils.tags.list.invalidate();
+      setNewTagName("");
+      setNewTagColor("#10B981");
+      setTagDialogOpen(false);
+      toast.success("Tag created");
+    },
+  });
+
+  const deleteTag = trpc.tags.delete.useMutation({
+    onSuccess: () => {
+      utils.tags.list.invalidate();
+      utils.conversations.list.invalidate();
+      toast.success("Tag deleted");
+    },
+  });
+
+  const assignTag = trpc.tags.assign.useMutation({
+    onSuccess: () => {
+      utils.tags.getForConversation.invalidate({ conversationId: selectedConversation! });
+      toast.success("Tag assigned");
+    },
+  });
+
+  const removeTag = trpc.tags.remove.useMutation({
+    onSuccess: () => {
+      utils.tags.getForConversation.invalidate({ conversationId: selectedConversation! });
+      toast.success("Tag removed");
+    },
+  });
+
+  // Set default model when available models are loaded
+  useEffect(() => {
+    if (availableModels.length > 0 && !selectedModel) {
+      setSelectedModel(availableModels[0]?.value || "");
+    }
+  }, [availableModels, selectedModel]);
+
+  const handleSendMessage = () => {
+    if (!inputMessage.trim() || !selectedConversation) return;
+    sendMessage.mutate({
+      conversationId: selectedConversation,
+      content: inputMessage,
+      model: selectedModel,
+    });
+  };
+
+  const handleRegenerateMessage = () => {
+    if (!selectedConversation || messages.length < 2) return;
+    
+    // Find the last user message
+    const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
+    if (!lastUserMessage) return;
+
+    regenerateMessage.mutate({
+      conversationId: selectedConversation,
+      content: lastUserMessage.content,
+      model: selectedModel,
+    });
+  };
 
   const handleExport = async () => {
     if (!selectedConversation) return;
@@ -164,58 +242,68 @@ export default function Chat() {
       const a = document.createElement("a");
       a.href = url;
       a.download = result.data.filename;
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success("Conversation exported");
     }
   };
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim() || !selectedConversation) return;
-
-    sendMessage.mutate({
-      conversationId: selectedConversation,
-      content: inputMessage,
-      model: selectedModel,
-    });
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const toggleFolder = (folderId: number) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
+    } else {
+      newExpanded.add(folderId);
     }
+    setExpandedFolders(newExpanded);
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-blue-950 flex items-center justify-center">
-        <div className="text-blue-400 animate-pulse">Loading...</div>
-      </div>
-    );
-  }
+  // Filter conversations
+  const filteredConversations = conversations.filter((conv) => {
+    // Search filter
+    if (searchQuery && !conv.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    // Folder filter
+    if (selectedFolder !== null && conv.folderId !== selectedFolder) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  // Group conversations by folder
+  const conversationsByFolder: Record<number | string, typeof conversations> = {
+    unfiled: filteredConversations.filter(c => !c.folderId),
+  };
+  
+  folders.forEach(folder => {
+    conversationsByFolder[folder.id] = filteredConversations.filter(c => c.folderId === folder.id);
+  });
+
+  const selectedConv = conversations.find(c => c.id === selectedConversation);
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-blue-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-white">Welcome to {APP_TITLE}</h1>
-          <p className="text-gray-400">Please sign in to continue</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-blue-950">
+        <div className="text-center">
+          <MessageSquare className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Please log in</h1>
+          <p className="text-gray-400">You need to be logged in to access the chat.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-black via-gray-950 to-blue-950 text-white overflow-hidden">
+    <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950">
       {/* Sidebar */}
-      <div className="w-80 border-r border-white/10 backdrop-blur-xl bg-black/30 flex flex-col">
+      <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20">
         {/* Header */}
         <div className="p-6 border-b border-white/10">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            {APP_TITLE}
+            Sovereign AI Assistant
           </h1>
           <p className="text-sm text-gray-400 mt-1">Your AI. Your Identity. Your Sovereignty.</p>
         </div>
@@ -244,7 +332,7 @@ export default function Chat() {
         </div>
 
         {/* New Conversation Button */}
-        <div className="p-4">
+        <div className="p-4 border-b border-white/10">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-[1.02]"
@@ -255,78 +343,201 @@ export default function Chat() {
           </Button>
         </div>
 
+        {/* Folder Management */}
+        <div className="p-4 border-b border-white/10">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-gray-400">FOLDERS</span>
+            <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <FolderPlus className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 border-white/10">
+                <DialogHeader>
+                  <DialogTitle className="text-white">Create New Folder</DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Organize your conversations into folders
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="folder-name" className="text-white">Folder Name</Label>
+                    <Input
+                      id="folder-name"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      placeholder="Work, Personal, etc."
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="folder-color" className="text-white">Color</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        id="folder-color"
+                        type="color"
+                        value={newFolderColor}
+                        onChange={(e) => setNewFolderColor(e.target.value)}
+                        className="h-10 w-20 rounded border border-white/10 bg-transparent cursor-pointer"
+                      />
+                      <span className="text-gray-400 text-sm">{newFolderColor}</span>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={() => createFolder.mutate({ name: newFolderName, color: newFolderColor })}
+                    disabled={!newFolderName.trim() || createFolder.isPending}
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600"
+                  >
+                    Create Folder
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto px-4 space-y-2">
-          {conversationsLoading ? (
-            <div className="text-center text-gray-400 py-8">Loading conversations...</div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">{searchQuery ? "No conversations found" : "No conversations yet"}</p>
+        <div className="flex-1 overflow-y-auto">
+          {/* Unfiled Conversations */}
+          {conversationsByFolder.unfiled && conversationsByFolder.unfiled.length > 0 && (
+            <div className="p-2">
+              <div className="text-xs font-semibold text-gray-500 px-3 py-2">UNFILED</div>
+              {conversationsByFolder.unfiled.map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => setSelectedConversation(conv.id)}
+                  className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                    selectedConversation === conv.id
+                      ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
+                      : "hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{conv.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(conv.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteConversation.mutate({ id: conv.id });
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Folders */}
+          {folders.map((folder) => {
+            const folderConvs = conversationsByFolder[folder.id] || [];
+            const isExpanded = expandedFolders.has(folder.id);
+            
+            return (
+              <div key={folder.id} className="p-2">
+                <div
+                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer group"
+                  onClick={() => toggleFolder(folder.id)}
+                >
+                  <div className="flex items-center gap-2 flex-1">
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    )}
+                    <Folder className="w-4 h-4" style={{ color: folder.color }} />
+                    <span className="text-sm text-white">{folder.name}</span>
+                    <span className="text-xs text-gray-500">({folderConvs.length})</span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete folder "${folder.name}"?`)) {
+                        deleteFolder.mutate({ id: folder.id });
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+                
+                {isExpanded && folderConvs.map((conv) => (
+                  <div
+                    key={conv.id}
+                    onClick={() => setSelectedConversation(conv.id)}
+                    className={`group flex items-center justify-between p-3 ml-6 rounded-lg cursor-pointer transition-all duration-200 ${
+                      selectedConversation === conv.id
+                        ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
+                        : "hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white truncate">{conv.title}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(conv.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteConversation.mutate({ id: conv.id });
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+
+          {filteredConversations.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+              <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
+              <p className="text-sm">
+                {searchQuery ? "No conversations found" : "No conversations yet"}
+              </p>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="text-xs text-blue-400 hover:text-blue-300 mt-2 transition-colors"
+                  className="text-xs text-blue-400 hover:text-blue-300 mt-2"
                 >
                   Clear search
                 </button>
               )}
             </div>
-          ) : (
-            filteredConversations.map((conv) => (
-              <div
-                key={conv.id}
-                className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                  selectedConversation === conv.id
-                    ? "bg-gradient-to-r from-blue-600/30 to-cyan-600/30 border border-blue-500/50 shadow-lg shadow-blue-500/20"
-                    : "hover:bg-white/5 border border-transparent"
-                }`}
-                onClick={() => setSelectedConversation(conv.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <MessageSquare className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                    <span className="text-sm truncate">{conv.title}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-red-500/20 hover:text-red-400"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteConversation.mutate({ id: conv.id });
-                    }}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            ))
           )}
         </div>
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-white/10 space-y-2">
           <Link href="/analytics">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <DollarSign className="w-4 h-4 mr-2" />
               Analytics
             </Button>
           </Link>
           <Link href="/settings">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
           </Link>
-          <Button
-            variant="ghost"
-            onClick={() => logout()}
-            className="w-full justify-start text-gray-300 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <Link href="/">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -336,111 +547,155 @@ export default function Chat() {
           <>
             {/* Chat Header */}
             <div className="border-b border-white/10 backdrop-blur-xl bg-black/20 p-4">
-              <div className="flex items-center justify-between max-w-5xl mx-auto">
-                <h2 className="text-xl font-semibold">
-                  {conversations.find((c) => c.id === selectedConversation)?.title}
-                </h2>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">Model:</span>
+              <div className="max-w-4xl mx-auto flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold text-white">{selectedConv?.title}</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    {conversationTags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-white"
+                        style={{ backgroundColor: tag.color + "40", borderColor: tag.color, borderWidth: 1 }}
+                      >
+                        {tag.name}
+                        <button
+                          onClick={() => removeTag.mutate({ conversationId: selectedConversation, tagId: tag.id })}
+                          className="hover:text-red-400"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 px-2 text-gray-400 hover:text-white">
+                          <Plus className="w-3 h-3 mr-1" />
+                          Tag
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-gray-900 border-white/10">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Add Tag</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-white">Existing Tags</Label>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {tags.map((tag) => (
+                                <button
+                                  key={tag.id}
+                                  onClick={() => {
+                                    assignTag.mutate({ conversationId: selectedConversation, tagId: tag.id });
+                                    setTagDialogOpen(false);
+                                  }}
+                                  className="px-3 py-1 rounded-full text-sm text-white hover:opacity-80"
+                                  style={{ backgroundColor: tag.color }}
+                                >
+                                  {tag.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="border-t border-white/10 pt-4">
+                            <Label htmlFor="tag-name" className="text-white">Create New Tag</Label>
+                            <Input
+                              id="tag-name"
+                              value={newTagName}
+                              onChange={(e) => setNewTagName(e.target.value)}
+                              placeholder="Urgent, Important, etc."
+                              className="bg-white/5 border-white/10 text-white mt-2"
+                            />
+                            <Label htmlFor="tag-color" className="text-white mt-4 block">Color</Label>
+                            <div className="flex gap-2 items-center mt-2">
+                              <input
+                                id="tag-color"
+                                type="color"
+                                value={newTagColor}
+                                onChange={(e) => setNewTagColor(e.target.value)}
+                                className="h-10 w-20 rounded border border-white/10 bg-transparent cursor-pointer"
+                              />
+                              <span className="text-gray-400 text-sm">{newTagColor}</span>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                createTag.mutate({ name: newTagName, color: newTagColor });
+                              }}
+                              disabled={!newTagName.trim() || createTag.isPending}
+                              className="w-full mt-4 bg-gradient-to-r from-blue-600 to-cyan-600"
+                            >
+                              Create & Assign Tag
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
                   <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="w-48 bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
-                   <SelectValue placeholder="Select model" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableModels?.models.map((model) => (
-                <SelectItem key={model.value} value={model.value}>
-                  {model.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {selectedConversation && (
-            <Button
-              onClick={handleExport}
-              variant="outline"
-              size="sm"
-              className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
-              disabled={exportConversation.isFetching}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          )}
+                    <SelectTrigger className="w-48 bg-white/5 border-white/10 text-white">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900 border-white/10">
+                      {availableModels.map((model) => (
+                        <SelectItem key={model.value} value={model.value} className="text-white">
+                          {model.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExport}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </div>
 
-            {/* Messages */}
+            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6">
               <div className="max-w-4xl mx-auto space-y-6">
-                {messagesLoading ? (
-                  <div className="text-center text-gray-400 py-12">
-                    <div className="animate-pulse">Loading messages...</div>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center py-20">
-                    <div className="inline-block p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 backdrop-blur-sm">
-                      <MessageSquare className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-                      <p className="text-lg text-gray-300 mb-2">No messages yet. Start the conversation below.</p>
-                      <p className="text-sm text-gray-500">Ask anything about Sovereign AI Assistant!</p>
-                    </div>
-                  </div>
-                ) : (
-                  messages.map((msg, index) => (
+                {messages.map((message, index) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
+                  >
                     <div
-                      key={msg.id}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-4 duration-500`}
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      className={`max-w-[80%] rounded-2xl p-4 backdrop-blur-xl ${
+                        message.role === "user"
+                          ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30"
+                          : "bg-white/5 border border-white/10"
+                      }`}
                     >
-                      <div
-                        className={`max-w-[80%] rounded-2xl p-5 shadow-xl ${
-                          msg.role === "user"
-                            ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-500/30"
-                            : "bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 shadow-black/50"
-                        }`}
-                      >
-                        <div className="prose prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                          <Streamdown>{msg.content}</Streamdown>
-                        </div>
-                        {msg.role === "assistant" && (
-                          <div className="mt-4 pt-3 border-t border-white/10">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 text-xs text-gray-400">
-                                {msg.model && (
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-medium text-blue-400">{availableModels?.models.find((m) => m.value === msg.model)?.label || msg.model}</span>
-                                  </div>
-                                )}
-                                {msg.totalTokens && msg.totalTokens > 0 && (
-                                  <>
-                                    <span className="opacity-40">•</span>
-                                    <span>{msg.totalTokens.toLocaleString()} tokens</span>
-                                  </>
-                                )}
-                                {msg.costUsd && (
-                                  <>
-                                    <span className="opacity-40">•</span>
-                                    <span className="text-green-400">${msg.costUsd}</span>
-                                  </>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleRegenerate(index)}
-                                disabled={regenerateMessage.isPending}
-                                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Regenerate response"
-                              >
-                                <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? 'animate-spin' : ''}`} />
-                                Regenerate
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                      <div className="prose prose-invert max-w-none">
+                        <Streamdown>{message.content}</Streamdown>
                       </div>
+                      {message.role === "assistant" && (
+                        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
+                          <div className="flex items-center gap-3">
+                            {message.model && <span>Model: {message.model}</span>}
+                            {message.totalTokens && <span>{message.totalTokens} tokens</span>}
+                            {message.costUsd && <span>${message.costUsd}</span>}
+                          </div>
+                          {index === messages.length - 1 && (
+                            <button
+                              onClick={handleRegenerateMessage}
+                              disabled={regenerateMessage.isPending}
+                              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? "animate-spin" : ""}`} />
+                              Regenerate
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  ))
-                )}
+                  </div>
+                ))}
                 <div ref={messagesEndRef} />
               </div>
             </div>
@@ -475,7 +730,7 @@ export default function Chat() {
                     disabled={!inputMessage.trim() || sendMessage.isPending}
                     className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-6"
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -483,16 +738,14 @@ export default function Chat() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-6 p-8">
-              <div className="inline-block p-8 rounded-3xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 backdrop-blur-sm">
-                <MessageSquare className="w-24 h-24 mx-auto mb-6 text-blue-400" />
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-3">
-                  Welcome to Sovereign AI
-                </h2>
-                <p className="text-gray-400 text-lg max-w-md">
-                  Select a conversation from the sidebar or create a new one to get started.
-                </p>
-              </div>
+            <div className="text-center max-w-md p-8 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
+              <MessageSquare className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+                Welcome to Sovereign AI
+              </h2>
+              <p className="text-gray-400">
+                Select a conversation from the sidebar or create a new one to get started.
+              </p>
             </div>
           </div>
         )}

@@ -33,6 +33,7 @@ export const conversations = mysqlTable("conversations", {
   userId: int("userId").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   defaultModel: varchar("defaultModel", { length: 50 }).notNull().default("gpt-4"),
+  folderId: int("folderId"), // Optional folder assignment
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -75,3 +76,45 @@ export const userSettings = mysqlTable("userSettings", {
 
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = typeof userSettings.$inferInsert;
+
+/**
+ * Folders for organizing conversations
+ */
+export const folders = mysqlTable("folders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  color: varchar("color", { length: 7 }).default("#3B82F6").notNull(), // Hex color code
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Folder = typeof folders.$inferSelect;
+export type InsertFolder = typeof folders.$inferInsert;
+
+/**
+ * Tags for labeling conversations
+ */
+export const tags = mysqlTable("tags", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull(), // Hex color code
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = typeof tags.$inferInsert;
+
+/**
+ * Junction table for many-to-many relationship between conversations and tags
+ */
+export const conversationTags = mysqlTable("conversation_tags", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  tagId: int("tagId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ConversationTag = typeof conversationTags.$inferSelect;
+export type InsertConversationTag = typeof conversationTags.$inferInsert;

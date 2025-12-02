@@ -59,6 +59,17 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    assignFolder: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        folderId: z.number().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { assignFolderToConversation } = await import("./folders-tags-db");
+        await assignFolderToConversation(input.conversationId, ctx.user.id, input.folderId);
+        return { success: true };
+      }),
+    
     export: protectedProcedure
       .input(z.object({ conversationId: z.number() }))
       .query(async ({ ctx, input }) => {
@@ -334,6 +345,116 @@ export const appRouter = router({
     }),
   }),
   
+  // Folders router
+  folders: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserFolders } = await import("./folders-tags-db");
+      return getUserFolders(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createFolder } = await import("./folders-tags-db");
+        return createFolder({
+          userId: ctx.user.id,
+          name: input.name,
+          color: input.color || "#3B82F6",
+        });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(255).optional(),
+        color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateFolder } = await import("./folders-tags-db");
+        await updateFolder(input.id, ctx.user.id, {
+          name: input.name,
+          color: input.color,
+        });
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteFolder } = await import("./folders-tags-db");
+        await deleteFolder(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // Tags router
+  tags: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserTags } = await import("./folders-tags-db");
+      return getUserTags(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(100),
+        color: z.string().regex(/^#[0-9A-F]{6}$/i),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createTag } = await import("./folders-tags-db");
+        return createTag({
+          userId: ctx.user.id,
+          name: input.name,
+          color: input.color,
+        });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100).optional(),
+        color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateTag } = await import("./folders-tags-db");
+        await updateTag(input.id, ctx.user.id, {
+          name: input.name,
+          color: input.color,
+        });
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteTag } = await import("./folders-tags-db");
+        await deleteTag(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    getForConversation: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ input }) => {
+        const { getConversationTags } = await import("./folders-tags-db");
+        return getConversationTags(input.conversationId);
+      }),
+    assign: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        tagId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const { assignTagToConversation } = await import("./folders-tags-db");
+        await assignTagToConversation(input.conversationId, input.tagId);
+        return { success: true };
+      }),
+    remove: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        tagId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const { removeTagFromConversation } = await import("./folders-tags-db");
+        await removeTagFromConversation(input.conversationId, input.tagId);
+        return { success: true };
+      }),
+  }),
+
   // Available models based on configured API keys
   models: router({
     available: publicProcedure.query(async () => {
