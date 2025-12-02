@@ -104,3 +104,9 @@
 - [x] Implement client-side filtering by conversation title
 - [x] Add search icon and clear button
 - [x] Show "No results" state when search returns empty
+
+## Message Regeneration Feature
+- [x] Add regenerate button to AI response messages
+- [x] Implement backend logic to regenerate last response
+- [x] Show loading state during regeneration
+- [x] Replace old response with new one

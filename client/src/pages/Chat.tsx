@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { DollarSign, LogOut, MessageSquare, Plus, Search, Send, Settings, Trash2, X } from "lucide-react";
+import { DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
@@ -88,6 +88,31 @@ export default function Chat() {
       toast.error(`Failed to send message: ${error.message}`);
     },
   });
+
+  // Regenerate message mutation
+  const regenerateMessage = trpc.messages.send.useMutation({
+    onSuccess: () => {
+      utils.messages.list.invalidate();
+      toast.success("Response regenerated");
+    },
+    onError: (error) => {
+      toast.error(`Failed to regenerate: ${error.message}`);
+    },
+  });
+
+  const handleRegenerate = (messageIndex: number) => {
+    if (!selectedConversation) return;
+    
+    // Find the user message that prompted this AI response
+    const userMessage = messages[messageIndex - 1];
+    if (!userMessage || userMessage.role !== "user") return;
+
+    regenerateMessage.mutate({
+      conversationId: selectedConversation,
+      content: userMessage.content,
+      model: selectedModel,
+    });
+  };
 
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !selectedConversation) return;
@@ -307,24 +332,37 @@ export default function Chat() {
                           <Streamdown>{msg.content}</Streamdown>
                         </div>
                         {msg.role === "assistant" && (
-                          <div className="flex items-center gap-3 text-xs text-gray-400 mt-4 pt-3 border-t border-white/10">
-                            {msg.model && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-medium text-blue-400">{availableModels?.models.find((m) => m.value === msg.model)?.label || msg.model}</span>
+                          <div className="mt-4 pt-3 border-t border-white/10">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 text-xs text-gray-400">
+                                {msg.model && (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-medium text-blue-400">{availableModels?.models.find((m) => m.value === msg.model)?.label || msg.model}</span>
+                                  </div>
+                                )}
+                                {msg.totalTokens && msg.totalTokens > 0 && (
+                                  <>
+                                    <span className="opacity-40">•</span>
+                                    <span>{msg.totalTokens.toLocaleString()} tokens</span>
+                                  </>
+                                )}
+                                {msg.costUsd && (
+                                  <>
+                                    <span className="opacity-40">•</span>
+                                    <span className="text-green-400">${msg.costUsd}</span>
+                                  </>
+                                )}
                               </div>
-                            )}
-                            {msg.totalTokens && msg.totalTokens > 0 && (
-                              <>
-                                <span className="opacity-40">•</span>
-                                <span>{msg.totalTokens.toLocaleString()} tokens</span>
-                              </>
-                            )}
-                            {msg.costUsd && (
-                              <>
-                                <span className="opacity-40">•</span>
-                                <span className="text-green-400">${msg.costUsd}</span>
-                              </>
-                            )}
+                              <button
+                                onClick={() => handleRegenerate(index)}
+                                disabled={regenerateMessage.isPending}
+                                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Regenerate response"
+                              >
+                                <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? 'animate-spin' : ''}`} />
+                                Regenerate
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
