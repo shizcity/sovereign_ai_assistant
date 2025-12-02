@@ -242,3 +242,12 @@
 - [x] Add import button with file upload
 - [x] Validate imported data and handle conflicts
 - [x] Test export/import functionality
+
+## Message Editing Feature
+- [x] Add backend procedure to update message content
+- [x] Add procedure to delete subsequent messages after edited message
+- [x] Implement edit and regenerate workflow
+- [x] Add edit button to user messages in UI
+- [x] Build inline message editor with save/cancel
+- [x] Add visual indicator for edited messages
+- [x] Test message editing and regeneration

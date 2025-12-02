@@ -1,4 +1,4 @@
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -169,6 +169,44 @@ export async function getConversationMessages(conversationId: number, userId: nu
   return db.select().from(messages)
     .where(eq(messages.conversationId, conversationId))
     .orderBy(messages.createdAt);
+}
+
+export async function getMessageById(messageId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(messages)
+    .where(eq(messages.id, messageId))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function updateMessage(messageId: number, content: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(messages)
+    .set({ content })
+    .where(eq(messages.id, messageId));
+}
+
+export async function deleteMessagesAfter(messageId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get the message to find its conversation and creation time
+  const message = await getMessageById(messageId);
+  if (!message) return;
+  
+  // Delete all messages in the same conversation that were created after this message
+  await db.delete(messages)
+    .where(
+      and(
+        eq(messages.conversationId, message.conversationId),
+        gt(messages.createdAt, message.createdAt)
+      )
+    );
 }
 
 export async function deleteEmptyConversations(userId: number) {

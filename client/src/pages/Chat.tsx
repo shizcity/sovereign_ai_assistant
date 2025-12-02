@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -41,6 +41,8 @@ export default function Chat() {
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [selectedTemplateForUse, setSelectedTemplateForUse] = useState<any>(null);
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
@@ -156,6 +158,16 @@ export default function Chat() {
     },
   });
 
+  // Edit and regenerate mutation
+  const editAndRegenerate = trpc.messages.editAndRegenerate.useMutation({
+    onSuccess: () => {
+      utils.messages.list.invalidate({ conversationId: selectedConversation! });
+      setEditingMessageId(null);
+      setEditingContent("");
+      toast.success("Message updated and response regenerated");
+    },
+  });
+
   // Export conversation mutations
   const exportJSON = trpc.conversations.exportJSON.useQuery(
     { conversationId: selectedConversation! },
@@ -257,10 +269,25 @@ export default function Chat() {
     // Find the last user message
     const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
     if (!lastUserMessage) return;
-
+    
     regenerateMessage.mutate({
       conversationId: selectedConversation,
       content: lastUserMessage.content,
+      model: selectedModel,
+    });
+  };
+
+  const handleStartEdit = (messageId: number, content: string) => {
+    setEditingMessageId(messageId);
+    setEditingContent(content);
+  };
+
+  const handleSaveEdit = (messageId: number) => {
+    if (!editingContent.trim()) return;
+    
+    editAndRegenerate.mutate({
+      messageId,
+      content: editingContent,
       model: selectedModel,
     });
   };
@@ -936,9 +963,58 @@ export default function Chat() {
                           : "bg-white/5 border border-white/10"
                       }`}
                     >
-                      <div className="prose prose-invert max-w-none">
-                        <Streamdown>{message.content}</Streamdown>
-                      </div>
+                      {editingMessageId === message.id ? (
+                        <div className="space-y-3">
+                          <textarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={4}
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleSaveEdit(message.id)}
+                              disabled={editAndRegenerate.isPending}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-500"
+                            >
+                              {editAndRegenerate.isPending ? (
+                                <><Loader2 className="w-3 h-3 animate-spin mr-1" /> Regenerating...</>
+                              ) : (
+                                'Save & Regenerate'
+                              )}
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setEditingMessageId(null);
+                                setEditingContent('');
+                              }}
+                              size="sm"
+                              variant="outline"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="prose prose-invert max-w-none">
+                            <Streamdown>{message.content}</Streamdown>
+                          </div>
+                          {message.role === "user" && (
+                            <div className="mt-3 pt-3 border-t border-white/10 flex justify-end">
+                              <button
+                                onClick={() => handleStartEdit(message.id, message.content)}
+                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors text-xs"
+                              >
+                                <Pencil className="w-3 h-3" />
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
                       {message.role === "assistant" && (
                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
                           <div className="flex items-center gap-3">

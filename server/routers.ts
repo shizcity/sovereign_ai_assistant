@@ -197,6 +197,106 @@ export const appRouter = router({
           },
         };
       }),
+
+    edit: protectedProcedure
+      .input(z.object({
+        messageId: z.number(),
+        content: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateMessage, getMessageById } = await import("./db");
+        
+        // Verify message exists
+        const message = await getMessageById(input.messageId);
+        if (!message) {
+          throw new Error("Message not found");
+        }
+        
+        // Update the message content
+        await updateMessage(input.messageId, input.content);
+        
+        return { success: true };
+      }),
+
+    editAndRegenerate: protectedProcedure
+      .input(z.object({
+        messageId: z.number(),
+        content: z.string().min(1),
+        model: z.string().default("gpt-4"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateMessage, getMessageById, deleteMessagesAfter, getConversationMessages, createMessage, getUserSettings } = await import("./db");
+        const { routeLLMRequest } = await import("./llm-router");
+        const { calculateCost, formatCost } = await import("./cost-calculator");
+        const { DEFAULT_SYSTEM_PROMPT } = await import("./default-system-prompt");
+        
+        // Get the message to edit
+        const message = await getMessageById(input.messageId);
+        if (!message) {
+          throw new Error("Message not found");
+        }
+        
+        // Update the user message
+        await updateMessage(input.messageId, input.content);
+        
+        // Delete all messages after this one (including the old AI response)
+        await deleteMessagesAfter(input.messageId);
+        
+        // Get user's system prompt
+        const userSettings = await getUserSettings(ctx.user.id);
+        const systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+        
+        // Get updated conversation history
+        const messages = await getConversationMessages(message.conversationId, ctx.user.id);
+        
+        // Format messages for LLM
+        const llmMessages = [
+          {
+            role: "system" as const,
+            content: systemPrompt,
+          },
+          ...messages.map((msg: any) => ({
+            role: msg.role as "user" | "assistant" | "system",
+            content: msg.content,
+          })),
+        ];
+        
+        // Generate new response
+        const response = await routeLLMRequest(llmMessages, input.model);
+        
+        // Calculate cost
+        const costBreakdown = calculateCost(input.model, response.usage || {
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+        });
+        
+        // Save new assistant message
+        const messageId = await createMessage({
+          conversationId: message.conversationId,
+          role: "assistant",
+          content: response.content,
+          model: response.model,
+          provider: response.provider,
+          promptTokens: response.usage?.promptTokens || 0,
+          completionTokens: response.usage?.completionTokens || 0,
+          totalTokens: response.usage?.totalTokens || 0,
+          costUsd: costBreakdown.totalCost.toString(),
+        });
+        
+        return {
+          id: messageId,
+          content: response.content,
+          model: response.model,
+          provider: response.provider,
+          usage: response.usage,
+          cost: {
+            total: costBreakdown.totalCost,
+            formatted: formatCost(costBreakdown.totalCost),
+            breakdown: costBreakdown,
+          },
+        };
+      }),
   }),
   
   // User settings
@@ -585,8 +685,10 @@ export const appRouter = router({
           };
         });
       }),
-    
-    // Category management
+  }),
+  
+  // Category management
+  categories: router({
     listCategories: protectedProcedure.query(async ({ ctx }) => {
       const { listCategories } = await import("./template-categories-db");
       return listCategories(ctx.user.id);
