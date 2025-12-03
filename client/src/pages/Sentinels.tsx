@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 
 export default function Sentinels() {
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
-  const [selectedSentinel, setSelectedSentinel] = useState<string | null>(null);
+  const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
 
   useEffect(() => {
     document.title = "Meet the Sentinels - Sovereign AI Assistant";
@@ -59,20 +59,20 @@ export default function Sentinels() {
                       background: `linear-gradient(135deg, ${sentinel.primaryColor}40, ${sentinel.primaryColor}20)`,
                     }}
                   >
-                    {sentinel.icon}
+                    {sentinel.symbolEmoji}
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold">{sentinel.name}</h3>
-                    <p className="text-sm text-slate-400">{sentinel.tagline}</p>
+                    <p className="text-sm text-slate-400">{sentinel.archetype}</p>
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-slate-300 mb-4 leading-relaxed">{sentinel.description}</p>
+                <p className="text-slate-300 mb-4 leading-relaxed">{sentinel.primaryFunction}</p>
 
                 {/* Personality Traits */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {sentinel.personalityTraits.map((trait, idx) => (
+                  {sentinel.personalityTraits.map((trait: string, idx: number) => (
                     <Badge
                       key={idx}
                       variant="outline"
@@ -123,12 +123,12 @@ export default function Sentinels() {
                       background: `linear-gradient(135deg, ${selected.primaryColor}60, ${selected.primaryColor}30)`,
                     }}
                   >
-                    {selected.icon}
+                    {selected.symbolEmoji}
                   </div>
                   <h2 className="text-3xl font-bold mb-2">{selected.name}</h2>
-                  <p className="text-lg text-slate-400 mb-4">{selected.tagline}</p>
+                  <p className="text-lg text-slate-400 mb-4">{selected.archetype}</p>
                   <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    {selected.personalityTraits.map((trait, idx) => (
+                    {selected.personalityTraits.map((trait: string, idx: number) => (
                       <Badge
                         key={idx}
                         variant="outline"
@@ -149,7 +149,7 @@ export default function Sentinels() {
                     <h3 className="text-xl font-semibold mb-2" style={{ color: selected.primaryColor }}>
                       About {selected.name}
                     </h3>
-                    <p className="text-slate-300 leading-relaxed">{selected.description}</p>
+                    <p className="text-slate-300 leading-relaxed">{selected.primaryFunction}</p>
                   </div>
 
                   <div>
@@ -157,7 +157,7 @@ export default function Sentinels() {
                       Specialties
                     </h3>
                     <ul className="list-disc list-inside text-slate-300 space-y-1">
-                      {selected.specialties.map((specialty, idx) => (
+                      {selected.specialties.map((specialty: string, idx: number) => (
                         <li key={idx}>{specialty}</li>
                       ))}
                     </ul>

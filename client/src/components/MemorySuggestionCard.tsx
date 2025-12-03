@@ -15,7 +15,7 @@ interface MemorySuggestionCardProps {
     category: string;
     importance: number;
     tags: string[];
-    reasoning?: string;
+    reasoning?: string | null;
   };
   onAccepted?: () => void;
   onDismissed?: () => void;

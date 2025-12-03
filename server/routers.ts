@@ -811,10 +811,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
           };
         });
       }),
-  }),
-  
-  // Category management
-  categories: router({
+    
+    // Category management procedures
     listCategories: protectedProcedure.query(async ({ ctx }) => {
       const { listCategories } = await import("./template-categories-db");
       return listCategories(ctx.user.id);
@@ -1121,10 +1119,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
           const { getMemoryStats } = await import("./memory-db");
           return getMemoryStats(ctx.user.id, input.sentinelId);
         }),
-    }),
 
-    // Memory suggestions
-    suggestions: router({
+      // Memory suggestions
+      suggestions: router({
       // Get pending suggestions for a conversation
       pending: protectedProcedure
         .input(z.object({ conversationId: z.number().optional() }))
@@ -1231,12 +1228,13 @@ Reference these memories naturally when relevant. For example: "Remember when we
           return { success: true, memoryId: savedMemoryId ? 1 : undefined };
         }),
 
-      // Get suggestion statistics
-      stats: protectedProcedure
-        .query(async ({ ctx }) => {
-          const { getSuggestionStats } = await import("./suggestions-db");
-          return getSuggestionStats(ctx.user.id);
-        }),
+        // Get suggestion statistics
+        stats: protectedProcedure
+          .query(async ({ ctx }) => {
+            const { getSuggestionStats } = await import("./suggestions-db");
+            return getSuggestionStats(ctx.user.id);
+          }),
+      }),
     }),
   }),
 

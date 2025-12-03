@@ -105,17 +105,17 @@ class VoiceService {
       return;
     }
 
-    this.recognition = new SpeechRecognition();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = "en-US";
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
 
-    this.recognition.onstart = () => {
+    recognition.onstart = () => {
       this.isListening = true;
       this.emit({ type: "listening" });
     };
 
-    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const results = Array.from(event.results);
       const latestResult = results[results.length - 1];
       const transcript = latestResult[0].transcript;
@@ -133,17 +133,19 @@ class VoiceService {
       }
     };
 
-    this.recognition.onerror = (event: any) => {
+    recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
       this.emit({ type: "error", data: { error: event.error } });
     };
 
-    this.recognition.onend = () => {
+    recognition.onend = () => {
       this.isListening = false;
       if (!this.isSpeaking) {
         this.emit({ type: "idle" });
       }
     };
+
+    this.recognition = recognition;
   }
 
   private loadVoices() {

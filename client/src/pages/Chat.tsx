@@ -78,11 +78,17 @@ export default function Chat() {
     { enabled: !!selectedConversation }
   );
 
+  // Fetch all Sentinels
+  const { data: allSentinels = [] } = trpc.sentinels.list.useQuery();
+
   // Fetch Sentinels for selected conversation
   const { data: conversationSentinels = [] } = trpc.sentinels.getConversationSentinels.useQuery(
     { conversationId: selectedConversation! },
     { enabled: !!selectedConversation }
   );
+
+  // Derive active sentinel from selectedSentinel
+  const activeSentinel = allSentinels.find((s: any) => s.id === selectedSentinel);
 
   // Set selected Sentinel when conversation changes
   useEffect(() => {
@@ -350,7 +356,7 @@ export default function Chat() {
     
     const result = await exportMarkdown.refetch();
     if (result.data) {
-      const conversation = conversations.data?.find(c => c.id === selectedConversation);
+      const conversation = conversations?.find((c: { id: number; title: string }) => c.id === selectedConversation);
       const filename = `${conversation?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'conversation'}_${Date.now()}.md`;
       const blob = new Blob([result.data], { type: "text/markdown" });
       const url = URL.createObjectURL(blob);
@@ -400,7 +406,7 @@ export default function Chat() {
     // Extract variables from template content (e.g., [TOPIC], [AUDIENCE])
     const variableRegex = /\[([A-Z_]+)\]/g;
     const matches = [...template.prompt.matchAll(variableRegex)];
-    const variables = [...new Set(matches.map(m => m[1]))];
+    const variables = Array.from(new Set(matches.map(m => m[1])));
     
     if (variables.length > 0) {
       // Show variable input dialog
@@ -1128,7 +1134,7 @@ export default function Chat() {
                   }}
                   onWakeWord={(sentinel) => {
                     // Find the Sentinel by name and set it as active
-                    const foundSentinel = allSentinels?.find(s => s.name === sentinel);
+                    const foundSentinel = allSentinels?.find((s: { id: number; name: string }) => s.name === sentinel);
                     if (foundSentinel && selectedConversation) {
                       addSentinelToConversation.mutate({
                         conversationId: selectedConversation,
@@ -1246,9 +1252,11 @@ export default function Chat() {
                           {template.prompt}
                         </p>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 ml-3">
-                        {template.category}
-                      </span>
+                      {template.categoryId && (
+                        <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 ml-3">
+                          Category {template.categoryId}
+                        </span>
+                      )}
                     </div>
                   </Card>
                 ))}
