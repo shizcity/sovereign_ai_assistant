@@ -708,6 +708,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
       await createDefaultTemplates(ctx.user.id);
       return { success: true };
     }),
+    seedConversationTemplates: protectedProcedure.mutation(async ({ ctx }) => {
+      const { seedConversationTemplates } = await import("./seed-templates");
+      const count = await seedConversationTemplates(ctx.user.id);
+      return { success: true, count };
+    }),
     togglePublic: protectedProcedure
       .input(z.object({ id: z.number(), isPublic: z.boolean() }))
       .mutation(async ({ input, ctx }) => {

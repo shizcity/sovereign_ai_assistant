@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE prompt_templates \nADD COLUMN recommended_sentinel_id INT NULL,\nADD COLUMN memory_tags TEXT NULL,\nADD COLUMN follow_up_prompts TEXT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute ALTER TABLE prompt_templates \nADD COLUMN recommended_sentinel_id INT NULL,\nADD COLUMN memory_tags TEXT NULL,\nADD COLUMN follow_up_prompts TEXT NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 942
+}

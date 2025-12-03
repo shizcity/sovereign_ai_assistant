@@ -129,6 +129,9 @@ export const promptTemplates = mysqlTable("prompt_templates", {
   description: text("description"),
   prompt: text("prompt").notNull(),
   categoryId: int("categoryId"), // Foreign key to templateCategories
+  recommendedSentinelId: int("recommendedSentinelId"), // Recommended Sentinel for this template
+  memoryTags: text("memoryTags"), // JSON array of tags to load relevant memories
+  followUpPrompts: text("followUpPrompts"), // JSON array of follow-up prompts for multi-turn conversations
   isDefault: int("isDefault").default(0).notNull(), // 0 = false, 1 = true
   isPublic: int("isPublic").default(0).notNull(), // 0 = private, 1 = public/shared
   creatorName: varchar("creatorName", { length: 255 }), // Name of user who created it

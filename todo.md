@@ -517,3 +517,55 @@
 - [x] Test hands-free conversation flow (voice-to-voice with auto-speak)
 - [x] Voice system fully integrated into Chat interface
 - [x] Save checkpoint for Phase 5 completion
+
+
+## Phase 6: Conversation Templates Library
+
+### Template Data Model
+- [x] Design conversation template schema (title, description, category, recommended Sentinel)
+- [x] Add template steps/prompts structure for multi-turn conversations
+- [x] Include memory query tags for context loading
+- [x] Add template variables for personalization
+- [x] Create database table for conversation templates (extended prompt_templates)
+- [x] Add database columns: recommendedSentinelId, memoryTags, followUpPrompts
+
+### Seed Templates
+- [x] Create Morning Planning template (Vixen's Den)
+- [x] Create Brainstorming template (Mischief.EXE)
+- [x] Create Decision Making template (Lunaris.Vault)
+- [x] Create Evening Reflection template (Nyx)
+- [x] Create Goal Setting template (Vixen's Den)
+- [x] Create Problem Solving template (Aetheris.Flow)
+- [x] Create Creative Writing template (Mischief.EXE)
+- [x] Create Strategic Planning template (Rift.EXE)
+- [x] Create seed-templates.ts script with all 8 templates
+- [x] Add seedConversationTemplates tRPC procedure
+
+### Backend Implementation
+- [ ] Create template CRUD procedures in tRPC router
+- [ ] Implement template search and filtering
+- [ ] Add template favoriting system
+- [ ] Build template activation logic (auto-select Sentinel, load memories)
+- [ ] Add template usage tracking and analytics
+
+### Template Library UI
+- [ ] Create Templates page with category navigation
+- [ ] Build template card component with preview
+- [ ] Add template detail view with full description
+- [ ] Implement template search and filtering
+- [ ] Add favorite templates section
+- [ ] Create template creation/editing form
+
+### Chat Integration
+- [ ] Add quick template selector in chat interface
+- [ ] Implement one-click template activation
+- [ ] Auto-populate message input with template prompt
+- [ ] Show template steps/follow-ups in conversation
+- [ ] Add template suggestion based on conversation context
+
+### Testing & Delivery
+- [ ] Test all seed templates with appropriate Sentinels
+- [ ] Verify memory loading works correctly
+- [ ] Test template creation and editing
+- [ ] Write vitest tests for template system
+- [ ] Save checkpoint for Phase 6 completion
