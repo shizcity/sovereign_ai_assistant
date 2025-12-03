@@ -213,6 +213,11 @@ export default function Chat() {
     { enabled: false }
   );
 
+  const exportPDF = trpc.conversations.exportPDF.useQuery(
+    { conversationId: selectedConversation! },
+    { enabled: false }
+  );
+
   const exportAll = trpc.conversations.exportAll.useQuery(undefined, { enabled: false });
 
   const importConversation = trpc.conversations.import.useMutation({
@@ -348,6 +353,29 @@ export default function Chat() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Conversation exported as JSON");
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!selectedConversation) return;
+    
+    toast.info("Generating PDF...");
+    const result = await exportPDF.refetch();
+    if (result.data) {
+      // Decode base64 PDF data
+      const binaryString = atob(result.data.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.data.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Conversation exported as PDF");
     }
   };
 
@@ -998,6 +1026,16 @@ export default function Chat() {
                     </SelectContent>
                   </Select>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleExportPDF}
+                      className="text-gray-400 hover:text-white"
+                      title="Export as PDF"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      PDF
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

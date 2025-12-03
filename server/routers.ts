@@ -90,6 +90,54 @@ export const appRouter = router({
         return exportConversationAsMarkdown(input.conversationId, ctx.user.id);
       }),
 
+    exportPDF: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getConversationById, getConversationMessages } = await import("./db");
+        const { getConversationSentinels, getSentinelById } = await import("./sentinels-db");
+        const { generateConversationPDF } = await import("./pdf-export");
+        
+        // Fetch conversation data
+        const conversation = await getConversationById(input.conversationId, ctx.user.id);
+        if (!conversation) throw new Error("Conversation not found");
+        
+        // Fetch messages
+        const messages = await getConversationMessages(input.conversationId, ctx.user.id);
+        
+        // Fetch primary sentinel name if assigned
+        let sentinelName: string | undefined;
+        const sentinels = await getConversationSentinels(input.conversationId);
+        const primarySentinel = sentinels.find(s => s.role === "primary");
+        if (primarySentinel) {
+          const sentinel = await getSentinelById(primarySentinel.sentinelId);
+          sentinelName = sentinel?.name;
+        }
+        
+        // Calculate total tokens and cost from messages
+        const totalTokens = messages.reduce((sum, m) => sum + (m.totalTokens || 0), 0);
+        const totalCost = messages.reduce((sum, m) => {
+          const cost = m.costUsd ? parseFloat(m.costUsd) : 0;
+          return sum + cost;
+        }, 0);
+        
+        // Generate PDF
+        const pdfBuffer = await generateConversationPDF({
+          title: conversation.title,
+          createdAt: conversation.createdAt,
+          sentinelName,
+          modelName: conversation.defaultModel,
+          totalTokens,
+          totalCost,
+          messages,
+        });
+        
+        // Return PDF as base64 string
+        return {
+          filename: `${conversation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.pdf`,
+          data: pdfBuffer.toString('base64'),
+        };
+      }),
+
     exportAll: protectedProcedure.query(async ({ ctx }) => {
       const { exportAllConversations } = await import("./conversation-export-db");
       return exportAllConversations(ctx.user.id);

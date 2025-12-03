@@ -581,3 +581,17 @@
 - [x] Run seed script to populate 8 conversation templates
 - [x] Verify templates appear in Templates page with correct Sentinel assignments
 - [x] All 8 templates displaying correctly with icons, descriptions, and Sentinel assignments
+
+
+## PDF Export Feature (NEW)
+- [x] Install jsPDF library for PDF generation
+- [x] Create backend tRPC procedure for PDF generation
+- [x] Implement PDF generation logic with proper formatting
+- [x] Add conversation metadata (title, date, sentinel, model, tokens, cost)
+- [x] Format messages with user/AI distinction and styling
+- [x] Handle markdown content in PDF output
+- [x] Add export PDF button to Chat UI header
+- [x] Test PDF export with various conversation lengths
+- [x] Write vitest test for PDF export functionality
+- [x] All 4 tests passing (basic, no sentinel, long conversation, markdown)
+- [ ] Save checkpoint with working PDF export
