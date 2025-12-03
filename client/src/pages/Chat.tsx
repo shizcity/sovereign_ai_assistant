@@ -16,6 +16,8 @@ import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
 import { SentinelSelector } from "@/components/SentinelSelector";
 import { MessageSuggestions } from "@/components/MessageSuggestions";
+import { VoiceControls } from "@/components/VoiceControls";
+import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -286,6 +288,15 @@ export default function Chat() {
       conversationId: selectedConversation,
       content: inputMessage,
       model: selectedModel,
+    }, {
+      onSuccess: (data) => {
+        // Automatically speak the AI response if a Sentinel is active
+        if (activeSentinel && data.content) {
+          voiceService.speak(data.content, {
+            sentinelName: activeSentinel.name,
+          });
+        }
+      },
     });
   };
 
@@ -1106,7 +1117,29 @@ export default function Chat() {
 
             {/* Input Area */}
             <div className="border-t border-white/10 backdrop-blur-xl bg-black/20 p-4">
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl mx-auto space-y-4">
+                {/* Voice Controls */}
+                <VoiceControls
+                  sentinelName={activeSentinel?.name}
+                  onTranscript={(transcript, isFinal) => {
+                    if (isFinal && transcript.trim()) {
+                      setInputMessage(transcript);
+                    }
+                  }}
+                  onWakeWord={(sentinel) => {
+                    // Find the Sentinel by name and set it as active
+                    const foundSentinel = allSentinels?.find(s => s.name === sentinel);
+                    if (foundSentinel && selectedConversation) {
+                      addSentinelToConversation.mutate({
+                        conversationId: selectedConversation,
+                        sentinelId: foundSentinel.id,
+                        role: "primary",
+                      });
+                    }
+                  }}
+                />
+                
+                {/* Message Input */}
                 <div className="flex gap-3">
                   <Button
                     onClick={() => setIsTemplateDialogOpen(true)}

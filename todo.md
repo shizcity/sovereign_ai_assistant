@@ -468,3 +468,52 @@
 - [x] Write vitest tests for suggestion detection and scoring (19 tests written)
 - [x] Verify UI responsiveness and user experience
 - [x] Save checkpoint for Phase 4 completion
+
+
+## Phase 5: Voice-First Experience
+
+### Wake-Word Detection
+- [x] Research and integrate wake-word detection library (browser-based pattern matching)
+- [x] Create wake-word models for each Sentinel ("Hey Vixen", "Hey Mischief", etc.)
+- [x] Implement always-listening mode with privacy controls
+- [ ] Add wake-word detection UI indicator
+- [ ] Handle wake-word activation and Sentinel selection
+
+### Speech Recognition
+- [x] Implement continuous speech recognition using Web Speech API
+- [ ] Add real-time transcription display
+- [x] Handle speech recognition errors and retries
+- [x] Implement automatic silence detection for turn-taking
+- [ ] Add manual stop/cancel controls
+- [ ] Support multiple languages
+
+### Speech Synthesis
+- [x] Design voice profiles for each Sentinel (pitch, rate, tone)
+- [x] Implement text-to-speech using Web Speech API
+- [x] Add voice selection based on active Sentinel
+- [x] Handle long responses with natural pauses
+- [x] Implement speech queue management
+- [x] Add playback controls (pause, resume, stop)
+
+### Voice-Optimized UI
+- [x] Create voice activation button with visual states
+- [x] Add waveform animation during listening
+- [x] Show real-time transcription overlay
+- [x] Display speaking indicator when Sentinel responds
+- [ ] Add voice settings panel (volume, speed, voice selection)
+- [x] Implement hands-free mode toggle (wake-word mode)
+
+### Conversation Flow
+- [x] Implement automatic turn-taking (user speaks → AI responds with voice)
+- [x] Add conversation state management for voice mode
+- [x] Handle interruptions and context switching
+- [ ] Implement voice command recognition ("stop", "repeat", "slower")
+- [x] Add conversation history for voice sessions
+
+### Testing & Delivery
+- [x] Test wake-word detection accuracy (browser-based pattern matching)
+- [x] Test speech recognition with different accents (Web Speech API)
+- [x] Verify speech synthesis quality for all Sentinels (unique voice profiles)
+- [x] Test hands-free conversation flow (voice-to-voice with auto-speak)
+- [x] Voice system fully integrated into Chat interface
+- [x] Save checkpoint for Phase 5 completion
