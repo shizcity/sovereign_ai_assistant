@@ -209,8 +209,10 @@ export function isSimilarToExisting(
     const union = new Set([...Array.from(suggestionWords), ...Array.from(memoryWords)]);
     const similarity = intersection.size / union.size;
 
-    // If more than 60% similar, consider it duplicate
-    if (similarity > 0.6) return true;
+    // If more than 40% similar, consider it duplicate
+    // Lowered from 0.6 to 0.4 to catch semantically similar phrases
+    // that may use different words (e.g., "want" vs "decided")
+    if (similarity > 0.4) return true;
   }
 
   return false;

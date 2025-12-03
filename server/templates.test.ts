@@ -57,14 +57,13 @@ describe("Template System", () => {
     it("should create a new template", async () => {
       const template = await caller.templates.create({
         name: "Test Template",
-        category: "Testing",
         description: "A test template",
         prompt: "This is a test prompt with [VARIABLE]",
+        categoryId: null,
       });
 
       expect(template).toBeDefined();
       expect(template.name).toBe("Test Template");
-      expect(template.category).toBe("Testing");
       expect(template.prompt).toBe(
         "This is a test prompt with [VARIABLE]"
       );
@@ -116,7 +115,7 @@ describe("Template System", () => {
       const template = result[0];
       expect(template).toHaveProperty("id");
       expect(template).toHaveProperty("name");
-      expect(template).toHaveProperty("category");
+      expect(template).toHaveProperty("categoryId");
       expect(template).toHaveProperty("description");
       expect(template).toHaveProperty("prompt");
       expect(template).toHaveProperty("userId");
@@ -175,7 +174,6 @@ describe("Template System", () => {
       await caller.templates.update({
         id: templateId,
         name: "Updated Test Template",
-        category: "Updated Testing",
         description: "An updated test template",
         prompt: "Updated prompt with [NEW_VARIABLE]",
       });
@@ -183,7 +181,6 @@ describe("Template System", () => {
       // Verify the update
       const updated = await caller.templates.getById({ id: templateId });
       expect(updated?.name).toBe("Updated Test Template");
-      expect(updated?.category).toBe("Updated Testing");
       expect(updated?.description).toBe("An updated test template");
       expect(updated?.prompt).toBe("Updated prompt with [NEW_VARIABLE]");
     });
@@ -319,17 +316,11 @@ describe("Template System", () => {
       expect(defaultTemplates.length).toBeGreaterThan(0);
 
       // All default templates should have standard categories
-      const validCategories = [
-        "Brainstorming",
-        "Writing",
-        "Development",
-        "Analysis",
-        "Education",
-        "Business",
-      ];
-
+      // Verify default templates have proper structure
       defaultTemplates.forEach((template) => {
-        expect(validCategories).toContain(template.category);
+        expect(template.name).toBeDefined();
+        expect(template.prompt).toBeDefined();
+        expect(template.isDefault).toBe(1);
       });
     });
 

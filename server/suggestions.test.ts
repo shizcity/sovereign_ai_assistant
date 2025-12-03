@@ -129,7 +129,7 @@ describe("Memory Suggestions System", () => {
         expect(suggestions[0]).toHaveProperty("tags");
         expect(suggestions[0]).toHaveProperty("reasoning");
       }
-    });
+    }, 10000); // 10 second timeout for LLM API call
 
     it("should return empty array for trivial conversations", async () => {
       const { detectMemorySuggestions } = await import("./memory-suggestions");

@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { templateCategories, type TemplateCategory, type InsertTemplateCategory } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 /**
  * Create a new template category for a user
@@ -10,7 +10,7 @@ export async function createCategory(data: InsertTemplateCategory): Promise<Temp
   if (!db) throw new Error("Database not available");
   await db.insert(templateCategories).values(data);
   
-  // Fetch the created category
+  // Fetch the created category (get the most recent one)
   const [category] = await db
     .select()
     .from(templateCategories)
@@ -20,7 +20,7 @@ export async function createCategory(data: InsertTemplateCategory): Promise<Temp
         eq(templateCategories.name, data.name)
       )
     )
-    .orderBy(templateCategories.createdAt)
+    .orderBy(desc(templateCategories.createdAt))
     .limit(1);
   
   return category;
@@ -195,7 +195,7 @@ export async function importCategory(
     creatorName: targetUserName,
   });
   
-  // Fetch the newly created category
+  // Fetch the newly created category (get the most recent one)
   const [newCategory] = await db
     .select()
     .from(templateCategories)
@@ -205,7 +205,7 @@ export async function importCategory(
         eq(templateCategories.name, sourceCategory.name)
       )
     )
-    .orderBy(templateCategories.createdAt)
+    .orderBy(desc(templateCategories.createdAt))
     .limit(1);
   
   const newCategoryId = newCategory.id;

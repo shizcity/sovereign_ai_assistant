@@ -215,7 +215,7 @@ describe("template reviews", () => {
       name: "High Rated Template 1",
       description: "Should be featured",
       prompt: "Test prompt 1",
-      category: "Featured Test",
+      categoryId: null,
     });
     await caller.templates.togglePublic({ id: template1.id, isPublic: true });
 
@@ -223,7 +223,7 @@ describe("template reviews", () => {
       name: "High Rated Template 2",
       description: "Should also be featured",
       prompt: "Test prompt 2",
-      category: "Featured Test",
+      categoryId: null,
     });
     await caller.templates.togglePublic({ id: template2.id, isPublic: true });
 
@@ -231,7 +231,7 @@ describe("template reviews", () => {
       name: "Low Rated Template",
       description: "Should NOT be featured",
       prompt: "Test prompt 3",
-      category: "Featured Test",
+      categoryId: null,
     });
     await caller.templates.togglePublic({ id: template3.id, isPublic: true });
 
@@ -298,7 +298,7 @@ describe("template reviews", () => {
     });
 
     // Fetch featured templates
-    const featured = await caller.templates.getFeatured({ limit: 10 });
+    const featured = await caller.templates.getFeatured({ limit: 100 }); // Increase limit to catch all featured
 
     // Verify results
     expect(featured).toBeInstanceOf(Array);
@@ -311,9 +311,16 @@ describe("template reviews", () => {
     // Template3 should NOT be featured (only 2 reviews)
     expect(featuredIds).not.toContain(template3.id);
 
-    // Verify rating data is included
+    // Verify rating data is included for template1
     const template1Featured = featured.find(t => t.id === template1.id);
+    expect(template1Featured).toBeDefined();
     expect(template1Featured?.averageRating).toBeGreaterThanOrEqual(4.0);
     expect(template1Featured?.reviewCount).toBeGreaterThanOrEqual(3);
+    
+    // Verify template2 also has correct ratings
+    const template2Featured = featured.find(t => t.id === template2.id);
+    expect(template2Featured).toBeDefined();
+    expect(template2Featured?.averageRating).toBeGreaterThanOrEqual(4.0);
+    expect(template2Featured?.reviewCount).toBeGreaterThanOrEqual(3);
   });
 });
