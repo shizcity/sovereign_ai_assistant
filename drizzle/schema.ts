@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -258,3 +258,36 @@ export const sentinelMemoryEntries = mysqlTable("sentinel_memory_entries", {
 
 export type SentinelMemoryEntry = typeof sentinelMemoryEntries.$inferSelect;
 export type InsertSentinelMemoryEntry = typeof sentinelMemoryEntries.$inferInsert;
+
+/**
+ * Memory suggestions table - stores AI-generated suggestions for saving memories
+ */
+export const memorySuggestions = mysqlTable("memory_suggestions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  conversationId: int("conversationId").notNull(),
+  messageId: int("messageId").notNull(), // The AI message that triggered this suggestion
+  sentinelId: int("sentinelId"),
+  content: text("content").notNull(),
+  category: mysqlEnum("category", [
+    "insight",
+    "decision",
+    "goal",
+    "milestone",
+    "achievement",
+    "preference",
+    "challenge",
+    "pattern",
+  ]).notNull(),
+  importance: int("importance").notNull(), // 0-100
+  tags: json("tags").$type<string[]>(), // Array of tag strings
+  reasoning: text("reasoning"), // Why this is worth remembering
+  status: mysqlEnum("status", ["pending", "accepted", "dismissed", "edited"]).default("pending").notNull(),
+  feedback: text("feedback"), // User feedback on why dismissed
+  savedMemoryId: int("savedMemoryId"), // Link to actual memory if accepted
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  respondedAt: timestamp("respondedAt"), // When user accepted/dismissed
+});
+
+export type MemorySuggestion = typeof memorySuggestions.$inferSelect;
+export type InsertMemorySuggestion = typeof memorySuggestions.$inferInsert;

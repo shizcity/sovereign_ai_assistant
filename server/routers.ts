@@ -243,6 +243,43 @@ Reference these memories naturally when relevant. For example: "Remember when we
               console.error("Error extracting memories:", error);
             }
           })();
+
+          // Generate memory suggestions (async, don't block response)
+          (async () => {
+            try {
+              const { detectMemorySuggestions } = await import("./memory-suggestions");
+              const { createMemorySuggestion } = await import("./suggestions-db");
+
+              // Get user message and AI response
+              const userMessage = messages[messages.length - 2]?.content || "";
+              const aiResponse = response.content;
+
+              // Detect suggestions
+              const suggestions = await detectMemorySuggestions(
+                userMessage,
+                aiResponse,
+                messages.slice(0, -2).map((m: any) => ({ role: m.role, content: m.content })),
+                primarySentinel.sentinelName || "Sentinel"
+              );
+
+              // Save suggestions
+              for (const suggestion of suggestions) {
+                await createMemorySuggestion({
+                  userId: ctx.user.id,
+                  conversationId: input.conversationId,
+                  messageId: messageId,
+                  sentinelId: primarySentinel.sentinelId,
+                  content: suggestion.content,
+                  category: suggestion.category,
+                  importance: suggestion.importance,
+                  tags: suggestion.tags,
+                  reasoning: suggestion.reasoning,
+                });
+              }
+            } catch (error) {
+              console.error("Error generating suggestions:", error);
+            }
+          })();
         }
         
         return {
@@ -1078,6 +1115,122 @@ Reference these memories naturally when relevant. For example: "Remember when we
         .query(async ({ ctx, input }) => {
           const { getMemoryStats } = await import("./memory-db");
           return getMemoryStats(ctx.user.id, input.sentinelId);
+        }),
+    }),
+
+    // Memory suggestions
+    suggestions: router({
+      // Get pending suggestions for a conversation
+      pending: protectedProcedure
+        .input(z.object({ conversationId: z.number().optional() }))
+        .query(async ({ ctx, input }) => {
+          const { getPendingSuggestions } = await import("./suggestions-db");
+          return getPendingSuggestions(ctx.user.id, input.conversationId);
+        }),
+
+      // Get suggestions for a specific message
+      byMessage: protectedProcedure
+        .input(z.object({ messageId: z.number() }))
+        .query(async ({ input }) => {
+          const { getSuggestionsByMessage } = await import("./suggestions-db");
+          return getSuggestionsByMessage(input.messageId);
+        }),
+
+      // Accept a suggestion and save as memory
+      accept: protectedProcedure
+        .input(z.object({
+          suggestionId: z.number(),
+          saveAsMemory: z.boolean().default(true),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { acceptSuggestion, getPendingSuggestions } = await import("./suggestions-db");
+          const { createMemory } = await import("./memory-db");
+
+          // Get the suggestion
+          const suggestions = await getPendingSuggestions(ctx.user.id);
+          const suggestion = suggestions.find((s: any) => s.id === input.suggestionId);
+          if (!suggestion) throw new Error("Suggestion not found");
+
+          let savedMemoryId: boolean | null | undefined;
+
+          // Save as memory if requested
+          if (input.saveAsMemory) {
+            savedMemoryId = await createMemory({
+              userId: ctx.user.id,
+              sentinelId: suggestion.sentinelId || 0,
+              conversationId: suggestion.conversationId,
+              content: suggestion.content,
+              category: suggestion.category as any,
+              importance: suggestion.importance,
+              tags: suggestion.tags,
+              context: suggestion.reasoning || "",
+            });
+          }
+
+          // Mark suggestion as accepted
+          await acceptSuggestion(input.suggestionId, ctx.user.id, savedMemoryId ? 1 : undefined);
+
+          return { success: true, memoryId: savedMemoryId ? 1 : undefined };
+        }),
+
+      // Dismiss a suggestion
+      dismiss: protectedProcedure
+        .input(z.object({
+          suggestionId: z.number(),
+          feedback: z.string().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { dismissSuggestion } = await import("./suggestions-db");
+          return dismissSuggestion(input.suggestionId, ctx.user.id, input.feedback);
+        }),
+
+      // Edit and accept a suggestion
+      editAndAccept: protectedProcedure
+        .input(z.object({
+          suggestionId: z.number(),
+          content: z.string(),
+          category: z.string().optional(),
+          tags: z.array(z.string()).optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { editAndAcceptSuggestion, getPendingSuggestions } = await import("./suggestions-db");
+          const { createMemory } = await import("./memory-db");
+
+          // Get the suggestion
+          const suggestions = await getPendingSuggestions(ctx.user.id);
+          const suggestion = suggestions.find((s: any) => s.id === input.suggestionId);
+          if (!suggestion) throw new Error("Suggestion not found");
+
+          // Create memory with edited content
+          const savedMemoryId: boolean | null = await createMemory({
+            userId: ctx.user.id,
+            sentinelId: suggestion.sentinelId || 0,
+            conversationId: suggestion.conversationId,
+            content: input.content,
+            category: (input.category || suggestion.category) as any,
+            importance: suggestion.importance,
+            tags: input.tags || suggestion.tags,
+            context: suggestion.reasoning || "",
+          });
+
+          // Mark suggestion as edited and accepted
+          await editAndAcceptSuggestion(
+            input.suggestionId,
+            ctx.user.id,
+            input.content,
+            input.category,
+            input.tags,
+            savedMemoryId ? 1 : undefined
+          );
+
+          return { success: true, memoryId: savedMemoryId ? 1 : undefined };
+        }),
+
+      // Get suggestion statistics
+      stats: protectedProcedure
+        .query(async ({ ctx }) => {
+          const { getSuggestionStats } = await import("./suggestions-db");
+          return getSuggestionStats(ctx.user.id);
         }),
     }),
   }),

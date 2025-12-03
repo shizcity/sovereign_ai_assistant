@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
 import { SentinelSelector } from "@/components/SentinelSelector";
+import { MessageSuggestions } from "@/components/MessageSuggestions";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -1092,6 +1093,11 @@ export default function Chat() {
                         </div>
                       )}
                     </div>
+
+                    {/* Memory Suggestions */}
+                    {message.role === "assistant" && (
+                      <MessageSuggestions messageId={message.id} />
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
