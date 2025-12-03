@@ -569,3 +569,9 @@
 - [ ] Test template creation and editing
 - [ ] Write vitest tests for template system
 - [ ] Save checkpoint for Phase 6 completion
+
+
+## Bug Fixes
+- [x] Fix templates database query error with new columns (recommendedSentinelId, memoryTags, followUpPrompts)
+- [x] Verify templates-db.ts properly handles new schema fields
+- [x] Fixed schema column names to match database snake_case (recommended_sentinel_id, memory_tags, follow_up_prompts)
