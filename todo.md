@@ -575,3 +575,9 @@
 - [x] Fix templates database query error with new columns (recommendedSentinelId, memoryTags, followUpPrompts)
 - [x] Verify templates-db.ts properly handles new schema fields
 - [x] Fixed schema column names to match database snake_case (recommended_sentinel_id, memory_tags, follow_up_prompts)
+
+
+## Template Seeding
+- [x] Run seed script to populate 8 conversation templates
+- [x] Verify templates appear in Templates page with correct Sentinel assignments
+- [x] All 8 templates displaying correctly with icons, descriptions, and Sentinel assignments

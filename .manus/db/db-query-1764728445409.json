@@ -1,0 +1,9 @@
+{
+  "query": "SELECT id, name, recommended_sentinel_id, memory_tags FROM prompt_templates WHERE name IN ('Morning Planning', 'Creative Brainstorming', 'Decision Making Framework', 'Evening Reflection', 'Goal Setting Session', 'Problem Solving Workshop', 'Creative Writing Sprint', 'Strategic Planning');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, name, recommended_sentinel_id, memory_tags FROM prompt_templates WHERE name IN ('Morning Planning', 'Creative Brainstorming', 'Decision Making Framework', 'Evening Reflection', 'Goal Setting Session', 'Problem Solving Workshop', 'Creative Writing Sprint', 'Strategic Planning');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 71
+}

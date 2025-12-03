@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, name, recommended_sentinel_id, memory_tags FROM prompt_templates WHERE isDefault = 1 ORDER BY id DESC LIMIT 8;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, name, recommended_sentinel_id, memory_tags FROM prompt_templates WHERE isDefault = 1 ORDER BY id DESC LIMIT 8;",
+  "rows": [
+    {
+      "id": "30008",
+      "name": "⚡ Strategic Planning",
+      "recommended_sentinel_id": "5",
+      "memory_tags": "[\"strategy\",\"planning\",\"goals\",\"innovation\"]"
+    },
+    {
+      "id": "30007",
+      "name": "✍️ Creative Writing",
+      "recommended_sentinel_id": "2",
+      "memory_tags": "[\"creative\",\"writing\",\"stories\",\"ideas\"]"
+    },
+    {
+      "id": "30006",
+      "name": "🌊 Problem Solving",
+      "recommended_sentinel_id": "4",
+      "memory_tags": "[\"problems\",\"solutions\",\"challenges\",\"obstacles\"]"
+    },
+    {
+      "id": "30005",
+      "name": "🎯 Goal Setting",
+      "recommended_sentinel_id": "1",
+      "memory_tags": "[\"goals\",\"planning\",\"achievement\",\"growth\"]"
+    },
+    {
+      "id": "30004",
+      "name": "🌙 Evening Reflection",
+      "recommended_sentinel_id": "6",
+      "memory_tags": "[\"reflection\",\"growth\",\"insights\",\"evening\"]"
+    },
+    {
+      "id": "30003",
+      "name": "🎯 Decision Making",
+      "recommended_sentinel_id": "3",
+      "memory_tags": "[\"decisions\",\"goals\",\"values\",\"priorities\"]"
+    },
+    {
+      "id": "30002",
+      "name": "💡 Brainstorming Session",
+      "recommended_sentinel_id": "2",
+      "memory_tags": "[\"creative\",\"ideas\",\"projects\",\"innovation\"]"
+    },
+    {
+      "id": "30001",
+      "name": "🌅 Morning Planning",
+      "recommended_sentinel_id": "1",
+      "memory_tags": "[\"goals\",\"routines\",\"priorities\",\"morning\"]"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\trecommended_sentinel_id\tmemory_tags\n30008\t⚡ Strategic Planning\t5\t[\"strategy\",\"planning\",\"goals\",\"innovation\"]\n30007\t✍️ Creative Writing\t2\t[\"creative\",\"writing\",\"stories\",\"ideas\"]\n30006\t🌊 Problem Solving\t4\t[\"problems\",\"solutions\",\"challenges\",\"obstacles\"]\n30005\t🎯 Goal Setting\t1\t[\"goals\",\"planning\",\"achievement\",\"growth\"]\n30004\t🌙 Evening Reflection\t6\t[\"reflection\",\"growth\",\"insights\",\"evening\"]\n30003\t🎯 Decision Making\t3\t[\"decisions\",\"goals\",\"values\",\"priorities\"]\n30002\t💡 Brainstorming Session\t2\t[\"creative\",\"ideas\",\"projects\",\"innovation\"]\n30001\t🌅 Morning Planning\t1\t[\"goals\",\"routines\",\"priorities\",\"morning\"]\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

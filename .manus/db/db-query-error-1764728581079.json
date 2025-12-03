@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, name, recommended_sentinel_id, memory_tags, LEFT(follow_up_prompts, 50) as follow_up_preview FROM prompt_templates WHERE is_default = 1 ORDER BY id DESC LIMIT 8;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, name, recommended_sentinel_id, memory_tags, LEFT(follow_up_prompts, 50) as follow_up_preview FROM prompt_templates WHERE is_default = 1 ORDER BY id DESC LIMIT 8;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'is_default' in 'where clause'"
+  ]
+}
