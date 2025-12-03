@@ -956,6 +956,52 @@ Reference these memories naturally when relevant. For example: "Remember when we
 
     // Memory management
     memories: router({
+      // Analytics procedures
+      timeline: protectedProcedure
+        .input(
+          z.object({
+            startDate: z.string().optional(),
+            endDate: z.string().optional(),
+            granularity: z.enum(["day", "week", "month"]).default("day"),
+          })
+        )
+        .query(async ({ ctx, input }) => {
+          const { getMemoryTimeline } = await import("./memory-analytics");
+          return getMemoryTimeline(
+            ctx.user.id,
+            input.startDate ? new Date(input.startDate) : undefined,
+            input.endDate ? new Date(input.endDate) : undefined,
+            input.granularity
+          );
+        }),
+
+      categoryStats: protectedProcedure
+        .input(z.object({ sentinelId: z.number().optional() }))
+        .query(async ({ ctx, input }) => {
+          const { getCategoryStats } = await import("./memory-analytics");
+          return getCategoryStats(ctx.user.id, input.sentinelId);
+        }),
+
+      sentinelStats: protectedProcedure
+        .query(async ({ ctx }) => {
+          const { getSentinelCollaborationStats } = await import("./memory-analytics");
+          return getSentinelCollaborationStats(ctx.user.id);
+        }),
+
+      evolutionPaths: protectedProcedure
+        .input(z.object({ minMemories: z.number().default(2) }))
+        .query(async ({ ctx, input }) => {
+          const { getEvolutionPaths } = await import("./memory-analytics");
+          return getEvolutionPaths(ctx.user.id, input.minMemories);
+        }),
+
+      insights: protectedProcedure
+        .query(async ({ ctx }) => {
+          const { generateTrendInsights } = await import("./memory-analytics");
+          return generateTrendInsights(ctx.user.id);
+        }),
+
+      // Existing memory CRUD procedures
       list: protectedProcedure
         .input(z.object({ sentinelId: z.number() }))
         .query(async ({ ctx, input }) => {

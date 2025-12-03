@@ -12,6 +12,7 @@ import TemplateGallery from "@/pages/TemplateGallery";
 import CategoryGallery from "@/pages/CategoryGallery";
 import Sentinels from "@/pages/Sentinels";
 import Memories from "@/pages/Memories";
+import Insights from "@/pages/Insights";
 
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/category-gallery" component={CategoryGallery} />
       <Route path="/sentinels" component={Sentinels} />
       <Route path="/memories" component={Memories} />
+      <Route path="/insights" component={Insights} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

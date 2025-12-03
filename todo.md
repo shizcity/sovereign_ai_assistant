@@ -379,3 +379,55 @@
 - [x] Write vitest tests for memory system (26 tests passing)
 - [x] Test memory tRPC procedures and validation
 - [x] Test memory extraction and database modules
+
+
+## Phase 3: Memory Insights Dashboard
+
+### Backend Analytics & Data Aggregation
+- [x] Create memory analytics procedures (timeline data, category stats, evolution tracking)
+- [x] Implement memory grouping by tags and related content
+- [x] Add trend analysis for goal progression (idea → in-progress → achieved)
+- [x] Create Sentinel collaboration metrics (which Sentinels work on which topics)
+- [x] Add time-based aggregation (daily, weekly, monthly memory counts)
+
+### Timeline Visualization
+- [x] Build interactive timeline component showing memory creation over time
+- [x] Add category-based color coding for timeline events
+- [x] Implement granularity selector (day/week/month)
+- [x] Add date range filtering
+
+### Category Distribution Charts
+- [x] Create pie chart showing memory category distribution
+- [x] Build bar chart for memories per Sentinel
+- [x] Add importance score distribution visualization
+- [x] Implement Sentinel filtering for category stats
+
+### Evolution Tracking
+- [x] Build goal progression tracker (idea → milestone → achievement)
+- [x] Create linked memory view showing related memories
+- [x] Add tag-based memory clustering visualization
+- [x] Implement progress indicators for active goals
+
+### Sentinel Collaboration View
+- [x] Create Sentinel collaboration statistics
+- [x] Build bar chart visualization
+- [x] Add Sentinel contribution cards with top categories and tags
+- [x] Show which Sentinels work on which topics
+
+### Trend Analysis & Insights
+- [x] Implement pattern detection in memory creation
+- [x] Add insights generation with confidence scores
+- [x] Create insight cards for patterns, collaboration, progress, preferences
+- [x] Add AI-generated summary of memory trends
+
+### Dashboard UI
+- [x] Create main Insights Dashboard page with all visualizations
+- [x] Add granularity selector for timeline
+- [x] Implement tabbed interface (Timeline, Categories, Sentinels, Evolution)
+- [x] Add navigation link in sidebar
+- [x] Write vitest tests for analytics procedures (20 tests passing)
+
+### Final Delivery
+- [x] Test all visualizations with empty states
+- [x] Verify dashboard responsiveness
+- [x] Save checkpoint for Phase 3
