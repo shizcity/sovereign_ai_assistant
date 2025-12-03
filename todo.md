@@ -331,4 +331,51 @@
 - [x] Test Mischief.EXE personality (creative, rebellious, experimental)
 - [x] Create "Meet the Sentinels" onboarding page
 - [x] Write vitest tests for Sentinel operations
-- [ ] Save checkpoint for Phase 1 completion
+- [x] Save checkpoint for Phase 1 completion
+
+## Phase 2: Sentinel Memory System (IN PROGRESS)
+
+### Database & Schema Design
+- [x] Design memory entry structure (insights, decisions, milestones, context)
+- [x] Add memory entries table with categorization and tagging
+- [x] Add conversation-to-memory linking table
+- [x] Update sentinelMemory table with aggregated statistics
+- [x] Run database migration to create new tables
+
+### Automatic Memory Extraction
+- [x] Implement LLM-based memory extraction from conversation messages
+- [x] Create memory categorization system (insight, decision, milestone, preference, goal)
+- [x] Add memory extraction trigger after conversation completion
+- [x] Implement memory deduplication logic
+- [x] Add memory importance scoring
+
+### Memory Retrieval & Context Injection
+- [x] Build semantic search for relevant memories based on conversation context
+- [x] Implement memory retrieval procedure in backend
+- [x] Inject relevant memories into Sentinel system prompts
+- [x] Add memory reference formatting for natural language
+- [ ] Test memory retrieval with different conversation topics
+
+### Memory Management UI
+- [x] Create Memory Dashboard page showing all Sentinel memories
+- [x] Build memory card component with edit/delete actions
+- [x] Add memory filtering by Sentinel, category, and date
+- [x] Implement memory search functionality
+- [x] Add manual memory creation form
+- [ ] Create per-Sentinel memory view in "Meet the Sentinels" page
+
+### Testing & Validation
+- [ ] Write vitest tests for memory extraction
+- [ ] Write vitest tests for memory retrieval
+- [ ] Test memory system with Vixen's Den
+- [ ] Test memory system with Mischief.EXE
+- [ ] Verify memories persist across sessions
+- [ ] Verify Sentinels naturally reference past conversations
+
+### Deployment
+- [ ] Save checkpoint for Phase 2 completion
+- [ ] Document memory system usage and best practices
+
+- [x] Write vitest tests for memory system (26 tests passing)
+- [x] Test memory tRPC procedures and validation
+- [x] Test memory extraction and database modules

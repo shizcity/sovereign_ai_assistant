@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS sentinel_memory_entries (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  sentinelId INT NOT NULL,\n  conversationId INT,\n  category ENUM('insight', 'decision', 'milestone', 'preference', 'goal', 'achievement', 'challenge', 'pattern') NOT NULL,\n  content TEXT NOT NULL,\n  context TEXT,\n  importance INT DEFAULT 50 NOT NULL,\n  tags TEXT,\n  relatedMemoryIds TEXT,\n  isActive INT DEFAULT 1 NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  INDEX idx_user_sentinel (userId, sentinelId),\n  INDEX idx_conversation (conversationId),\n  INDEX idx_category (category),\n  INDEX idx_importance (importance)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute CREATE TABLE IF NOT EXISTS sentinel_memory_entries (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  userId INT NOT NULL,\n  sentinelId INT NOT NULL,\n  conversationId INT,\n  category ENUM('insight', 'decision', 'milestone', 'preference', 'goal', 'achievement', 'challenge', 'pattern') NOT NULL,\n  content TEXT NOT NULL,\n  context TEXT,\n  importance INT DEFAULT 50 NOT NULL,\n  tags TEXT,\n  relatedMemoryIds TEXT,\n  isActive INT DEFAULT 1 NOT NULL,\n  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,\n  INDEX idx_user_sentinel (userId, sentinelId),\n  INDEX idx_conversation (conversationId),\n  INDEX idx_category (category),\n  INDEX idx_importance (importance)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 216
+}

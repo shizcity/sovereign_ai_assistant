@@ -236,3 +236,25 @@ export const conversationSentinels = mysqlTable("conversation_sentinels", {
 
 export type ConversationSentinel = typeof conversationSentinels.$inferSelect;
 export type InsertConversationSentinel = typeof conversationSentinels.$inferInsert;
+
+/**
+ * Sentinel Memory Entries - Individual memories extracted from conversations
+ */
+export const sentinelMemoryEntries = mysqlTable("sentinel_memory_entries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  conversationId: int("conversationId"),
+  category: mysqlEnum("category", ["insight", "decision", "milestone", "preference", "goal", "achievement", "challenge", "pattern"]).notNull(),
+  content: text("content").notNull(),
+  context: text("context"), // Additional context about when/why this memory was created
+  importance: int("importance").default(50).notNull(), // 0-100 score
+  tags: text("tags"), // JSON array of tags for categorization
+  relatedMemoryIds: text("relatedMemoryIds"), // JSON array of related memory IDs
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SentinelMemoryEntry = typeof sentinelMemoryEntries.$inferSelect;
+export type InsertSentinelMemoryEntry = typeof sentinelMemoryEntries.$inferInsert;

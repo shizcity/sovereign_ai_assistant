@@ -11,6 +11,7 @@ import Templates from "@/pages/Templates";
 import TemplateGallery from "@/pages/TemplateGallery";
 import CategoryGallery from "@/pages/CategoryGallery";
 import Sentinels from "@/pages/Sentinels";
+import Memories from "@/pages/Memories";
 
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/template-gallery" component={TemplateGallery} />
       <Route path="/category-gallery" component={CategoryGallery} />
       <Route path="/sentinels" component={Sentinels} />
+      <Route path="/memories" component={Memories} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

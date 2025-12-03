@@ -140,6 +140,18 @@ export const appRouter = router({
         if (primarySentinel && primarySentinel.systemPrompt) {
           // Use Sentinel's system prompt if one is selected
           systemPrompt = primarySentinel.systemPrompt;
+          
+          // Inject relevant memories into system prompt
+          const { getTopMemories } = await import("./memory-db");
+          const memories = await getTopMemories(ctx.user.id, primarySentinel.sentinelId, 5);
+          
+          if (memories.length > 0) {
+            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memories.map((m, i) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n")}
+
+Reference these memories naturally when relevant. For example: "Remember when we worked on [topic]?" or "Building on what we discussed about [topic]..."`;
+            
+            systemPrompt = systemPrompt + memoryContext;
+          }
         } else {
           // Fall back to user's custom system prompt or default
           const userSettings = await getUserSettings(ctx.user.id);
@@ -194,6 +206,44 @@ export const appRouter = router({
         
         // Update conversation timestamp
         await updateConversation(input.conversationId, ctx.user.id, {});
+        
+        // Extract and save memories (async, don't block response)
+        if (primarySentinel) {
+          (async () => {
+            try {
+              const { extractMemoriesFromConversation, deduplicateMemories } = await import("./memory-extraction");
+              const { createMemory, getUserSentinelMemories } = await import("./memory-db");
+              
+              // Extract memories from conversation
+              const extracted = await extractMemoriesFromConversation(
+                messages.map((m: any) => ({ role: m.role, content: m.content })),
+                primarySentinel.sentinelName || "Sentinel"
+              );
+              
+              if (extracted.length > 0) {
+                // Get existing memories to deduplicate
+                const existing = await getUserSentinelMemories(ctx.user.id, primarySentinel.sentinelId);
+                const uniqueMemories = deduplicateMemories(extracted, existing);
+                
+                // Save unique memories
+                for (const memory of uniqueMemories) {
+                  await createMemory({
+                    userId: ctx.user.id,
+                    sentinelId: primarySentinel.sentinelId,
+                    conversationId: input.conversationId,
+                    category: memory.category,
+                    content: memory.content,
+                    context: memory.context,
+                    importance: memory.importance,
+                    tags: memory.tags,
+                  });
+                }
+              }
+            } catch (error) {
+              console.error("Error extracting memories:", error);
+            }
+          })();
+        }
         
         return {
           id: messageId,
@@ -262,6 +312,18 @@ export const appRouter = router({
         if (primarySentinel && primarySentinel.systemPrompt) {
           // Use Sentinel's system prompt if one is selected
           systemPrompt = primarySentinel.systemPrompt;
+          
+          // Inject relevant memories into system prompt
+          const { getTopMemories } = await import("./memory-db");
+          const memories = await getTopMemories(ctx.user.id, primarySentinel.sentinelId, 5);
+          
+          if (memories.length > 0) {
+            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memories.map((m, i) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n")}
+
+Reference these memories naturally when relevant. For example: "Remember when we worked on [topic]?" or "Building on what we discussed about [topic]..."`;
+            
+            systemPrompt = systemPrompt + memoryContext;
+          }
         } else {
           // Fall back to user's custom system prompt or default
           const userSettings = await getUserSettings(ctx.user.id);
@@ -891,6 +953,87 @@ export const appRouter = router({
         const { removeSentinelFromConversation } = await import("./sentinels-db");
         return removeSentinelFromConversation(input.conversationId, input.sentinelId);
       }),
+
+    // Memory management
+    memories: router({
+      list: protectedProcedure
+        .input(z.object({ sentinelId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const { getUserSentinelMemories } = await import("./memory-db");
+          return getUserSentinelMemories(ctx.user.id, input.sentinelId);
+        }),
+
+      listAll: protectedProcedure.query(async ({ ctx }) => {
+        const { getAllUserMemories } = await import("./memory-db");
+        return getAllUserMemories(ctx.user.id);
+      }),
+
+      create: protectedProcedure
+        .input(z.object({
+          sentinelId: z.number(),
+          conversationId: z.number().optional(),
+          category: z.enum(["insight", "decision", "milestone", "preference", "goal", "achievement", "challenge", "pattern"]),
+          content: z.string(),
+          context: z.string().optional(),
+          importance: z.number().min(0).max(100).optional(),
+          tags: z.array(z.string()).optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { createMemory } = await import("./memory-db");
+          return createMemory({
+            userId: ctx.user.id,
+            sentinelId: input.sentinelId,
+            conversationId: input.conversationId,
+            category: input.category,
+            content: input.content,
+            context: input.context,
+            importance: input.importance,
+            tags: input.tags,
+          });
+        }),
+
+      update: protectedProcedure
+        .input(z.object({
+          memoryId: z.number(),
+          content: z.string().optional(),
+          context: z.string().optional(),
+          importance: z.number().min(0).max(100).optional(),
+          tags: z.array(z.string()).optional(),
+        }))
+        .mutation(async ({ input }) => {
+          const { updateMemory } = await import("./memory-db");
+          return updateMemory(input.memoryId, {
+            content: input.content,
+            context: input.context,
+            importance: input.importance,
+            tags: input.tags,
+          });
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({ memoryId: z.number() }))
+        .mutation(async ({ input }) => {
+          const { deleteMemory } = await import("./memory-db");
+          return deleteMemory(input.memoryId);
+        }),
+
+      search: protectedProcedure
+        .input(z.object({
+          sentinelId: z.number(),
+          searchTerm: z.string(),
+        }))
+        .query(async ({ ctx, input }) => {
+          const { searchMemories } = await import("./memory-db");
+          return searchMemories(ctx.user.id, input.sentinelId, input.searchTerm);
+        }),
+
+      stats: protectedProcedure
+        .input(z.object({ sentinelId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const { getMemoryStats } = await import("./memory-db");
+          return getMemoryStats(ctx.user.id, input.sentinelId);
+        }),
+    }),
   }),
 
   // Available models based on configured API keys
