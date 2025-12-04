@@ -594,4 +594,14 @@
 - [x] Test PDF export with various conversation lengths
 - [x] Write vitest test for PDF export functionality
 - [x] All 4 tests passing (basic, no sentinel, long conversation, markdown)
-- [ ] Save checkpoint with working PDF export
+- [x] Save checkpoint with working PDF export
+
+
+## Sentinels Page Color Contrast Fix (NEW)
+- [x] Identify purple text on colored background issues
+- [x] Fix personality trait badge colors for better contrast (grid view)
+- [x] Fix personality trait badge colors for better contrast (detail view)
+- [x] Changed from outline variant with colored text to white text on semi-transparent backgrounds
+- [x] Ensure all text is readable against card backgrounds
+- [x] Test all 6 Sentinels for readability
+- [ ] Save checkpoint with color fixes

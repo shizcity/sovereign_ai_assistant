@@ -75,12 +75,8 @@ export default function Sentinels() {
                   {sentinel.personalityTraits.map((trait: string, idx: number) => (
                     <Badge
                       key={idx}
-                      variant="outline"
-                      className="text-xs"
-                      style={{
-                        borderColor: sentinel.primaryColor,
-                        color: sentinel.primaryColor,
-                      }}
+                      variant="secondary"
+                      className="text-xs bg-white/10 text-white border-white/20 hover:bg-white/15"
                     >
                       {trait}
                     </Badge>
@@ -131,11 +127,8 @@ export default function Sentinels() {
                     {selected.personalityTraits.map((trait: string, idx: number) => (
                       <Badge
                         key={idx}
-                        variant="outline"
-                        style={{
-                          borderColor: selected.primaryColor,
-                          color: selected.primaryColor,
-                        }}
+                        variant="secondary"
+                        className="bg-white/10 text-white border-white/20 hover:bg-white/15"
                       >
                         {trait}
                       </Badge>
