@@ -604,4 +604,19 @@
 - [x] Changed from outline variant with colored text to white text on semi-transparent backgrounds
 - [x] Ensure all text is readable against card backgrounds
 - [x] Test all 6 Sentinels for readability
-- [ ] Save checkpoint with color fixes
+- [x] Save checkpoint with color fixes
+
+
+## Sentinel Comparison Table (NEW)
+- [x] Design comparison table layout (side-by-side columns)
+- [x] Create SentinelComparison component
+- [x] Display all 6 Sentinels in table format
+- [x] Show personality traits for each Sentinel (badges)
+- [x] Show specialties for each Sentinel (bulleted lists)
+- [x] Show archetype and primary function
+- [x] Add view toggle button (Grid/Comparison) to Sentinels page
+- [x] Make table responsive (horizontal scroll on mobile, min-width 1200px)
+- [x] Add sticky first column for characteristic labels
+- [x] Add Start Chat buttons for each Sentinel
+- [x] Test on desktop browser (verified working)
+- [ ] Save checkpoint with comparison table feature

@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, LayoutGrid, Table } from "lucide-react";
+import { SentinelComparison } from "@/components/SentinelComparison";
 
 export default function Sentinels() {
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
 
   useEffect(() => {
     document.title = "Meet the Sentinels - Sovereign AI Assistant";
@@ -35,8 +38,36 @@ export default function Sentinels() {
           </p>
         </div>
 
-        {/* Sentinels Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        {/* View Toggle */}
+        <div className="flex justify-center gap-2 mb-8">
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            onClick={() => {
+              setViewMode("grid");
+              setSelectedSentinel(null);
+            }}
+            className="gap-2"
+          >
+            <LayoutGrid className="w-4 h-4" />
+            Grid View
+          </Button>
+          <Button
+            variant={viewMode === "comparison" ? "default" : "outline"}
+            onClick={() => {
+              setViewMode("comparison");
+              setSelectedSentinel(null);
+            }}
+            className="gap-2"
+          >
+            <Table className="w-4 h-4" />
+            Comparison Table
+          </Button>
+        </div>
+
+        {/* Conditional View Rendering */}
+        {viewMode === "grid" ? (
+          /* Sentinels Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {sentinels?.map((sentinel) => (
             <Card
               key={sentinel.id}
@@ -98,10 +129,16 @@ export default function Sentinels() {
               </div>
             </Card>
           ))}
-        </div>
+          </div>
+        ) : (
+          /* Comparison Table */
+          <div className="mb-16">
+            {sentinels && <SentinelComparison sentinels={sentinels} />}
+          </div>
+        )}
 
         {/* Selected Sentinel Detail View */}
-        {selected && (
+        {viewMode === "grid" && selected && (
           <div className="mt-12 animate-in fade-in duration-500">
             <Card
               className="border-2 p-8 md:p-12"
