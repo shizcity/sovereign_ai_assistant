@@ -620,3 +620,18 @@
 - [x] Add Start Chat buttons for each Sentinel
 - [x] Test on desktop browser (verified working)
 - [ ] Save checkpoint with comparison table feature
+
+
+## Sentinel Comparison Table Filtering (NEW)
+- [ ] Design filter UI layout (abov## Sentinel Comparison Table Filtering (NEW)
+- [x] Extract all unique personality traits from Sentinels (30+ traits)
+- [x] Extract all unique specialties from Sentinels (30+ specialties)
+- [x] Add filter state management (selectedTraits, selectedSpecialties)
+- [x] Implement filter logic (show Sentinels matching ANY selected filter)
+- [x] Create filter UI with clickable badges (blue when selected)
+- [x] Show active filter count badge ("1 active")
+- [x] Add "Clear Filters" button (appears when filters active)
+- [x] Show "Showing X of Y Sentinels" message ("Showing 1 of 6 Sentinels")
+- [x] Test filtering by single personality trait ("Pragmatic and results-oriented" → 1 Sentinel)
+- [x] Verified filtered table shows only matching Sentinel (Vixen's Den)
+- [ ] Save checkpoint with filtering feature
