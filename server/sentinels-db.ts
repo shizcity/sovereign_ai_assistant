@@ -185,3 +185,17 @@ export async function removeSentinelFromConversation(conversationId: number, sen
 
   return { success: true };
 }
+
+export async function updateSentinelMessageCount(conversationId: number, sentinelId: number) {
+  const db = await getDb();
+  if (!db) return { success: false };
+  
+  // Use raw SQL to increment message count atomically
+  await db.execute(`
+    UPDATE conversation_sentinels 
+    SET messageCount = messageCount + 1, lastActiveAt = NOW()
+    WHERE conversationId = ${conversationId} AND sentinelId = ${sentinelId}
+  `);
+
+  return { success: true };
+}

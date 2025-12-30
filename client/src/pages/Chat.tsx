@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Streamdown } from "streamdown";
 import { SentinelSelector } from "@/components/SentinelSelector";
+import { MultiSentinelManager } from "@/components/MultiSentinelManager";
 import { MessageSuggestions } from "@/components/MessageSuggestions";
 import { VoiceControls } from "@/components/VoiceControls";
 import { voiceService } from "@/lib/voice";
@@ -1025,6 +1026,12 @@ export default function Chat() {
                       ))}
                     </SelectContent>
                   </Select>
+                  
+                  {/* Multi-Sentinel Manager */}
+                  {selectedConversation && (
+                    <MultiSentinelManager conversationId={selectedConversation} />
+                  )}
+                  
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"

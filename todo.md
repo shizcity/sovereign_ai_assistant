@@ -635,3 +635,18 @@
 - [x] Test filtering by single personality trait ("Pragmatic and results-oriented" → 1 Sentinel)
 - [x] Verified filtered table shows only matching Sentinel (Vixen's Den)
 - [ ] Save checkpoint with filtering feature
+## Multi-Sentinel Conversations Feature
+- [x] Review existing conversationSentinels table schema (role: primary/collaborator)
+- [x] Add helper functions in sentinels-db.ts for Sentinel management
+- [x] Update message sending logic to support Sentinel rotation
+- [x] Implement round-robin rotation based on message count
+- [x] Create MultiSentinelManager UI component
+- [x] Display active Sentinels as badges with role indicators
+- [x] Add "+ Add Sentinel" button to add collaborators
+- [x] Add remove button (X) for each Sentinel badge
+- [x] Integrate MultiSentinelManager into Chat.tsx
+- [x] Write comprehensive vitest tests for rotation logic (5 tests passing)
+- [x] Test add/remove Sentinel operations
+- [x] Test message routing to correct Sentinel
+- [x] Test in browser UI (MultiSentinelManager displays correctly, Add Sentinel dialog works)
+- [ ] Save checkpoint with completed feature

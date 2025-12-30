@@ -180,9 +180,23 @@ export const appRouter = router({
         }
         
         // Get Sentinel system prompt if one is selected for this conversation
-        const { getConversationSentinels } = await import("./sentinels-db");
+        const { getConversationSentinels, updateSentinelMessageCount } = await import("./sentinels-db");
         const conversationSentinels = await getConversationSentinels(input.conversationId);
-        const primarySentinel = conversationSentinels.find((cs: any) => cs.role === 'primary');
+        
+        // Multi-Sentinel rotation: select Sentinel with lowest message count
+        let activeSentinel;
+        if (conversationSentinels.length > 1) {
+          // Sort by message count (ascending) to get the Sentinel who has responded least
+          const sortedSentinels = [...conversationSentinels].sort((a: any, b: any) => 
+            (a.messageCount || 0) - (b.messageCount || 0)
+          );
+          activeSentinel = sortedSentinels[0];
+        } else {
+          // Single Sentinel or no Sentinels - use primary or first available
+          activeSentinel = conversationSentinels.find((cs: any) => cs.role === 'primary') || conversationSentinels[0];
+        }
+        
+        const primarySentinel = activeSentinel;
         
         let systemPrompt;
         if (primarySentinel && primarySentinel.systemPrompt) {
@@ -254,6 +268,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
         
         // Update conversation timestamp
         await updateConversation(input.conversationId, ctx.user.id, {});
+        
+        // Update message count for the active Sentinel (for rotation tracking)
+        if (activeSentinel && activeSentinel.sentinelId) {
+          await updateSentinelMessageCount(input.conversationId, activeSentinel.sentinelId);
+        }
         
         // Extract and save memories (async, don't block response)
         if (primarySentinel) {
