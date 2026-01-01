@@ -29,6 +29,7 @@ export default function Chat() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedSentinel, setSelectedSentinel] = useState<number | undefined>();
+  const [targetSentinelId, setTargetSentinelId] = useState<number | undefined>(); // Manual Sentinel selection for next message
   const [inputMessage, setInputMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
@@ -300,8 +301,11 @@ export default function Chat() {
       conversationId: selectedConversation,
       content: inputMessage,
       model: selectedModel,
+      targetSentinelId: targetSentinelId, // Include manual Sentinel selection if set
     }, {
       onSuccess: (data) => {
+        // Reset target Sentinel selection after sending
+        setTargetSentinelId(undefined);
         // Automatically speak the AI response if a Sentinel is active
         if (activeSentinel && data.content) {
           voiceService.speak(data.content, {
@@ -1212,6 +1216,25 @@ export default function Chat() {
                   >
                     {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </Button>
+                  {/* Manual Sentinel Selector - only show if multiple Sentinels */}
+                  {conversationSentinels.length > 1 && (
+                    <Select
+                      value={targetSentinelId?.toString() || "auto"}
+                      onValueChange={(value) => setTargetSentinelId(value === "auto" ? undefined : parseInt(value))}
+                    >
+                      <SelectTrigger className="w-[200px] bg-white/5 border-white/10 text-white hover:bg-white/10">
+                        <SelectValue placeholder="Auto-rotate" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">🔄 Auto-rotate</SelectItem>
+                        {conversationSentinels.map((cs: any) => (
+                          <SelectItem key={cs.sentinelId} value={cs.sentinelId.toString()}>
+                            {cs.emoji} {cs.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <textarea
                     ref={messageInputRef}
                     value={inputMessage}

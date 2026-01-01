@@ -166,6 +166,7 @@ export const appRouter = router({
         conversationId: z.number(),
         content: z.string().min(1),
         model: z.string().default("gpt-4"),
+        targetSentinelId: z.number().optional(), // Optional: manually select which Sentinel responds
       }))
       .mutation(async ({ ctx, input }) => {
         const { createMessage, getConversationById, updateConversation, getUserSettings, getConversationMessages } = await import("./db");
@@ -183,10 +184,16 @@ export const appRouter = router({
         const { getConversationSentinels, updateSentinelMessageCount } = await import("./sentinels-db");
         const conversationSentinels = await getConversationSentinels(input.conversationId);
         
-        // Multi-Sentinel rotation: select Sentinel with lowest message count
+        // Sentinel selection: manual override or automatic rotation
         let activeSentinel;
-        if (conversationSentinels.length > 1) {
-          // Sort by message count (ascending) to get the Sentinel who has responded least
+        if (input.targetSentinelId) {
+          // Manual selection: use the specified Sentinel
+          activeSentinel = conversationSentinels.find((cs: any) => cs.sentinelId === input.targetSentinelId);
+          if (!activeSentinel) {
+            throw new Error("Selected Sentinel is not assigned to this conversation");
+          }
+        } else if (conversationSentinels.length > 1) {
+          // Automatic rotation: select Sentinel with lowest message count
           const sortedSentinels = [...conversationSentinels].sort((a: any, b: any) => 
             (a.messageCount || 0) - (b.messageCount || 0)
           );

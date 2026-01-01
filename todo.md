@@ -649,4 +649,16 @@
 - [x] Test add/remove Sentinel operations
 - [x] Test message routing to correct Sentinel
 - [x] Test in browser UI (MultiSentinelManager displays correctly, Add Sentinel dialog works)
-- [ ] Save checkpoint with completed feature
+- [x] Save checkpoint with completed feature (version: 410e5aba)
+
+## Manual Sentinel Selection Feature
+- [x] Update messages.send procedure to accept optional targetSentinelId parameter
+- [x] Modify rotation logic to use targetSentinelId when provided, otherwise use automatic rotation
+- [x] Add Sentinel selector dropdown in Chat.tsx message input area
+- [x] Display active Sentinels in dropdown with emoji and names
+- [x] Update message sending to include selected Sentinel ID
+- [x] Add visual indicator showing which Sentinel will respond (dropdown shows selection)
+- [x] Write vitest tests for manual selection override (7 tests passing)
+- [x] Test in browser with multi-Sentinel conversation (selector visible and working)
+- [x] Verify automatic rotation still works when no manual selection (defaults to Auto-rotate)
+- [ ] Save checkpoint with manual selection feature
