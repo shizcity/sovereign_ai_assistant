@@ -8,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock, FolderPlus, Palette } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock, FolderPlus, Palette, Search, Play } from "lucide-react";
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
 export default function Templates() {
@@ -19,6 +19,9 @@ export default function Templates() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
+  const [, setLocation] = useLocation();
   
   const [newTemplate, setNewTemplate] = useState({
     name: "",
@@ -91,6 +94,23 @@ export default function Templates() {
     },
   });
 
+  const handleUseTemplate = (templateId: number) => {
+    // Navigate to chat and pass template ID as URL parameter
+    setLocation(`/chat?templateId=${templateId}`);
+  };
+
+  // Filter templates based on search query and category
+  const filteredTemplates = templates.filter((template) => {
+    const matchesSearch = searchQuery === "" ||
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (template.description && template.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesCategory = selectedCategoryFilter === null ||
+      template.categoryId === selectedCategoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   const handleCreateTemplate = () => {
     createTemplate.mutate({
       name: newTemplate.name,
@@ -130,7 +150,7 @@ export default function Templates() {
     createCategory.mutate(newCategory);
   };
 
-  // Group templates by category
+  // Group filtered templates by category
   const templatesByCategory: Record<string, typeof templates> = {
     "Uncategorized": [],
   };
@@ -139,7 +159,7 @@ export default function Templates() {
     templatesByCategory[cat.name] = [];
   });
 
-  templates.forEach((template) => {
+  filteredTemplates.forEach((template) => {
     const category = categories.find((c) => c.id === template.categoryId);
     const categoryName = category?.name || "Uncategorized";
     if (!templatesByCategory[categoryName]) {
@@ -348,10 +368,44 @@ export default function Templates() {
             </CardContent>
           </Card>
         )}
+        {/* Search and Filter Bar */}
+        <div className="flex gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/40" />
+            <Input
+              type="text"
+              placeholder="Search templates by name or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+            />
+          </div>
+          <Select
+            value={selectedCategoryFilter?.toString() || "all"}
+            onValueChange={(value) => setSelectedCategoryFilter(value === "all" ? null : parseInt(value))}
+          >
+            <SelectTrigger className="w-[200px] bg-white/5 border-white/10 text-white">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-white/10 text-white">
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id.toString()}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                    {cat.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        {/* Templates by Category */}
-        <div className="space-y-8">
-          {Object.entries(templatesByCategory).map(([categoryName, categoryTemplates]) => {
+        {/* Template Categories and List */}
+        <div className="space-y-6">     {Object.entries(templatesByCategory).map(([categoryName, categoryTemplates]) => {
             if (categoryTemplates.length === 0) return null;
             
             const category = categories.find((c) => c.name === categoryName);
@@ -420,16 +474,26 @@ export default function Templates() {
                         <p className="text-sm text-white/40 line-clamp-3">{template.prompt}</p>
                       </CardContent>
                       <CardFooter className="flex justify-between items-center">
-                        {template.isPublic === 1 && (
-                          <Badge variant="secondary" className="bg-green-600/20 text-green-400 border-green-600/30">
-                            Public
-                          </Badge>
-                        )}
-                        {template.isDefault === 1 && (
-                          <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
-                            Default
-                          </Badge>
-                        )}
+                        <div className="flex gap-2">
+                          {template.isPublic === 1 && (
+                            <Badge variant="secondary" className="bg-green-600/20 text-green-400 border-green-600/30">
+                              Public
+                            </Badge>
+                          )}
+                          {template.isDefault === 1 && (
+                            <Badge variant="secondary" className="bg-blue-600/20 text-blue-400 border-blue-600/30">
+                              Default
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleUseTemplate(template.id)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Use Template
+                        </Button>
                       </CardFooter>
                     </Card>
                   ))}

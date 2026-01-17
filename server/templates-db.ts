@@ -32,6 +32,15 @@ export async function getTemplateById(id: number, userId: number): Promise<Promp
   return template;
 }
 
+export async function getTemplateByIdAny(id: number): Promise<PromptTemplate | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const [template] = await db.select().from(promptTemplates)
+    .where(eq(promptTemplates.id, id));
+  return template;
+}
+
 export async function updateTemplate(id: number, userId: number, updates: Partial<InsertPromptTemplate>): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

@@ -956,6 +956,110 @@ Reference these memories naturally when relevant. For example: "Remember when we
         );
         return { categoryId: newCategoryId };
       }),
+    
+    // Template activation - apply variables and prepare for use
+    activate: protectedProcedure
+      .input(z.object({
+        templateId: z.number(),
+        variables: z.record(z.string(), z.string()).optional(), // Key-value pairs for variable substitution
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { getTemplateById, getTemplateByIdAny } = await import("./templates-db");
+        let template = await getTemplateById(input.templateId, ctx.user.id);
+        
+        // If not found in user's templates, try to get it as a public template
+        if (!template) {
+          template = await getTemplateByIdAny(input.templateId);
+          // Verify it's actually public
+          if (template && template.isPublic !== 1) {
+            throw new Error("Template not found");
+          }
+        }
+        
+        if (!template) {
+          throw new Error("Template not found");
+        }
+        
+        // Apply variable substitution
+        let processedPrompt = template.prompt;
+        if (input.variables) {
+          Object.entries(input.variables).forEach(([key, value]) => {
+            const placeholder = `[${key.toUpperCase()}]`;
+            processedPrompt = processedPrompt.replaceAll(placeholder, String(value));
+          });
+        }
+        
+        // Parse follow-up prompts if they exist
+        let followUpPrompts: string[] = [];
+        if (template.followUpPrompts) {
+          try {
+            followUpPrompts = JSON.parse(template.followUpPrompts);
+          } catch (e) {
+            // If parsing fails, treat as empty array
+          }
+        }
+        
+        // Parse memory tags if they exist
+        let memoryTags: string[] = [];
+        if (template.memoryTags) {
+          try {
+            memoryTags = JSON.parse(template.memoryTags);
+          } catch (e) {
+            // If parsing fails, treat as empty array
+          }
+        }
+        
+        return {
+          prompt: processedPrompt,
+          recommendedSentinelId: template.recommendedSentinelId,
+          followUpPrompts,
+          memoryTags,
+        };
+      }),
+    
+    // Search templates by name, description, or category
+    search: protectedProcedure
+      .input(z.object({
+        query: z.string(),
+        categoryId: z.number().optional(),
+        includePublic: z.boolean().default(false),
+      }))
+      .query(async ({ input, ctx }) => {
+        const { getTemplatesByUser, getPublicTemplates } = await import("./templates-db");
+        
+        // Get user's templates
+        let templates = await getTemplatesByUser(ctx.user.id);
+        
+        // Optionally include public templates
+        if (input.includePublic) {
+          const publicTemplates = await getPublicTemplates();
+          templates = [...templates, ...publicTemplates];
+        }
+        
+        // Filter by search query
+        const query = input.query.toLowerCase();
+        let filtered = templates.filter(t => 
+          t.name.toLowerCase().includes(query) ||
+          (t.description && t.description.toLowerCase().includes(query))
+        );
+        
+        // Filter by category if specified
+        if (input.categoryId !== undefined) {
+          filtered = filtered.filter(t => t.categoryId === input.categoryId);
+        }
+        
+        return filtered;
+      }),
+    
+    // Track template usage
+    trackUsage: protectedProcedure
+      .input(z.object({ templateId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        // This is a simple implementation - you could extend this to track
+        // usage in a separate table with timestamps, user info, etc.
+        // For now, we'll just return success
+        return { success: true, templateId: input.templateId };
+      }),
   }),
 
   // Voice transcription

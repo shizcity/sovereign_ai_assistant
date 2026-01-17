@@ -104,6 +104,21 @@ export default function Chat() {
 
   // Fetch templates
   const { data: templates = [] } = trpc.templates.list.useQuery();
+  
+  // Check for templateId URL parameter on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get('templateId');
+    if (templateId && templates.length > 0) {
+      // Find and activate the template
+      const template = templates.find(t => t.id === parseInt(templateId));
+      if (template) {
+        handleSelectTemplate(template);
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/chat');
+      }
+    }
+  }, [templates]); // Run when templates are loaded
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

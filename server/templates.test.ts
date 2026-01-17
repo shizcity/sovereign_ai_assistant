@@ -338,4 +338,138 @@ describe("Template System", () => {
       expect(templateNames).toContain("Problem Solving");
     });
   });
+
+  describe("Template Activation and Search", () => {
+    let activationTemplateId: number;
+
+    beforeAll(async () => {
+      // Create a template for activation tests
+      const template = await caller.templates.create({
+        name: "Activation Test Template",
+        description: "Template for testing activation",
+        prompt: "This is a test prompt with [VARIABLE]",
+      });
+      activationTemplateId = template.id;
+    });
+
+    it("should activate a template without variables", async () => {
+      const result = await caller.templates.activate({
+        templateId: activationTemplateId,
+        variables: undefined,
+      });
+
+      expect(result).toBeDefined();
+      expect(result.prompt).toBe("This is a test prompt with [VARIABLE]");
+      expect(result.followUpPrompts).toEqual([]);
+      expect(result.memoryTags).toEqual([]);
+    });
+
+    it("should activate a template with variable substitution", async () => {
+      const result = await caller.templates.activate({
+        templateId: activationTemplateId,
+        variables: {
+          VARIABLE: "replaced value",
+        },
+      });
+
+      expect(result).toBeDefined();
+      expect(result.prompt).toBe("This is a test prompt with replaced value");
+    });
+
+  it("should activate a template with multiple variables", async () => {
+    // Create a template with multiple variables
+    const multiVarTemplate = await caller.templates.create({
+      name: "Multi-Variable Template",
+      description: "Template with multiple variables",
+      prompt: "Hello [NAME], your [ITEM] is ready for [ACTION].",
+    });
+
+    const result = await caller.templates.activate({
+      templateId: multiVarTemplate.id,
+      variables: {
+        NAME: "Alice",
+        ITEM: "order",
+        ACTION: "pickup",
+      },
+    });
+
+    expect(result.prompt).toBe("Hello Alice, your order is ready for pickup.");
+  });
+
+  it("should search templates by name", async () => {
+    const results = await caller.templates.search({
+      query: "Test",
+      includePublic: false,
+    });
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some(t => t.name.includes("Test"))).toBe(true);
+  });
+
+  it("should search templates by description", async () => {
+    const results = await caller.templates.search({
+      query: "test template",
+      includePublic: false,
+    });
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some(t => t.description?.includes("test template"))).toBe(true);
+  });
+
+  it("should filter templates by category", async () => {
+    // Create a category
+    const category = await caller.templates.createCategory({
+      name: "Test Category",
+      color: "#FF0000",
+    });
+
+    // Create a template in that category
+    const categorizedTemplate = await caller.templates.create({
+      name: "Categorized Template",
+      description: "A template in a category",
+      prompt: "Test prompt",
+      categoryId: category.id,
+    });
+
+    // Search with category filter
+    const results = await caller.templates.search({
+      query: "",
+      categoryId: category.id,
+      includePublic: false,
+    });
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every(t => t.categoryId === category.id)).toBe(true);
+    expect(results.some(t => t.id === categorizedTemplate.id)).toBe(true);
+  });
+
+  it("should track template usage", async () => {
+    const result = await caller.templates.trackUsage({
+      templateId,
+    });
+
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+    expect(result.templateId).toBe(templateId);
+  });
+
+  it("should throw error when activating non-existent template", async () => {
+    await expect(
+      caller.templates.activate({
+        templateId: 999999,
+        variables: undefined,
+      })
+    ).rejects.toThrow("Template not found");
+  });
+
+  it("should handle empty search query", async () => {
+    const results = await caller.templates.search({
+      query: "",
+      includePublic: false,
+    });
+
+    // Should return all user's templates
+    expect(results.length).toBeGreaterThan(0);
+  });
+  });
 });
