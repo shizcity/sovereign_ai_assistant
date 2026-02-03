@@ -661,3 +661,11 @@
 - [x] Test in browser with multi-Sentinel conversation (selector visible and working)
 - [x] Verify automatic rotation still works when no manual selection (defaults to Auto-rotate)
 - [ ] Save checkpoint with manual selection feature
+
+## Bug Fix: tRPC API Error on Home Page
+- [x] Investigate server logs to identify failing API endpoint (error was transient)
+- [x] Add comprehensive error handling to prevent HTML responses
+- [x] Add error logging to tRPC middleware
+- [x] Add global Express error handler for API routes
+- [x] Test the fix in browser (page loads correctly, no errors)
+- [ ] Save checkpoint with bug fix
