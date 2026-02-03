@@ -21,7 +21,7 @@ export const SUBSCRIPTION_TIERS = {
   PRO: {
     name: "Pro",
     price: 19, // $19/month
-    stripePriceId: process.env.STRIPE_PRO_PRICE_ID || "price_test_pro", // Set in Stripe Dashboard
+    stripePriceId: process.env.STRIPE_PRO_PRICE_ID || "", // Will be created dynamically if empty
     features: {
       messagesPerMonth: -1, // Unlimited
       sentinelsAccess: 6, // All Sentinels

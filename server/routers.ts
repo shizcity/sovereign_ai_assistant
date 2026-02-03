@@ -1496,13 +1496,36 @@ Reference these memories naturally when relevant. For example: "Remember when we
       const { SUBSCRIPTION_TIERS } = await import("./products");
 
       const origin = ctx.req.headers.origin || "http://localhost:3000";
+      
+      // Get or create the Pro price
+      let priceId = SUBSCRIPTION_TIERS.PRO.stripePriceId;
+      
+      if (!priceId) {
+        // Create product and price dynamically for test mode
+        const product = await stripe.products.create({
+          name: "Sovereign AI Pro",
+          description: "Unlimited messages and all premium features",
+        });
+        
+        const price = await stripe.prices.create({
+          product: product.id,
+          unit_amount: 1900, // $19.00
+          currency: "usd",
+          recurring: {
+            interval: "month",
+          },
+        });
+        
+        priceId = price.id;
+        console.log(`[Stripe] Created test price: ${priceId}`);
+      }
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
         line_items: [
           {
-            price: SUBSCRIPTION_TIERS.PRO.stripePriceId,
+            price: priceId,
             quantity: 1,
           },
         ],

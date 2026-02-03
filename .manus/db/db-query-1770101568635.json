@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users \nSET \n  stripeCustomerId = 'cus_test_simulation_123',\n  stripeSubscriptionId = 'sub_test_simulation_123',\n  subscriptionTier = 'pro',\n  subscriptionStatus = 'active',\n  subscriptionCurrentPeriodEnd = DATE_ADD(NOW(), INTERVAL 30 DAY)\nWHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute UPDATE users \nSET \n  stripeCustomerId = 'cus_test_simulation_123',\n  stripeSubscriptionId = 'sub_test_simulation_123',\n  subscriptionTier = 'pro',\n  subscriptionStatus = 'active',\n  subscriptionCurrentPeriodEnd = DATE_ADD(NOW(), INTERVAL 30 DAY)\nWHERE id = 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 97
+}

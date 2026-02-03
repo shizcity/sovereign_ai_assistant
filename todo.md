@@ -705,3 +705,12 @@
 - [x] Fix the root cause (missing TRPCError import)
 - [x] Test the fix in browser
 - [x] Verify all tRPC queries work correctly
+
+## Test Stripe Payment Flow End-to-End
+- [x] Navigate to Settings page
+- [x] Click "Upgrade to Pro" button
+- [x] Complete checkout with test card 4242 4242 4242 4242
+- [x] Verify webhook receives payment event
+- [x] Check database updated with subscription data
+- [x] Confirm Pro features are unlocked
+- [x] Test that usage limits are removed
