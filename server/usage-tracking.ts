@@ -38,15 +38,17 @@ export async function checkMessageLimit(userId: number): Promise<{ allowed: bool
   startOfMonth.setHours(0, 0, 0, 0);
 
   // Query messages table to count user's messages this month
-  const { messages } = await import("../drizzle/schema");
+  // Need to join with conversations to filter by userId
+  const { messages, conversations } = await import("../drizzle/schema");
   const { count } = await import("drizzle-orm");
   
   const result = await db
     .select({ count: count() })
     .from(messages)
+    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
     .where(
       and(
-        eq(messages.userId, userId),
+        eq(conversations.userId, userId),
         eq(messages.role, "user"),
         gte(messages.createdAt, startOfMonth)
       )
@@ -86,15 +88,16 @@ export async function getUsageStats(userId: number) {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const { messages } = await import("../drizzle/schema");
+  const { messages, conversations } = await import("../drizzle/schema");
   const { count } = await import("drizzle-orm");
   
   const result = await db
     .select({ count: count() })
     .from(messages)
+    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
     .where(
       and(
-        eq(messages.userId, userId),
+        eq(conversations.userId, userId),
         eq(messages.role, "user"),
         gte(messages.createdAt, startOfMonth)
       )
@@ -103,11 +106,16 @@ export async function getUsageStats(userId: number) {
   const used = result[0]?.count || 0;
   const remaining = limit === -1 ? -1 : Math.max(0, limit - used);
 
+  const resetDate = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 1);
+  const now = new Date();
+  const daysUntilReset = Math.ceil((resetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
   return {
     tier,
     limit,
     used,
     remaining,
-    resetDate: new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 1),
+    resetDate,
+    daysUntilReset,
   };
 }

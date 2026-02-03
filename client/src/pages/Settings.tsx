@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { APP_TITLE } from "@/const";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 
 const AI_MODELS = [
   { value: "gpt-4", label: "GPT-4" },
@@ -120,6 +121,9 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Subscription Card */}
+          <SubscriptionCard />
 
           {/* AI Model Preferences Card */}
           <Card className="bg-card text-card-foreground border-border">

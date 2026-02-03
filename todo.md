@@ -690,3 +690,11 @@
 - [x] Return error with upgrade prompt when limit exceeded
 - [ ] Test with free tier user exceeding 50 messages
 - [ ] Save checkpoint with working usage enforcement
+
+## Subscription Settings UI
+- [x] Add Subscription tab to Settings page
+- [x] Display current tier, usage stats, and reset date
+- [x] Add "Upgrade to Pro" button for free tier users
+- [x] Integrate Stripe checkout flow
+- [x] Show subscription management for Pro users
+- [x] Test UI and save checkpoint
