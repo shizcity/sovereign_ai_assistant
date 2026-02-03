@@ -828,3 +828,16 @@
 - [x] Test email delivery
 - [x] Document scheduling strategy for production
 - [x] Save checkpoint
+
+## Production Email Scheduling
+- [x] Install node-cron package
+- [x] Create scheduled-jobs.ts file with cron infrastructure
+- [x] Implement weekly digest cron job (Monday 9 AM)
+- [x] Implement monthly digest cron job (1st of month 9 AM)
+- [x] Add job logging and error handling
+- [x] Query users by emailDigestFrequency preference
+- [x] Integrate scheduler into server initialization
+- [x] Test cron job execution with manual triggers
+- [x] Write comprehensive vitest tests (11 tests passing)
+- [x] Document scheduling configuration
+- [x] Save checkpoint

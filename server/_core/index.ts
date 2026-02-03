@@ -106,6 +106,14 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Initialize scheduled jobs (email digests)
+    import("../scheduled-jobs").then(({ initializeScheduler }) => {
+      initializeScheduler();
+      console.log("[Scheduler] Email digest jobs initialized");
+    }).catch(error => {
+      console.error("[Scheduler] Failed to initialize:", error);
+    });
   });
 }
 
