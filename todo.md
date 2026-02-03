@@ -684,3 +684,9 @@
 - [ ] Test checkout flow with Stripe test mode
 - [ ] Write vitest tests for usage tracking
 - [ ] Save checkpoint with working Stripe integration
+
+## Usage Enforcement Implementation
+- [x] Add checkMessageLimit() call at start of messages.send procedure
+- [x] Return error with upgrade prompt when limit exceeded
+- [ ] Test with free tier user exceeding 50 messages
+- [ ] Save checkpoint with working usage enforcement

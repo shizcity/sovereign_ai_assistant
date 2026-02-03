@@ -174,6 +174,17 @@ export const appRouter = router({
         const { calculateCost, formatCost } = await import("./cost-calculator");
         const { DEFAULT_SYSTEM_PROMPT } = await import("./default-system-prompt");
         
+        // Check usage limits for free tier users
+        const { checkMessageLimit } = await import("./usage-tracking");
+        const usageCheck = await checkMessageLimit(ctx.user.id);
+        
+        if (!usageCheck.allowed) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `You've reached your monthly limit of ${usageCheck.limit} messages. Upgrade to Pro for unlimited messages at $19/month.`,
+          });
+        }
+        
         // Verify conversation ownership
         const conversation = await getConversationById(input.conversationId, ctx.user.id);
         if (!conversation) {
