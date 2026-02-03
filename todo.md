@@ -725,3 +725,30 @@
 - [x] Test all three warning states
 - [x] Write vitest tests for warning logic
 - [x] Save checkpoint
+
+## Voice-First Mode Implementation (Pro Feature)
+- [ ] Design voice mode UX flow (toggle, recording states, playback)
+- [ ] Create backend voice transcription procedure using built-in API
+- [ ] Add text-to-speech generation for AI responses
+- [ ] Build VoiceMode component with recording controls
+- [ ] Implement audio playback for TTS responses
+- [ ] Add Pro-tier gating (Free users see upgrade prompt)
+- [ ] Create voice mode toggle in chat interface
+- [ ] Handle continuous conversation flow (auto-record after response)
+- [ ] Add visual feedback for recording/processing/playing states
+- [ ] Test complete voice conversation flow
+- [ ] Write vitest tests for voice procedures
+- [ ] Save checkpoint
+
+## Voice-First Mode Implementation
+- [x] Design voice mode architecture and UX flow
+- [x] Create backend TTS helper (text-to-speech)
+- [x] Add voice tRPC procedures (transcribe, synthesize)
+- [x] Build VoiceModeToggle component with Pro gating
+- [x] Build VoiceRecorder component for audio input
+- [x] Build AudioPlayer component for TTS playback
+- [x] Create dedicated VoiceChat page
+- [x] Add Voice Chat route and navigation link
+- [x] Write vitest tests for voice procedures
+- [x] Test voice flow in browser
+- [x] Save checkpoint

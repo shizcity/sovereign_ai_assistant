@@ -18,6 +18,9 @@ import { SentinelSelector } from "@/components/SentinelSelector";
 import { MultiSentinelManager } from "@/components/MultiSentinelManager";
 import { MessageSuggestions } from "@/components/MessageSuggestions";
 import { VoiceControls } from "@/components/VoiceControls";
+import { VoiceModeToggle } from "@/components/VoiceModeToggle";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { AudioPlayer } from "@/components/AudioPlayer";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -50,6 +53,8 @@ export default function Chat() {
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [voiceMode, setVoiceMode] = useState<"off" | "manual" | "continuous">("off");
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
@@ -911,6 +916,12 @@ export default function Chat() {
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <TrendingUp className="w-4 h-4 mr-2" />
               Insights Dashboard
+            </Button>
+          </Link>
+          <Link href="/voice">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
+              <Mic className="w-4 h-4 mr-2" />
+              Voice Chat
             </Button>
           </Link>
           <Link href="/settings">

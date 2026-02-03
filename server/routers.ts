@@ -1073,41 +1073,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }),
   }),
 
-  // Voice transcription
-  voice: router({    transcribe: protectedProcedure
-      .input(
-        z.object({
-          audio: z.string(), // base64 encoded audio
-          mimeType: z.string(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        const { transcribeAudio } = await import("./_core/voiceTranscription");
-        
-        // Convert base64 to buffer
-        const audioBuffer = Buffer.from(input.audio, "base64");
-        
-        // Upload to storage and get URL
-        const { storagePut } = await import("./storage");
-        const { url } = await storagePut(
-          `voice-recordings/${Date.now()}.webm`,
-          audioBuffer,
-          input.mimeType
-        );
-        
-        // Transcribe using the uploaded URL
-        const result = await transcribeAudio({
-          audioUrl: url,
-        });
-        
-        // Check if transcription was successful
-        if ('error' in result) {
-          throw new Error(result.error);
-        }
-        
-        return { text: result.text };
-      }),
-  }),
+
 
   // Sentinel management
   sentinels: router({
@@ -1474,6 +1440,89 @@ Reference these memories naturally when relevant. For example: "Remember when we
         models: availableModels,
       };
     }),
+  }),
+
+  // Voice features (Pro tier)
+  voice: router({
+    transcribe: protectedProcedure
+      .input(z.object({
+        audio: z.string(), // base64 encoded audio
+        mimeType: z.string(),
+        language: z.string().optional(),
+        prompt: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Check Pro tier requirement
+        if (ctx.user.subscriptionTier !== "pro") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Voice features are only available for Pro users. Upgrade to Pro for $19/month.",
+          });
+        }
+
+        const { transcribeAudio } = await import("./_core/voiceTranscription");
+        const { storagePut } = await import("./storage");
+        
+        // Convert base64 to buffer
+        const audioBuffer = Buffer.from(input.audio, "base64");
+        
+        // Upload to storage and get URL
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const { url } = await storagePut(
+          `voice-recordings/${timestamp}-${randomSuffix}.webm`,
+          audioBuffer,
+          input.mimeType
+        );
+        
+        // Transcribe using the uploaded URL
+        const result = await transcribeAudio({
+          audioUrl: url,
+          language: input.language,
+          prompt: input.prompt,
+        });
+        
+        // Check if it's an error
+        if ('error' in result) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: result.error,
+            cause: result,
+          });
+        }
+        
+        return result;
+      }),
+
+    synthesize: protectedProcedure
+      .input(z.object({
+        text: z.string(),
+        voice: z.enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"]).optional(),
+        speed: z.number().min(0.25).max(4.0).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Check Pro tier requirement
+        if (ctx.user.subscriptionTier !== "pro") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Voice features are only available for Pro users. Upgrade to Pro for $19/month.",
+          });
+        }
+
+        const { synthesizeSpeech } = await import("./_core/textToSpeech");
+        const result = await synthesizeSpeech(input);
+        
+        // Check if it's an error
+        if ('error' in result) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: result.error,
+            cause: result,
+          });
+        }
+        
+        return result;
+      }),
   }),
 
   // Subscription management

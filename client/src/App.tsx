@@ -16,6 +16,7 @@ import CategoryGallery from "@/pages/CategoryGallery";
 import Sentinels from "@/pages/Sentinels";
 import Memories from "@/pages/Memories";
 import Insights from "@/pages/Insights";
+import VoiceChat from "@/pages/VoiceChat";
 
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/sentinels" component={Sentinels} />
       <Route path="/memories" component={Memories} />
       <Route path="/insights" component={Insights} />
+      <Route path="/voice" component={VoiceChat} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
