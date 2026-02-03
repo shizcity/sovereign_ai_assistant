@@ -1,4 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
+import { UsageWarningBanner } from "@/components/UsageWarningBanner";
+import { UsageWarningModal } from "@/components/UsageWarningModal";
+import { LimitReachedOverlay } from "@/components/LimitReachedOverlay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -50,6 +53,10 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          {/* Usage Warning Components - Global Level */}
+          <UsageWarningBanner />
+          <UsageWarningModal />
+          <LimitReachedOverlay />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

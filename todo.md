@@ -714,3 +714,14 @@
 - [x] Check database updated with subscription data
 - [x] Confirm Pro features are unlocked
 - [x] Test that usage limits are removed
+
+## Usage Warning System Implementation
+- [x] Design warning thresholds (40/50 = 80%, 48/50 = 96%, 50/50 = 100%)
+- [x] Create backend procedure to check warning state
+- [x] Add dismissible banner component for 80% threshold
+- [x] Add modal dialog for 96% threshold with upgrade CTA
+- [x] Add limit-reached message for 100% threshold
+- [x] Implement local storage for dismissed warnings
+- [x] Test all three warning states
+- [x] Write vitest tests for warning logic
+- [x] Save checkpoint

@@ -625,7 +625,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950">
+    <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950 relative">
       {/* Sidebar */}
       <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20 overflow-hidden">
         {/* Header */}

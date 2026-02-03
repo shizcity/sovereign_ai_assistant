@@ -119,3 +119,50 @@ export async function getUsageStats(userId: number) {
     daysUntilReset,
   };
 }
+
+/**
+ * Get warning state based on usage percentage
+ * Returns warning level and metadata for UI display
+ */
+export async function getWarningState(userId: number): Promise<{
+  level: 'none' | 'soft' | 'urgent' | 'blocked';
+  used: number;
+  limit: number;
+  remaining: number;
+  percentage: number;
+}> {
+  const stats = await getUsageStats(userId);
+  
+  // Pro users never see warnings
+  if (stats.limit === -1) {
+    return {
+      level: 'none',
+      used: stats.used,
+      limit: -1,
+      remaining: -1,
+      percentage: 0,
+    };
+  }
+  
+  const percentage = stats.limit > 0 ? (stats.used / stats.limit) * 100 : 0;
+  
+  let level: 'none' | 'soft' | 'urgent' | 'blocked';
+  
+  if (stats.used >= stats.limit) {
+    level = 'blocked'; // 100% - cannot send messages
+  } else if (percentage >= 96) {
+    level = 'urgent'; // 96%+ - modal warning (48/50)
+  } else if (percentage >= 80) {
+    level = 'soft'; // 80%+ - dismissible banner (40/50)
+  } else {
+    level = 'none'; // Below 80% - no warning
+  }
+  
+  return {
+    level,
+    used: stats.used,
+    limit: stats.limit,
+    remaining: stats.remaining,
+    percentage: Math.round(percentage),
+  };
+}

@@ -1,0 +1,13 @@
+{
+  "query": "SELECT COUNT(*) as message_count\nFROM messages m\nINNER JOIN conversations c ON m.conversationId = c.id\nWHERE c.userId = 1\n  AND m.role = 'user'\n  AND m.createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT COUNT(*) as message_count\nFROM messages m\nINNER JOIN conversations c ON m.conversationId = c.id\nWHERE c.userId = 1\n  AND m.role = 'user'\n  AND m.createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00');",
+  "rows": [
+    {
+      "message_count": "40"
+    }
+  ],
+  "messages": [],
+  "stdout": "message_count\n40\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

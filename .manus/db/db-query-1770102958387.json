@@ -1,0 +1,9 @@
+{
+  "query": "-- Delete test messages\nDELETE m FROM messages m\nINNER JOIN conversations c ON m.conversationId = c.id\nWHERE c.userId = 1\n  AND m.content LIKE 'Test message %'\n  AND m.createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00');\n\n-- Restore user to Pro tier\nUPDATE users \nSET \n  subscriptionTier = 'pro',\n  subscriptionStatus = 'active',\n  stripeCustomerId = 'cus_test_simulation_123',\n  stripeSubscriptionId = 'sub_test_simulation_123',\n  subscriptionCurrentPeriodEnd = DATE_ADD(NOW(), INTERVAL 30 DAY)\nWHERE id = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute -- Delete test messages\nDELETE m FROM messages m\nINNER JOIN conversations c ON m.conversationId = c.id\nWHERE c.userId = 1\n  AND m.content LIKE 'Test message %'\n  AND m.createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01 00:00:00');\n\n-- Restore user to Pro tier\nUPDATE users \nSET \n  subscriptionTier = 'pro',\n  subscriptionStatus = 'active',\n  stripeCustomerId = 'cus_test_simulation_123',\n  stripeSubscriptionId = 'sub_test_simulation_123',\n  subscriptionCurrentPeriodEnd = DATE_ADD(NOW(), INTERVAL 30 DAY)\nWHERE id = 1;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 112
+}

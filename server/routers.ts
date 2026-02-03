@@ -1550,6 +1550,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
       const { getUsageStats } = await import("./usage-tracking");
       return await getUsageStats(ctx.user.id);
     }),
+
+    getWarningState: protectedProcedure.query(async ({ ctx }) => {
+      const { getWarningState } = await import("./usage-tracking");
+      return await getWarningState(ctx.user.id);
+    }),
   }),
 });
 
