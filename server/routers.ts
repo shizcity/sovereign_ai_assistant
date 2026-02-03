@@ -150,6 +150,50 @@ export const appRouter = router({
         const conversationId = await importConversation(input.data, ctx.user.id);
         return { id: conversationId };
       }),
+
+    // Multi-Sentinel management (Pro feature)
+    listSentinels: protectedProcedure
+      .input(z.object({ conversationId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getConversationSentinels } = await import("./sentinels-db");
+        return getConversationSentinels(input.conversationId);
+      }),
+
+    addSentinel: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        sentinelId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Pro-tier gating: Free users can only have 1 Sentinel per conversation
+        if (ctx.user.subscriptionTier !== "pro") {
+          const { getConversationSentinels } = await import("./sentinels-db");
+          const existingSentinels = await getConversationSentinels(input.conversationId);
+          
+          if (existingSentinels.length >= 1) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Multi-Sentinel conversations are a Pro feature. Upgrade to add multiple Sentinels to your conversations.",
+            });
+          }
+        }
+
+        const { addSentinelToConversation } = await import("./sentinels-db");
+        // Add as collaborator (primary is set during conversation creation)
+        await addSentinelToConversation(input.conversationId, input.sentinelId, "collaborator");
+        return { success: true };
+      }),
+
+    removeSentinel: protectedProcedure
+      .input(z.object({
+        conversationId: z.number(),
+        sentinelId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { removeSentinelFromConversation } = await import("./sentinels-db");
+        await removeSentinelFromConversation(input.conversationId, input.sentinelId);
+        return { success: true };
+      }),
   }),
   
   // Message management
@@ -271,13 +315,14 @@ Reference these memories naturally when relevant. For example: "Remember when we
           totalTokens: 0,
         });
         
-        // Save assistant message with cost tracking
+        // Save assistant message with cost tracking and Sentinel attribution
         const messageId = await createMessage({
           conversationId: input.conversationId,
           role: "assistant",
           content: response.content,
           model: response.model,
           provider: response.provider,
+          sentinelId: activeSentinel?.sentinelId || null, // Track which Sentinel responded
           promptTokens: response.usage?.promptTokens || 0,
           completionTokens: response.usage?.completionTokens || 0,
           totalTokens: response.usage?.totalTokens || 0,

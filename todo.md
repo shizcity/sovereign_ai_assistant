@@ -766,3 +766,19 @@
 - [x] Write vitest tests for webhook handlers
 - [x] Test complete subscription lifecycle
 - [x] Save checkpoint
+
+## Multi-Sentinel Conversations (Pro Feature)
+- [x] Design response mode architecture (round-robin, manual, collaborative)
+- [x] Add Pro-tier gating for multi-Sentinel feature
+- [x] Create backend procedures to add/remove Sentinels from conversation
+- [x] Implement round-robin Sentinel rotation logic
+- [x] Implement manual Sentinel selection logic
+- [x] Update message sending to track which Sentinel responded
+- [x] Build "Add Sentinel" UI component
+- [x] Build Sentinel list display in conversation header
+- [x] Add Sentinel avatars/badges to messages
+- [x] Implement color-coded responses per Sentinel
+- [x] Add response mode selector (round-robin/manual)
+- [x] Write vitest tests for multi-Sentinel logic
+- [x] Test multi-Sentinel conversations with different modes
+- [x] Save checkpoint

@@ -21,6 +21,7 @@ import { VoiceControls } from "@/components/VoiceControls";
 import { VoiceModeToggle } from "@/components/VoiceModeToggle";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { SentinelBadge } from "@/components/SentinelBadge";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -1168,6 +1169,7 @@ export default function Chat() {
                       {message.role === "assistant" && (
                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
                           <div className="flex items-center gap-3">
+                            <SentinelBadge sentinelId={(message as any).sentinelId} />
                             {message.model && <span>Model: {message.model}</span>}
                             {message.totalTokens && <span>{message.totalTokens} tokens</span>}
                             {message.costUsd && <span>${message.costUsd}</span>}

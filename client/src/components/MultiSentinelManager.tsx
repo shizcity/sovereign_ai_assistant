@@ -1,4 +1,4 @@
-import { Users, X, Plus } from "lucide-react";
+import { Users, X, Plus, Crown } from "lucide-react";
 import { Button } from "./ui/button";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface MultiSentinelManagerProps {
   conversationId: number;
@@ -18,31 +19,43 @@ interface MultiSentinelManagerProps {
 export function MultiSentinelManager({ conversationId }: MultiSentinelManagerProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const utils = trpc.useUtils();
+  const { user } = useAuth();
+  const isPro = user?.subscriptionTier === "pro";
 
-  // Get conversation Sentinels
-  const { data: conversationSentinels = [] } = trpc.sentinels.getConversationSentinels.useQuery({
+  // Get conversation Sentinels using new endpoint
+  const { data: conversationSentinels = [] } = trpc.conversations.listSentinels.useQuery({
     conversationId,
   });
 
   // Get all available Sentinels for adding
   const { data: allSentinels = [] } = trpc.sentinels.list.useQuery();
 
-  // Add Sentinel mutation
-  const addSentinel = trpc.sentinels.addToConversation.useMutation({
+  // Add Sentinel mutation with Pro gating
+  const addSentinel = trpc.conversations.addSentinel.useMutation({
     onSuccess: () => {
-      utils.sentinels.getConversationSentinels.invalidate({ conversationId });
+      utils.conversations.listSentinels.invalidate({ conversationId });
       toast.success("Sentinel added to conversation");
       setShowAddDialog(false);
     },
     onError: (error) => {
-      toast.error(`Failed to add Sentinel: ${error.message}`);
+      if (error.message.includes("Pro feature")) {
+        toast.error("Multi-Sentinel conversations require Pro", {
+          description: "Upgrade to Pro to add multiple Sentinels to your conversations.",
+          action: {
+            label: "Upgrade",
+            onClick: () => window.location.href = "/settings",
+          },
+        });
+      } else {
+        toast.error(`Failed to add Sentinel: ${error.message}`);
+      }
     },
   });
 
   // Remove Sentinel mutation
-  const removeSentinel = trpc.sentinels.removeFromConversation.useMutation({
+  const removeSentinel = trpc.conversations.removeSentinel.useMutation({
     onSuccess: () => {
-      utils.sentinels.getConversationSentinels.invalidate({ conversationId });
+      utils.conversations.listSentinels.invalidate({ conversationId });
       toast.success("Sentinel removed from conversation");
     },
     onError: (error) => {
@@ -51,12 +64,9 @@ export function MultiSentinelManager({ conversationId }: MultiSentinelManagerPro
   });
 
   const handleAddSentinel = (sentinelId: number) => {
-    // Determine role: first Sentinel is primary, others are collaborators
-    const role = conversationSentinels.length === 0 ? "primary" : "collaborator";
     addSentinel.mutate({
       conversationId,
       sentinelId,
-      role,
     });
   };
 
@@ -124,10 +134,19 @@ export function MultiSentinelManager({ conversationId }: MultiSentinelManagerPro
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Sentinel to Conversation</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Add Sentinel to Conversation
+              {!isPro && (
+                <span className="text-xs bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full flex items-center gap-1">
+                  <Crown className="h-3 w-3" />
+                  Pro
+                </span>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Select a Sentinel to add as a collaborator. They will participate in the conversation
-              through automatic rotation.
+              {isPro
+                ? "Select a Sentinel to add as a collaborator. Multiple Sentinels will automatically rotate responses."
+                : "Multi-Sentinel conversations are a Pro feature. You can have one Sentinel per conversation on the Free plan."}
             </DialogDescription>
           </DialogHeader>
 

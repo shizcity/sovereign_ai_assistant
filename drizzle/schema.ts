@@ -57,6 +57,7 @@ export const messages = mysqlTable("messages", {
   content: text("content").notNull(),
   model: varchar("model", { length: 50 }),
   provider: varchar("provider", { length: 20 }),
+  sentinelId: int("sentinelId"), // Track which Sentinel responded (for multi-Sentinel conversations)
   promptTokens: int("promptTokens").default(0),
   completionTokens: int("completionTokens").default(0),
   totalTokens: int("totalTokens").default(0),
