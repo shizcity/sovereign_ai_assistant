@@ -112,17 +112,50 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
   const status = subscription.status;
   const tier = status === "active" || status === "trialing" ? "pro" : "free";
+  const currentPeriodEnd = (subscription as any).current_period_end 
+    ? new Date((subscription as any).current_period_end * 1000) 
+    : null;
+
+  // Get user before update to check if tier changed
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.stripeSubscriptionId, subscription.id))
+    .limit(1);
+
+  if (!user) {
+    console.error(`[Webhook] No user found with subscription ${subscription.id}`);
+    return;
+  }
+
+  const tierChanged = user.subscriptionTier !== tier;
 
   await db
     .update(users)
     .set({
       subscriptionStatus: status,
       subscriptionTier: tier,
-      subscriptionCurrentPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : null,
+      subscriptionCurrentPeriodEnd: currentPeriodEnd,
     })
     .where(eq(users.stripeSubscriptionId, subscription.id));
 
-  console.log(`[Webhook] Subscription ${subscription.id} updated: ${status}`);
+  console.log(`[Webhook] Subscription ${subscription.id} updated: ${status} (tier: ${tier})`);
+
+  // Log tier changes
+  if (tierChanged) {
+    if (tier === "free") {
+      console.log(`[Webhook] User ${user.id} downgraded to Free tier`);
+    } else {
+      console.log(`[Webhook] User ${user.id} upgraded to Pro tier`);
+    }
+  }
+
+  // Handle specific status changes
+  if (status === "canceled" || status === "unpaid") {
+    console.log(`[Webhook] Subscription ${subscription.id} ${status} - user downgraded to Free`);
+  } else if (status === "past_due") {
+    console.log(`[Webhook] Subscription ${subscription.id} past due - payment retry in progress`);
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {

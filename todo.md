@@ -752,3 +752,17 @@
 - [x] Write vitest tests for voice procedures
 - [x] Test voice flow in browser
 - [x] Save checkpoint
+
+## Subscription Management Portal
+- [x] Create Stripe Customer Portal session endpoint
+- [x] Add "Manage Subscription" button for Pro users in Settings
+- [x] Implement webhook handler for customer.subscription.updated
+- [x] Implement webhook handler for customer.subscription.deleted
+- [x] Implement webhook handler for customer.subscription.paused
+- [x] Build downgrade flow (reset to Free tier)
+- [x] Update SubscriptionCard to show billing details
+- [x] Display next billing date and payment method
+- [x] Show cancellation status if scheduled
+- [x] Write vitest tests for webhook handlers
+- [x] Test complete subscription lifecycle
+- [x] Save checkpoint

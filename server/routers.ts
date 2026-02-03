@@ -1604,6 +1604,33 @@ Reference these memories naturally when relevant. For example: "Remember when we
       const { getWarningState } = await import("./usage-tracking");
       return await getWarningState(ctx.user.id);
     }),
+
+    createPortalSession: protectedProcedure.mutation(async ({ ctx }) => {
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2026-01-28.clover",
+      });
+
+      // Check if user has a Stripe customer ID
+      if (!ctx.user.stripeCustomerId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No active subscription found. Please subscribe first.",
+        });
+      }
+
+      const origin = ctx.req.headers.origin || "http://localhost:3000";
+
+      // Create Customer Portal session
+      const session = await stripe.billingPortal.sessions.create({
+        customer: ctx.user.stripeCustomerId,
+        return_url: `${origin}/settings`,
+      });
+
+      return {
+        url: session.url,
+      };
+    }),
   }),
 });
 

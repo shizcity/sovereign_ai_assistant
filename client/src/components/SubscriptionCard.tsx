@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
-import { Crown, Loader2, Sparkles } from "lucide-react";
+import { Crown, Loader2, Sparkles, Settings } from "lucide-react";
 import { toast } from "sonner";
 
 export function SubscriptionCard() {
@@ -19,6 +19,19 @@ export function SubscriptionCard() {
     },
     onError: (error) => {
       toast.error(`Failed to create checkout: ${error.message}`);
+    },
+  });
+
+  const createPortalSession = trpc.subscription.createPortalSession.useMutation({
+    onSuccess: (data) => {
+      // Open Stripe Customer Portal in new tab
+      if (data.url) {
+        window.open(data.url, '_blank');
+        toast.info("Opening subscription management...");
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to open portal: ${error.message}`);
     },
   });
 
@@ -64,7 +77,7 @@ export function SubscriptionCard() {
                 : "Unlimited messages and all features"}
             </CardDescription>
           </div>
-          {isFree && (
+          {isFree ? (
             <Button
               onClick={() => createCheckout.mutate()}
               disabled={createCheckout.isPending}
@@ -79,6 +92,24 @@ export function SubscriptionCard() {
                 <>
                   <Crown className="mr-2 h-4 w-4" />
                   Upgrade to Pro
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => createPortalSession.mutate()}
+              disabled={createPortalSession.isPending}
+              variant="outline"
+            >
+              {createPortalSession.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Manage Subscription
                 </>
               )}
             </Button>
@@ -109,15 +140,52 @@ export function SubscriptionCard() {
         )}
 
         {!isFree && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-green-600">
               <Crown className="h-4 w-4" />
               <span>You have unlimited access to all features</span>
             </div>
-            {subscriptionStatus?.currentPeriodEnd && (
-              <p className="text-sm text-muted-foreground">
-                Next billing date: {new Date(subscriptionStatus.currentPeriodEnd).toLocaleDateString()}
-              </p>
+            
+            <div className="space-y-1 text-sm">
+              {subscriptionStatus?.status && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className="font-medium capitalize">
+                    {subscriptionStatus.status === 'active' && '✓ Active'}
+                    {subscriptionStatus.status === 'trialing' && '🎁 Trial'}
+                    {subscriptionStatus.status === 'past_due' && '⚠️ Past Due'}
+                    {subscriptionStatus.status === 'canceled' && '❌ Canceled'}
+                    {subscriptionStatus.status === 'unpaid' && '❌ Unpaid'}
+                  </span>
+                </div>
+              )}
+              
+              {subscriptionStatus?.currentPeriodEnd && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {subscriptionStatus.status === 'canceled' ? 'Access until:' : 'Next billing:'}
+                  </span>
+                  <span className="font-medium">
+                    {new Date(subscriptionStatus.currentPeriodEnd).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {subscriptionStatus?.status === 'canceled' && (
+              <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                <p className="text-sm text-orange-600">
+                  Your subscription has been canceled. You'll retain Pro access until {new Date(subscriptionStatus.currentPeriodEnd!).toLocaleDateString()}.
+                </p>
+              </div>
+            )}
+
+            {subscriptionStatus?.status === 'past_due' && (
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-sm text-yellow-600">
+                  Your payment is past due. Please update your payment method to continue your Pro subscription.
+                </p>
+              </div>
             )}
           </div>
         )}
