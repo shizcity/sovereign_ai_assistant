@@ -1464,6 +1464,59 @@ Reference these memories naturally when relevant. For example: "Remember when we
       };
     }),
   }),
+
+  // Subscription management
+  subscription: router({
+    getStatus: protectedProcedure.query(async ({ ctx }) => {
+      return {
+        tier: ctx.user.subscriptionTier || "free",
+        status: ctx.user.subscriptionStatus || "active",
+        currentPeriodEnd: ctx.user.subscriptionCurrentPeriodEnd,
+        stripeCustomerId: ctx.user.stripeCustomerId,
+        stripeSubscriptionId: ctx.user.stripeSubscriptionId,
+      };
+    }),
+
+    createCheckoutSession: protectedProcedure.mutation(async ({ ctx }) => {
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2026-01-28.clover",
+      });
+      const { SUBSCRIPTION_TIERS } = await import("./products");
+
+      const origin = ctx.req.headers.origin || "http://localhost:3000";
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: SUBSCRIPTION_TIERS.PRO.stripePriceId,
+            quantity: 1,
+          },
+        ],
+        success_url: `${origin}/settings?upgrade=success`,
+        cancel_url: `${origin}/settings?upgrade=canceled`,
+        customer_email: ctx.user.email || undefined,
+        client_reference_id: ctx.user.id.toString(),
+        metadata: {
+          user_id: ctx.user.id.toString(),
+          customer_email: ctx.user.email || "",
+          customer_name: ctx.user.name || "",
+        },
+        allow_promotion_codes: true,
+      });
+
+      return {
+        url: session.url,
+      };
+    }),
+
+    getUsage: protectedProcedure.query(async ({ ctx }) => {
+      const { getUsageStats } = await import("./usage-tracking");
+      return await getUsageStats(ctx.user.id);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

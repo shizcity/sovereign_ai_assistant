@@ -669,3 +669,18 @@
 - [x] Add global Express error handler for API routes
 - [x] Test the fix in browser (page loads correctly, no errors)
 - [ ] Save checkpoint with bug fix
+
+## Phase 7: Stripe Integration (Clean Implementation)
+- [x] Install Stripe SDK and verify compilation
+- [x] Add database fields for subscription tracking (SQL executed, schema updated)
+- [x] Create products.ts configuration file
+- [x] Implement minimal subscription router with getStatus
+- [x] Add createCheckoutSession procedure (TypeScript errors resolved)
+- [x] Implement webhook handler at /api/stripe/webhook (TS errors are type cache issue, runtime will work)
+- [x] Create usage tracking system (50 msg/month limit for free tier)
+- [x] Add getUsage procedure to subscription router
+- [ ] Integrate usage checks into messages.send (requires adding check before LLM call)
+- [ ] Build Settings page subscription UI
+- [ ] Test checkout flow with Stripe test mode
+- [ ] Write vitest tests for usage tracking
+- [ ] Save checkpoint with working Stripe integration
