@@ -565,6 +565,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
           defaultModel: "gemini-pro",
           theme: "dark",
           systemPrompt: DEFAULT_SYSTEM_PROMPT,
+          emailDigestFrequency: "weekly" as const,
+          lastDigestSent: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -581,11 +583,20 @@ Reference these memories naturally when relevant. For example: "Remember when we
         defaultModel: z.string().optional(),
         theme: z.string().optional(),
         systemPrompt: z.string().optional(),
+        emailDigestFrequency: z.enum(["weekly", "monthly", "both", "off"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { upsertUserSettings } = await import("./db");
         await upsertUserSettings(ctx.user.id, input);
         return { success: true };
+      }),
+    
+    sendTestDigest: protectedProcedure
+      .input(z.object({ type: z.enum(["weekly", "monthly"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const { sendDigestEmail } = await import("./email-digest");
+        const success = await sendDigestEmail(ctx.user.id, input.type);
+        return { success };
       }),
   }),
   

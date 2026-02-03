@@ -798,3 +798,33 @@
 - [x] Test analytics accuracy with real data
 - [x] Optimize query performance for large datasets
 - [x] Save checkpoint
+
+## Email Digest System Implementation
+- [ ] Design digest content structure (weekly/monthly summaries)
+- [ ] Choose email service provider (built-in notification API or external)
+- [ ] Create email templates with beautiful HTML design
+- [ ] Implement digest data aggregation (messages, Sentinels, achievements)
+- [ ] Build email sending logic with retry mechanism
+- [ ] Add user preferences table for email frequency settings
+- [ ] Create Settings UI for email preferences (weekly/monthly/off)
+- [ ] Implement opt-out/unsubscribe functionality
+- [ ] Set up scheduled job for weekly digest (every Monday)
+- [ ] Set up scheduled job for monthly digest (1st of month)
+- [ ] Add email preview feature in Settings
+- [ ] Test email delivery with real data
+- [ ] Write vitest tests for digest generation
+- [ ] Save checkpoint
+
+## Email Digest System Implementation
+- [x] Design email digest architecture (weekly/monthly)
+- [x] Create beautiful HTML email templates
+- [x] Implement digest data aggregation functions
+- [x] Add email sending with built-in notification API
+- [x] Add emailDigestFrequency field to userSettings table
+- [x] Create tRPC procedures for email preferences
+- [x] Build EmailPreferences UI component
+- [x] Add "Send Test Email" functionality
+- [x] Integrate EmailPreferences into Settings page
+- [x] Test email delivery
+- [x] Document scheduling strategy for production
+- [x] Save checkpoint

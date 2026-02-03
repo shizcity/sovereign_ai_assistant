@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { APP_TITLE } from "@/const";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { EmailPreferences } from "@/components/EmailPreferences";
 
 const AI_MODELS = [
   { value: "gpt-4", label: "GPT-4" },
@@ -124,6 +125,9 @@ export default function Settings() {
 
           {/* Subscription Card */}
           <SubscriptionCard />
+
+          {/* Email Preferences */}
+          <EmailPreferences />
 
           {/* AI Model Preferences Card */}
           <Card className="bg-card text-card-foreground border-border">

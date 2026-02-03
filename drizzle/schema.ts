@@ -77,6 +77,8 @@ export const userSettings = mysqlTable("userSettings", {
   defaultModel: varchar("defaultModel", { length: 50 }).notNull().default("gpt-4"),
   theme: varchar("theme", { length: 20 }).default("light"),
   systemPrompt: text("systemPrompt"),
+  emailDigestFrequency: varchar("emailDigestFrequency", { length: 20 }).default("weekly"), // 'weekly' | 'monthly' | 'both' | 'off'
+  lastDigestSent: timestamp("lastDigestSent"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
