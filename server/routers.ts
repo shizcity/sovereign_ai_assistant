@@ -590,7 +590,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
   }),
   
   // Usage analytics and cost tracking
-  analytics: router({
+  costs: router({
     conversationCost: protectedProcedure
       .input(z.object({ conversationId: z.number() }))
       .query(async ({ ctx, input }) => {
@@ -1674,6 +1674,198 @@ Reference these memories naturally when relevant. For example: "Remember when we
 
       return {
         url: session.url,
+      };
+    }),
+  }),
+
+  // Analytics
+  analytics: router({
+    getOverview: protectedProcedure.query(async ({ ctx }) => {
+      const db = await import("./db");
+      const { getUsageStats } = await import("./usage-tracking");
+      
+      // Get usage stats
+      const usageStats = await getUsageStats(ctx.user.id);
+      
+      // Get total conversations
+      const conversations = await db.getUserConversations(ctx.user.id);
+      const totalConversations = conversations.length;
+      
+      // Get total messages
+      const { getDb } = await import("./db");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+      const { messages, conversationSentinels } = await import("../drizzle/schema");
+      const { sql, count } = await import("drizzle-orm");
+      
+      const [totalMessagesResult] = await database
+        .select({ count: count() })
+        .from(messages)
+        .innerJoin(conversationSentinels, sql`${messages.conversationId} = ${conversationSentinels.conversationId}`)
+        .where(sql`${conversationSentinels.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id})`);
+      
+      const totalMessages = totalMessagesResult?.count || 0;
+      
+      // Get active days this month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const activeDaysResult = await database
+        .select({ day: sql`DATE(${messages.createdAt})` })
+        .from(messages)
+        .innerJoin(conversationSentinels, sql`${messages.conversationId} = ${conversationSentinels.conversationId}`)
+        .where(sql`${conversationSentinels.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id}) AND ${messages.createdAt} >= ${startOfMonth}`)
+        .groupBy(sql`DATE(${messages.createdAt})`);
+      
+      const activeDays = activeDaysResult.length;
+      
+      // Get total Sentinels used
+      const sentinelsResult = await database
+        .select({ sentinelId: conversationSentinels.sentinelId })
+        .from(conversationSentinels)
+        .where(sql`${conversationSentinels.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id})`)
+        .groupBy(conversationSentinels.sentinelId);
+      
+      const totalSentinels = sentinelsResult.length;
+      
+      return {
+        totalMessages,
+        monthlyMessages: usageStats.used,
+        monthlyLimit: usageStats.limit,
+        activeDays,
+        totalConversations,
+        totalSentinels,
+        subscriptionTier: ctx.user.subscriptionTier,
+      };
+    }),
+
+    getMessageTimeSeries: protectedProcedure
+      .input(z.object({ days: z.number().default(30) }))
+      .query(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        const { messages, conversationSentinels } = await import("../drizzle/schema");
+        const { sql } = await import("drizzle-orm");
+        
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - input.days);
+        
+        const result = await database
+          .select({
+            date: sql`DATE(${messages.createdAt})`,
+            count: sql`COUNT(*)`,
+          })
+          .from(messages)
+          .innerJoin(conversationSentinels, sql`${messages.conversationId} = ${conversationSentinels.conversationId}`)
+          .where(sql`${conversationSentinels.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id}) AND ${messages.createdAt} >= ${daysAgo}`)
+          .groupBy(sql`DATE(${messages.createdAt})`)
+          .orderBy(sql`DATE(${messages.createdAt})`);
+        
+        return result.map((r: any) => ({
+          date: r.date as string,
+          count: Number(r.count),
+        }));
+      }),
+
+    getSentinelStats: protectedProcedure.query(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+      const { messages, conversationSentinels, sentinels } = await import("../drizzle/schema");
+      const { sql, eq } = await import("drizzle-orm");
+      
+      const result = await database
+        .select({
+          sentinelId: messages.sentinelId,
+          sentinelName: sentinels.name,
+          count: sql`COUNT(*)`,
+        })
+        .from(messages)
+        .innerJoin(conversationSentinels, sql`${messages.conversationId} = ${conversationSentinels.conversationId}`)
+        .leftJoin(sentinels, eq(messages.sentinelId, sentinels.id))
+        .where(sql`${conversationSentinels.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id}) AND ${messages.sentinelId} IS NOT NULL`)
+        .groupBy(messages.sentinelId, sentinels.name)
+        .orderBy(sql`COUNT(*) DESC`);
+      
+      const total = result.reduce((sum: number, r: any) => sum + Number(r.count), 0);
+      
+      return result.map((r: any) => ({
+        sentinelId: r.sentinelId,
+        sentinelName: r.sentinelName || 'Unknown',
+        messageCount: Number(r.count),
+        percentage: total > 0 ? Math.round((Number(r.count) / total) * 100) : 0,
+      }));
+    }),
+
+    getConversationInsights: protectedProcedure.query(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+      const { messages, conversations } = await import("../drizzle/schema");
+      const { sql, eq, desc } = await import("drizzle-orm");
+      
+      // Average messages per conversation
+      const [avgResult] = await database
+        .select({
+          avg: sql`AVG(message_count)`,
+        })
+        .from(
+          database
+            .select({
+              conversationId: messages.conversationId,
+              message_count: sql`COUNT(*)`,
+            })
+            .from(messages)
+            .where(sql`${messages.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id})`)
+            .groupBy(messages.conversationId)
+            .as('conv_counts')
+        );
+      
+      const avgMessagesPerConversation = Math.round(Number(avgResult?.avg || 0));
+      
+      // Longest conversation
+      const [longestResult] = await database
+        .select({
+          conversationId: messages.conversationId,
+          title: conversations.title,
+          count: sql`COUNT(*)`,
+        })
+        .from(messages)
+        .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+        .where(eq(conversations.userId, ctx.user.id))
+        .groupBy(messages.conversationId, conversations.title)
+        .orderBy(desc(sql`COUNT(*)`))
+        .limit(1);
+      
+      const longestConversation = longestResult ? {
+        title: longestResult.title,
+        messageCount: Number(longestResult.count),
+      } : null;
+      
+      // Total tokens (sum from messages)
+      const [tokensResult] = await database
+        .select({
+          total: sql`SUM(${messages.totalTokens})`,
+        })
+        .from(messages)
+        .where(sql`${messages.conversationId} IN (SELECT id FROM conversations WHERE userId = ${ctx.user.id})`);
+      
+      const totalTokens = Number(tokensResult?.total || 0);
+      
+      // Estimated cost (assuming $0.03 per 1K tokens for GPT-4)
+      const estimatedCost = (totalTokens / 1000) * 0.03;
+      
+      // Memory count - placeholder for future implementation
+      const memoryCount = 0;
+      
+      return {
+        avgMessagesPerConversation,
+        longestConversation,
+        totalTokens,
+        estimatedCost: estimatedCost.toFixed(2),
+        memoryCount,
       };
     }),
   }),
