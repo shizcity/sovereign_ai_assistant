@@ -698,3 +698,10 @@
 - [x] Integrate Stripe checkout flow
 - [x] Show subscription management for Pro users
 - [x] Test UI and save checkpoint
+
+## Fix tRPC API Error (HTML instead of JSON)
+- [x] Check server logs for error details
+- [x] Identify which tRPC query is failing
+- [x] Fix the root cause (missing TRPCError import)
+- [x] Test the fix in browser
+- [x] Verify all tRPC queries work correctly

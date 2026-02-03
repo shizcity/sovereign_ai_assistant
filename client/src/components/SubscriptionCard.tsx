@@ -12,8 +12,10 @@ export function SubscriptionCard() {
   const createCheckout = trpc.subscription.createCheckoutSession.useMutation({
     onSuccess: (data) => {
       // Open Stripe checkout in new tab
-      window.open(data.url, '_blank');
-      toast.info("Redirecting to Stripe checkout...");
+      if (data.url) {
+        window.open(data.url, '_blank');
+        toast.info("Redirecting to Stripe checkout...");
+      }
     },
     onError: (error) => {
       toast.error(`Failed to create checkout: ${error.message}`);
@@ -112,9 +114,9 @@ export function SubscriptionCard() {
               <Crown className="h-4 w-4" />
               <span>You have unlimited access to all features</span>
             </div>
-            {subscriptionStatus?.subscriptionEndsAt && (
+            {subscriptionStatus?.currentPeriodEnd && (
               <p className="text-sm text-muted-foreground">
-                Next billing date: {new Date(subscriptionStatus.subscriptionEndsAt).toLocaleDateString()}
+                Next billing date: {new Date(subscriptionStatus.currentPeriodEnd).toLocaleDateString()}
               </p>
             )}
           </div>

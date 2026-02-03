@@ -118,7 +118,7 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     .set({
       subscriptionStatus: status,
       subscriptionTier: tier,
-      subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      subscriptionCurrentPeriodEnd: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : null,
     })
     .where(eq(users.stripeSubscriptionId, subscription.id));
 
