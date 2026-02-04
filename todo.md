@@ -945,3 +945,14 @@
 - [x] Add navigation with smooth scroll anchors
 - [x] Add footer with links
 - [x] Save checkpoint with landing page
+
+## Landing Page Scroll Animations
+- [x] Create useScrollAnimation hook with Intersection Observer
+- [x] Add fade-in animation keyframes and classes to index.css
+- [x] Apply animations to stats section
+- [x] Apply animations to features header
+- [x] Apply animations to Sentinels header
+- [x] Apply animations to pricing header
+- [x] Apply animations to email capture CTA section
+- [x] Test animation performance and timing
+- [x] Save checkpoint with scroll animations

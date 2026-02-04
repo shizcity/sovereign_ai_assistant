@@ -17,10 +17,18 @@ import {
   Check
 } from "lucide-react";
 import { toast } from "sonner";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
   const [particles, setParticles] = useState<Array<{ x: number; y: number; delay: number }>>([]);
+  
+  // Scroll animation hooks
+  const statsRef = useScrollAnimation();
+  const featuresHeaderRef = useScrollAnimation();
+  const sentinelsHeaderRef = useScrollAnimation();
+  const pricingHeaderRef = useScrollAnimation();
+  const ctaRef = useScrollAnimation();
 
   useEffect(() => {
     document.title = "Glow - Your AI. Your Identity. Your Sovereignty.";
@@ -150,7 +158,12 @@ export default function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="relative z-10 py-20 px-6 border-y border-white/10">
+      <section 
+        ref={statsRef.ref}
+        className={`relative z-10 py-20 px-6 border-y border-white/10 transition-all duration-700 ${
+          statsRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`}
+      >
         <div className="container max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
@@ -176,7 +189,12 @@ export default function Landing() {
       {/* Features Section */}
       <section id="features" className="relative z-10 py-32 px-6">
         <div className="container max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div 
+            ref={featuresHeaderRef.ref}
+            className={`text-center mb-16 transition-all duration-700 ${
+              featuresHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <h2 className="text-5xl font-bold mb-4">Core Architecture</h2>
             <p className="text-xl text-gray-400">
               Advanced capabilities for multi-perspective intelligence.
@@ -256,7 +274,12 @@ export default function Landing() {
       {/* Sentinels Showcase */}
       <section id="sentinels" className="relative z-10 py-32 px-6 border-t border-white/10">
         <div className="container max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div 
+            ref={sentinelsHeaderRef.ref}
+            className={`text-center mb-16 transition-all duration-700 ${
+              sentinelsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <h2 className="text-5xl font-bold mb-4">Meet the Sentinels</h2>
             <p className="text-xl text-gray-400">
               Six specialized AI personalities, each with unique expertise and perspective.
@@ -295,7 +318,12 @@ export default function Landing() {
       {/* Pricing Section */}
       <section id="pricing" className="relative z-10 py-32 px-6 border-t border-white/10">
         <div className="container max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div 
+            ref={pricingHeaderRef.ref}
+            className={`text-center mb-16 transition-all duration-700 ${
+              pricingHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <h2 className="text-5xl font-bold mb-4">Choose Your Plan</h2>
             <p className="text-xl text-gray-400">
               Start free. Upgrade when you need more power.
@@ -389,7 +417,12 @@ export default function Landing() {
 
       {/* Email Capture CTA */}
       <section className="relative z-10 py-32 px-6 border-t border-white/10">
-        <div className="container max-w-4xl mx-auto text-center">
+        <div 
+          ref={ctaRef.ref}
+          className={`container max-w-4xl mx-auto text-center transition-all duration-700 ${
+            ctaRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}
+        >
           <h2 className="text-5xl font-bold mb-6">Ready to illuminate your thinking?</h2>
           <p className="text-xl text-gray-400 mb-12">
             Join thousands experiencing multi-perspective AI conversations.
