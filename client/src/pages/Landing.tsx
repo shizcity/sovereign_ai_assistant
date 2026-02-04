@@ -23,6 +23,13 @@ export default function Landing() {
   const [email, setEmail] = useState("");
   const [particles, setParticles] = useState<Array<{ x: number; y: number; delay: number }>>([]);
   
+  // Hero animation hooks (on mount, no scroll needed)
+  const heroStatusRef = useScrollAnimation({ threshold: 0.1 });
+  const heroHeadlineRef = useScrollAnimation({ threshold: 0.1 });
+  const heroTaglineRef = useScrollAnimation({ threshold: 0.1 });
+  const heroCtasRef = useScrollAnimation({ threshold: 0.1 });
+  const heroTerminalRef = useScrollAnimation({ threshold: 0.1 });
+  
   // Scroll animation hooks
   const statsRef = useScrollAnimation();
   const featuresHeaderRef = useScrollAnimation();
@@ -166,7 +173,12 @@ export default function Landing() {
       <section className="relative z-10 pt-32 pb-20 px-6">
         <div className="container max-w-6xl mx-auto">
           {/* Status Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-12 animate-pulse">
+          <div 
+            ref={heroStatusRef.ref}
+            className={`flex items-center justify-center gap-2 mb-12 animate-pulse transition-all duration-700 delay-0 ${
+              heroStatusRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <div className="w-2 h-2 bg-cyan-400 rounded-full" />
             <span className="text-cyan-400 font-mono text-sm tracking-wider">
               SENTINELS_ONLINE
@@ -174,13 +186,23 @@ export default function Landing() {
           </div>
 
           {/* Main Headline */}
-          <div className="text-center mb-12">
+          <div 
+            ref={heroHeadlineRef.ref}
+            className={`text-center mb-12 transition-all duration-700 delay-200 ${
+              heroHeadlineRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
               <span className="text-white">Multi-Sentinel</span>
               <br />
               <span className="text-gray-500">AI Platform</span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+            <p 
+              ref={heroTaglineRef.ref}
+              className={`text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed transition-all duration-700 delay-400 ${
+                heroTaglineRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
               Your AI. Your Identity. Your Sovereignty.
               <br />
               Experience conversations with specialized AI personalities.
@@ -188,7 +210,12 @@ export default function Landing() {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div 
+            ref={heroCtasRef.ref}
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 transition-all duration-700 delay-600 ${
+              heroCtasRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <Link href="/chat">
               <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold px-8 py-6 text-lg">
                 Start Chatting
@@ -203,7 +230,12 @@ export default function Landing() {
           </div>
 
           {/* Terminal-style code snippet */}
-          <div className="max-w-2xl mx-auto">
+          <div 
+            ref={heroTerminalRef.ref}
+            className={`max-w-2xl mx-auto transition-all duration-700 delay-[800ms] ${
+              heroTerminalRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
             <Card className="bg-black/50 border-cyan-500/30 backdrop-blur-xl p-6">
               <div className="font-mono text-sm space-y-2">
                 <div className="text-gray-500">glow://core/sentinel-v2</div>

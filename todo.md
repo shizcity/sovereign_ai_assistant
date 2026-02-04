@@ -980,13 +980,13 @@
 - [x] Test pricing card interactions
 
 ### Hero Section Staged Animation
-- [ ] Create sequential animation for hero elements
-- [ ] Animate status indicator (first, 0ms delay)
-- [ ] Animate headline (second, 200ms delay)
-- [ ] Animate tagline (third, 400ms delay)
-- [ ] Animate CTA buttons (fourth, 600ms delay)
-- [ ] Animate terminal code snippet (fifth, 800ms delay)
-- [ ] Test hero animation sequence timing
+- [x] Create sequential animation for hero elements
+- [x] Animate status indicator (first, 0ms delay)
+- [x] Animate headline (second, 200ms delay)
+- [x] Animate tagline (third, 400ms delay)
+- [x] Animate CTA buttons (fourth, 600ms delay)
+- [x] Animate terminal code snippet (fifth, 800ms delay)
+- [x] Test hero animation sequence timing
 
 ### Testimonials Section
 - [ ] Design testimonials section layout
