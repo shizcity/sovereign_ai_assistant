@@ -202,16 +202,16 @@ export default function Landing() {
           
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/chat">
+            <a href="/chat">
               <Button variant="ghost" className="text-gray-400 hover:text-white">
                 Sign In
               </Button>
-            </Link>
-            <Link href="/chat">
+            </a>
+            <a href="/chat">
               <Button className="bg-cyan-500 hover:bg-cyan-600 text-black font-semibold">
                 Initialize
               </Button>
-            </Link>
+            </a>
           </div>
           
           {/* Mobile Hamburger Button */}
@@ -260,7 +260,7 @@ export default function Landing() {
                 </a>
                 
                 <div className="border-t border-white/10 pt-6 flex flex-col gap-3">
-                  <Link href="/chat">
+                  <a href="/chat">
                     <Button 
                       variant="ghost" 
                       className="w-full text-gray-400 hover:text-white"
@@ -268,15 +268,15 @@ export default function Landing() {
                     >
                       Sign In
                     </Button>
-                  </Link>
-                  <Link href="/chat">
+                  </a>
+                  <a href="/chat">
                     <Button 
                       className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Initialize
                     </Button>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

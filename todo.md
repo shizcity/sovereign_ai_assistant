@@ -1059,3 +1059,11 @@
 - [x] Verify weekly digest footer (no branding found)
 - [x] Email headers and body content already brand-neutral
 - [x] Save checkpoint with rebranded email templates
+
+## Error Fixes
+- [x] Check server logs for detailed tRPC middleware error messages (found "Please login" - expected behavior)
+- [x] Identify which tRPC procedures are causing errors (authentication checks on landing page - normal)
+- [x] Fix nested <a> tag error in navigation (replaced Link with plain <a> tags)
+- [x] Verify no console errors in browser after fix
+- [x] Test sign-in flow works correctly
+- [x] Save checkpoint with all errors fixed
