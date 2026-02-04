@@ -20,13 +20,16 @@ import {
   Layers,
   MessageSquare,
   ArrowRight,
-  Check
+  Check,
+  Menu,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{ x: number; y: number; delay: number }>>([]);
   
   // Hero animation hooks (on mount, no scroll needed)
@@ -189,12 +192,16 @@ export default function Landing() {
             <Sparkles className="w-6 h-6 text-cyan-400" />
             <span className="text-xl font-bold">Glow</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-400 hover:text-white transition-colors">Features</a>
             <a href="#sentinels" className="text-gray-400 hover:text-white transition-colors">Sentinels</a>
             <a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a>
           </div>
-          <div className="flex items-center gap-4">
+          
+          {/* Desktop CTA Buttons */}
+          <div className="hidden md:flex items-center gap-4">
             <Link href="/chat">
               <Button variant="ghost" className="text-gray-400 hover:text-white">
                 Sign In
@@ -206,7 +213,75 @@ export default function Landing() {
               </Button>
             </Link>
           </div>
+          
+          {/* Mobile Hamburger Button */}
+          <button
+            className="md:hidden text-white p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+        
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            
+            {/* Mobile Menu */}
+            <div className="fixed top-[73px] right-0 w-64 h-[calc(100vh-73px)] bg-black/95 backdrop-blur-xl border-l border-white/10 z-50 md:hidden animate-in slide-in-from-right duration-300">
+              <div className="flex flex-col p-6 gap-6">
+                {/* Navigation Links */}
+                <a 
+                  href="#features" 
+                  className="text-gray-400 hover:text-cyan-400 transition-colors text-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Features
+                </a>
+                <a 
+                  href="#sentinels" 
+                  className="text-gray-400 hover:text-cyan-400 transition-colors text-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sentinels
+                </a>
+                <a 
+                  href="#pricing" 
+                  className="text-gray-400 hover:text-cyan-400 transition-colors text-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Pricing
+                </a>
+                
+                <div className="border-t border-white/10 pt-6 flex flex-col gap-3">
+                  <Link href="/chat">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-gray-400 hover:text-white"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/chat">
+                    <Button 
+                      className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Initialize
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </nav>
 
       {/* Hero Section */}
