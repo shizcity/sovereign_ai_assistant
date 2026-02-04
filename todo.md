@@ -964,3 +964,48 @@
 - [x] Add fade-in-up animation to each feature card with transition-all duration-700
 - [x] Test animation timing and visual flow
 - [x] Save checkpoint with animated feature cards
+
+## Landing Page Polish & Perfection
+
+### Sentinel Card Animations
+- [x] Create animation hooks for 6 Sentinel cards
+- [x] Apply staggered delays (100ms intervals: 0ms, 100ms, 200ms, 300ms, 400ms, 500ms)
+- [x] Add fade-in-up animations to Sentinel cards
+- [x] Test Sentinel card animation flow
+
+### Pricing Card Animations
+- [x] Add entrance animations to pricing cards (fade-in-up with 700ms duration)
+- [x] Create hover scale/glow effects on pricing cards (scale-105 + cyan glow on Pro card)
+- [x] Apply staggered delays (Free: 0ms, Pro: 100ms)
+- [x] Test pricing card interactions
+
+### Hero Section Staged Animation
+- [ ] Create sequential animation for hero elements
+- [ ] Animate status indicator (first, 0ms delay)
+- [ ] Animate headline (second, 200ms delay)
+- [ ] Animate tagline (third, 400ms delay)
+- [ ] Animate CTA buttons (fourth, 600ms delay)
+- [ ] Animate terminal code snippet (fifth, 800ms delay)
+- [ ] Test hero animation sequence timing
+
+### Testimonials Section
+- [ ] Design testimonials section layout
+- [ ] Create 3 testimonial cards with quotes
+- [ ] Add user avatars/names/roles to testimonials
+- [ ] Add scroll animations to testimonials
+- [ ] Insert testimonials between Sentinels and Pricing sections
+
+### FAQ Accordion
+- [ ] Install/setup accordion component
+- [ ] Write 6-8 FAQ questions and answers
+- [ ] Create FAQ section with accordion UI
+- [ ] Add scroll animations to FAQ section
+- [ ] Place FAQ before email capture section
+- [ ] Test accordion expand/collapse functionality
+
+### Final Polish
+- [ ] Review all animations for consistency
+- [ ] Test mobile responsiveness
+- [ ] Verify all links and CTAs work
+- [ ] Check loading performance
+- [ ] Save final checkpoint

@@ -33,7 +33,15 @@ export default function Landing() {
   const featureCard5Ref = useScrollAnimation({ threshold: 0.2 });
   const featureCard6Ref = useScrollAnimation({ threshold: 0.2 });
   const sentinelsHeaderRef = useScrollAnimation();
+  const sentinelCard1Ref = useScrollAnimation({ threshold: 0.2 });
+  const sentinelCard2Ref = useScrollAnimation({ threshold: 0.2 });
+  const sentinelCard3Ref = useScrollAnimation({ threshold: 0.2 });
+  const sentinelCard4Ref = useScrollAnimation({ threshold: 0.2 });
+  const sentinelCard5Ref = useScrollAnimation({ threshold: 0.2 });
+  const sentinelCard6Ref = useScrollAnimation({ threshold: 0.2 });
   const pricingHeaderRef = useScrollAnimation();
+  const pricingCard1Ref = useScrollAnimation({ threshold: 0.2 });
+  const pricingCard2Ref = useScrollAnimation({ threshold: 0.2 });
   const ctaRef = useScrollAnimation();
 
   useEffect(() => {
@@ -102,12 +110,12 @@ export default function Landing() {
   ];
 
   const sentinels = [
-    { name: "Vixen's Den", emoji: "🦊", color: "#FF6B6B", specialty: "Practical Strategy" },
-    { name: "Mischief.EXE", emoji: "🎭", color: "#4ECDC4", specialty: "Creative Chaos" },
-    { name: "Lunaris.Vault", emoji: "🌙", color: "#95E1D3", specialty: "Deep Analysis" },
-    { name: "Aetheris.Flow", emoji: "🌊", color: "#38A3A5", specialty: "Adaptive Thinking" },
-    { name: "Rift.EXE", emoji: "⚡", color: "#FF8C42", specialty: "Disruption" },
-    { name: "Nyx", emoji: "🌑", color: "#9B59B6", specialty: "Shadow Work" },
+    { name: "Vixen's Den", emoji: "🦊", color: "#FF6B6B", specialty: "Practical Strategy", ref: sentinelCard1Ref, delay: "delay-0" },
+    { name: "Mischief.EXE", emoji: "🎭", color: "#4ECDC4", specialty: "Creative Chaos", ref: sentinelCard2Ref, delay: "delay-100" },
+    { name: "Lunaris.Vault", emoji: "🌙", color: "#95E1D3", specialty: "Deep Analysis", ref: sentinelCard3Ref, delay: "delay-200" },
+    { name: "Aetheris.Flow", emoji: "🌊", color: "#38A3A5", specialty: "Adaptive Thinking", ref: sentinelCard4Ref, delay: "delay-300" },
+    { name: "Rift.EXE", emoji: "⚡", color: "#FF8C42", specialty: "Disruption", ref: sentinelCard5Ref, delay: "delay-400" },
+    { name: "Nyx", emoji: "🌑", color: "#9B59B6", specialty: "Shadow Work", ref: sentinelCard6Ref, delay: "delay-500" },
   ];
 
   return (
@@ -296,7 +304,10 @@ export default function Landing() {
             {sentinels.map((sentinel, idx) => (
               <Card
                 key={idx}
-                className="bg-black/50 border-white/10 backdrop-blur-xl p-6 hover:border-cyan-500/50 transition-all text-center"
+                ref={sentinel.ref.ref}
+                className={`bg-black/50 border-white/10 backdrop-blur-xl p-6 hover:border-cyan-500/50 transition-all duration-700 text-center ${
+                  sentinel.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                } ${sentinel.delay}`}
               >
                 <div
                   className="text-5xl mb-4 w-20 h-20 rounded-full flex items-center justify-center mx-auto"
@@ -338,7 +349,12 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Free Plan */}
-            <Card className="bg-black/50 border-white/10 backdrop-blur-xl p-8">
+            <Card 
+              ref={pricingCard1Ref.ref}
+              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 hover:scale-105 hover:border-white/30 transition-all duration-700 delay-0 ${
+                pricingCard1Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2">Free</h3>
                 <div className="text-4xl font-bold mb-4">
@@ -372,7 +388,12 @@ export default function Landing() {
             </Card>
 
             {/* Pro Plan */}
-            <Card className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 backdrop-blur-xl p-8 relative">
+            <Card 
+              ref={pricingCard2Ref.ref}
+              className={`bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 backdrop-blur-xl p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-700 delay-100 ${
+                pricingCard2Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
               <div className="absolute top-4 right-4">
                 <span className="bg-cyan-500 text-black text-xs font-bold px-3 py-1 rounded-full">
                   POPULAR
