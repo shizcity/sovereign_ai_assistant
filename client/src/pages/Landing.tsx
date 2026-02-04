@@ -69,8 +69,8 @@ export default function Landing() {
   useEffect(() => {
     document.title = "Glow - Your AI. Your Identity. Your Sovereignty.";
     
-    // Generate random particles for background effect
-    const newParticles = Array.from({ length: 50 }, () => ({
+    // Generate random particles for background effect (reduced for performance)
+    const newParticles = Array.from({ length: 30 }, () => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
       delay: Math.random() * 5,

@@ -1042,3 +1042,13 @@
 - [x] Update og:image and twitter:image URLs in index.html to use CDN URL
 - [ ] Test preview on Twitter Card Validator (https://cards-dev.twitter.com/validator)
 - [ ] Test preview on LinkedIn Post Inspector
+
+## Performance Optimization
+- [x] Optimize particle animation (reduced count from 50 to 30)
+- [x] Add DNS prefetch and preconnect for CDN (files.manuscdn.com)
+- [x] Add will-change CSS property for animated elements
+- [x] Add GPU acceleration (translateZ, backface-visibility)
+- [x] Add prefers-reduced-motion support for accessibility
+- [x] Intersection Observer already implemented for scroll animations
+- [ ] Run Lighthouse audit and address recommendations
+- [ ] Test performance on low-end devices
