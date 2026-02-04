@@ -1010,3 +1010,13 @@
 - [ ] Verify all links and CTAs work
 - [ ] Check loading performance
 - [ ] Save final checkpoint
+
+## Mobile Responsiveness
+- [x] Reduce hero headline size on mobile (text-5xl sm:text-6xl md:text-8xl)
+- [x] Reduce section heading sizes on mobile (text-3xl sm:text-4xl md:text-5xl)
+- [x] Reduce terminal font size and padding on mobile (text-xs sm:text-sm, p-4 sm:p-6)
+- [x] Reduce pricing card padding on mobile (p-6 sm:p-8)
+- [ ] Test on actual mobile devices (iPhone, Android)
+- [ ] Verify touch targets are at least 44x44px
+- [ ] Check horizontal scrolling issues
+- [ ] Test all animations perform smoothly on mobile

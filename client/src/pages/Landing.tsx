@@ -204,7 +204,7 @@ export default function Landing() {
               heroHeadlineRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-6 leading-tight">
               <span className="text-white">Multi-Sentinel</span>
               <br />
               <span className="text-gray-500">AI Platform</span>
@@ -248,8 +248,8 @@ export default function Landing() {
               heroTerminalRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <Card className="bg-black/50 border-cyan-500/30 backdrop-blur-xl p-6">
-              <div className="font-mono text-sm space-y-2">
+            <Card className="bg-black/50 border-cyan-500/30 backdrop-blur-xl p-4 sm:p-6">
+              <div className="font-mono text-xs sm:text-sm space-y-2">
                 <div className="text-gray-500">glow://core/sentinel-v2</div>
                 <div className="text-cyan-400">&gt; initializing_sequence</div>
                 <div className="text-cyan-400">&gt; sentinels_connected</div>
@@ -298,7 +298,7 @@ export default function Landing() {
               featuresHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-5xl font-bold mb-4">Core Architecture</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Core Architecture</h2>
             <p className="text-xl text-gray-400">
               Advanced capabilities for multi-perspective intelligence.
             </p>
@@ -337,8 +337,7 @@ export default function Landing() {
             className={`text-center mb-16 transition-all duration-700 ${
               sentinelsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
-          >
-            <h2 className="text-5xl font-bold mb-4">Meet the Sentinels</h2>
+          >            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Meet Your Sentinels</h2>
             <p className="text-xl text-gray-400">
               Six specialized AI personalities, each with unique expertise and perspective.
             </p>
@@ -385,7 +384,7 @@ export default function Landing() {
               testimonialsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-5xl font-bold mb-4">Trusted by Innovators</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Trusted by Innovators</h2>
             <p className="text-xl text-gray-400">
               See what people are saying about their Glow experience.
             </p>
@@ -467,7 +466,7 @@ export default function Landing() {
               pricingHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-5xl font-bold mb-4">Choose Your Plan</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Choose Your Path</h2>
             <p className="text-xl text-gray-400">
               Start free. Upgrade when you need more power.
             </p>
@@ -516,7 +515,7 @@ export default function Landing() {
             {/* Pro Plan */}
             <Card 
               ref={pricingCard2Ref.ref}
-              className={`bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 backdrop-blur-xl p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-700 delay-100 ${
+              className={`bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 backdrop-blur-xl p-6 sm:p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-700 delay-100 ${
                 pricingCard2Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
@@ -577,7 +576,7 @@ export default function Landing() {
               faqHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-400">
               Everything you need to know about Glow.
             </p>
