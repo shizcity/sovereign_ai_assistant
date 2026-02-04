@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Loader2, Save, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -47,6 +47,18 @@ export default function Settings() {
     },
     onError: (error) => {
       toast.error(`Failed to save settings: ${error.message}`);
+    },
+  });
+
+  const resetOnboarding = trpc.auth.resetOnboarding.useMutation({
+    onSuccess: () => {
+      toast.success("Tutorial reset! Refresh the page to start the tutorial.");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    },
+    onError: (error) => {
+      toast.error(`Failed to reset tutorial: ${error.message}`);
     },
   });
 
@@ -172,6 +184,37 @@ export default function Settings() {
                   <>
                     <Save className="mr-2 h-4 w-4" />
                     Save Settings
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Onboarding Card */}
+          <Card className="bg-card text-card-foreground border-border">
+            <CardHeader>
+              <CardTitle>Tutorial</CardTitle>
+              <CardDescription>Restart the onboarding tutorial</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Want to see the welcome tutorial again? Click the button below to restart the
+                onboarding experience.
+              </p>
+              <Button
+                onClick={() => resetOnboarding.mutate()}
+                disabled={resetOnboarding.isPending}
+                variant="outline"
+              >
+                {resetOnboarding.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Restart Tutorial
                   </>
                 )}
               </Button>

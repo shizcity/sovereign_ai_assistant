@@ -16,6 +16,47 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    completeOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const { users } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      
+      await db.update(users)
+        .set({ onboardingCompleted: true, onboardingStep: 6 })
+        .where(eq(users.id, ctx.user.id));
+      
+      return { success: true };
+    }),
+    updateOnboardingStep: protectedProcedure
+      .input(z.object({ step: z.number().min(0).max(6) }))
+      .mutation(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+        const { users } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        await db.update(users)
+          .set({ onboardingStep: input.step })
+          .where(eq(users.id, ctx.user.id));
+        
+        return { success: true };
+      }),
+    resetOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const { users } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      
+      await db.update(users)
+        .set({ onboardingCompleted: false, onboardingStep: 0 })
+        .where(eq(users.id, ctx.user.id));
+      
+      return { success: true };
+    }),
   }),
 
   // Conversation management

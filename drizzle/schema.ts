@@ -1,4 +1,4 @@
-import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -26,6 +26,9 @@ export const users = mysqlTable("users", {
   subscriptionTier: varchar("subscriptionTier", { length: 20 }).default("free"),
   subscriptionStatus: varchar("subscriptionStatus", { length: 20 }).default("active"),
   subscriptionCurrentPeriodEnd: timestamp("subscriptionCurrentPeriodEnd"),
+  // Onboarding fields
+  onboardingCompleted: boolean("onboardingCompleted").default(false).notNull(),
+  onboardingStep: int("onboardingStep").default(0).notNull(),
 });
 
 export type User = typeof users.$inferSelect;

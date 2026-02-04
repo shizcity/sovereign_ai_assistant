@@ -1,7 +1,10 @@
 import { Toaster } from "@/components/ui/sonner";
+import { trpc } from "@/lib/trpc";
+import { useState, useEffect } from "react";
 import { UsageWarningBanner } from "@/components/UsageWarningBanner";
 import { UsageWarningModal } from "@/components/UsageWarningModal";
 import { LimitReachedOverlay } from "@/components/LimitReachedOverlay";
+import { OnboardingModal } from "@/components/OnboardingModal";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -47,6 +50,19 @@ function Router() {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
+  const { data: user } = trpc.auth.me.useQuery();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (user && !user.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
   return (
     <ErrorBoundary>
       <ThemeProvider
@@ -59,6 +75,8 @@ function App() {
           <UsageWarningBanner />
           <UsageWarningModal />
           <LimitReachedOverlay />
+          {/* Onboarding Modal */}
+          <OnboardingModal open={showOnboarding} onComplete={handleOnboardingComplete} />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

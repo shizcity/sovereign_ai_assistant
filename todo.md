@@ -841,3 +841,78 @@
 - [x] Write comprehensive vitest tests (11 tests passing)
 - [x] Document scheduling configuration
 - [x] Save checkpoint
+
+## Launch Readiness Phase
+
+### Onboarding Flow
+- [x] Design onboarding steps (welcome, Sentinels intro, Pro features, first conversation)
+- [x] Create onboarding database fields (onboardingCompleted, onboardingStep)
+- [x] Build OnboardingModal component with 6-step tutorial
+- [x] Add "Skip" and "Next" navigation controls with progress indicator
+- [x] Implement interactive elements (select Sentinel, send first message)
+- [x] Add confetti celebration animation on completion
+- [x] Show onboarding only for first-time users (integrated in App.tsx)
+- [x] Add "Restart Tutorial" option in Settings page
+- [x] Create tRPC procedures (completeOnboarding, updateOnboardingStep, resetOnboarding)
+- [x] Write comprehensive vitest tests (8 tests passing)
+
+### Public Landing Page
+- [ ] Design landing page layout (hero, features, pricing, testimonials, CTA)
+- [ ] Create /landing route separate from authenticated app
+- [ ] Build hero section with value proposition and demo video/screenshot
+- [ ] Add features section highlighting key capabilities
+- [ ] Create pricing comparison table (Free vs Pro)
+- [ ] Add social proof section (testimonials or stats)
+- [ ] Implement email capture for waitlist/early access
+- [ ] Add FAQ section addressing common questions
+- [ ] Optimize for SEO (meta tags, structured data)
+- [ ] Make landing page responsive for mobile
+- [ ] Add "Get Started" CTA buttons linking to signup
+
+### In-App Help Center
+- [ ] Create Help/Documentation page in app
+- [ ] Write getting started guide
+- [ ] Document all features (Sentinels, Templates, Voice Mode, Analytics)
+- [ ] Create FAQ section with common questions
+- [ ] Add keyboard shortcuts reference
+- [ ] Document Pro features and upgrade benefits
+- [ ] Add troubleshooting section
+- [ ] Implement search functionality for help articles
+- [ ] Add "Help" link in sidebar navigation
+- [ ] Create contextual help tooltips throughout the app
+
+### Error Handling & User Feedback
+- [ ] Implement React Error Boundaries for graceful error recovery
+- [ ] Add global error handler for uncaught exceptions
+- [ ] Improve error messages to be user-friendly (not technical)
+- [ ] Add retry mechanisms for failed API calls
+- [ ] Implement offline detection and messaging
+- [ ] Add loading skeletons for better perceived performance
+- [ ] Create custom 404 page
+- [ ] Add network error recovery UI
+- [ ] Log errors to monitoring service (optional: Sentry integration)
+- [ ] Test error scenarios and recovery flows
+
+### Performance Optimization
+- [ ] Implement code splitting for routes
+- [ ] Add lazy loading for heavy components (Analytics charts, Voice Mode)
+- [ ] Optimize images (compress, use WebP format)
+- [ ] Implement virtual scrolling for long conversation lists
+- [ ] Add pagination for message history
+- [ ] Optimize database queries (add indexes where needed)
+- [ ] Implement caching strategy for frequently accessed data
+- [ ] Reduce bundle size (analyze with webpack-bundle-analyzer)
+- [ ] Add service worker for offline support (PWA)
+- [ ] Run Lighthouse audit and fix issues
+
+### Polish & Final Touches
+- [ ] Add loading states for all async operations
+- [ ] Implement skeleton screens for better UX
+- [ ] Add empty states with helpful guidance
+- [ ] Improve mobile responsiveness across all pages
+- [ ] Add animations and transitions (subtle, not distracting)
+- [ ] Test all features on different browsers (Chrome, Firefox, Safari)
+- [ ] Test on mobile devices (iOS and Android)
+- [ ] Fix any UI bugs or inconsistencies
+- [ ] Proofread all copy and fix typos
+- [ ] Final security audit (XSS, CSRF, SQL injection prevention)
