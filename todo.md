@@ -916,3 +916,14 @@
 - [ ] Fix any UI bugs or inconsistencies
 - [ ] Proofread all copy and fix typos
 - [ ] Final security audit (XSS, CSRF, SQL injection prevention)
+
+## Rebranding to Glow
+- [x] Update all "Sovereign AI" references in UI components
+- [x] Update onboarding modal text and branding
+- [x] Update Chat page branding
+- [x] Update Sentinels page branding
+- [ ] Update VITE_APP_TITLE environment variable (via Management UI Settings)
+- [ ] Update email templates with new branding
+- [ ] Update README.md and documentation
+- [ ] Update package.json name and description
+- [x] Save checkpoint with new Glow branding

@@ -125,7 +125,7 @@ export function OnboardingModal({ open, onComplete }: OnboardingModalProps) {
               </div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold mb-3">Welcome to Sovereign AI</h2>
+              <h2 className="text-3xl font-bold mb-3">Welcome to Glow</h2>
               <p className="text-lg text-muted-foreground">
                 Your AI. Your Identity. Your Sovereignty.
               </p>
@@ -300,7 +300,7 @@ export function OnboardingModal({ open, onComplete }: OnboardingModalProps) {
               </div>
               <h2 className="text-2xl font-bold mb-2">Discover Pro Features</h2>
               <p className="text-muted-foreground">
-                Unlock advanced capabilities with Sovereign AI Pro
+                Unlock advanced capabilities with Glow Pro
               </p>
             </div>
 

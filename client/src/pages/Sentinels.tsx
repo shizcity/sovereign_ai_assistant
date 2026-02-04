@@ -12,7 +12,7 @@ export default function Sentinels() {
   const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
 
   useEffect(() => {
-    document.title = "Meet the Sentinels - Sovereign AI Assistant";
+    document.title = "Meet the Sentinels - Glow";
   }, []);
 
   if (isLoading) {

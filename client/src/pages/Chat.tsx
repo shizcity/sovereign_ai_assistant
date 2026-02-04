@@ -637,7 +637,7 @@ export default function Chat() {
         {/* Header */}
         <div className="p-6 border-b border-white/10 flex-shrink-0">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Sovereign AI Assistant
+            Glow
           </h1>
           <p className="text-sm text-gray-400 mt-1">Your AI. Your Identity. Your Sovereignty.</p>
         </div>
@@ -1300,7 +1300,7 @@ export default function Chat() {
             <div className="text-center max-w-md p-8 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
               <MessageSquare className="w-16 h-16 text-blue-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                Welcome to Sovereign AI
+                Welcome to Glow
               </h2>
               <p className="text-gray-400">
                 Select a conversation from the sidebar or create a new one to get started.
