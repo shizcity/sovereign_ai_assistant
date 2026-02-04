@@ -26,6 +26,12 @@ export default function Landing() {
   // Scroll animation hooks
   const statsRef = useScrollAnimation();
   const featuresHeaderRef = useScrollAnimation();
+  const featureCard1Ref = useScrollAnimation({ threshold: 0.2 });
+  const featureCard2Ref = useScrollAnimation({ threshold: 0.2 });
+  const featureCard3Ref = useScrollAnimation({ threshold: 0.2 });
+  const featureCard4Ref = useScrollAnimation({ threshold: 0.2 });
+  const featureCard5Ref = useScrollAnimation({ threshold: 0.2 });
+  const featureCard6Ref = useScrollAnimation({ threshold: 0.2 });
   const sentinelsHeaderRef = useScrollAnimation();
   const pricingHeaderRef = useScrollAnimation();
   const ctaRef = useScrollAnimation();
@@ -49,6 +55,51 @@ export default function Landing() {
       setEmail("");
     }
   };
+
+  const features = [
+    {
+      icon: Users,
+      title: "Multi-Sentinel Conversations",
+      description: "Engage multiple AI personalities in a single conversation. Get diverse perspectives on complex problems.",
+      ref: featureCard1Ref,
+      delay: "delay-0"
+    },
+    {
+      icon: Mic,
+      title: "Voice-First Mode",
+      description: "Speak naturally with your Sentinels. Advanced speech-to-text and text-to-speech for seamless interaction.",
+      ref: featureCard2Ref,
+      delay: "delay-100"
+    },
+    {
+      icon: TrendingUp,
+      title: "Analytics Dashboard",
+      description: "Track your conversations, usage patterns, and insights. Understand how you interact with AI.",
+      ref: featureCard3Ref,
+      delay: "delay-200"
+    },
+    {
+      icon: Layers,
+      title: "Conversation Templates",
+      description: "Pre-built workflows for common tasks. Brainstorming, decision-making, creative writing, and more.",
+      ref: featureCard4Ref,
+      delay: "delay-300"
+    },
+    {
+      icon: Shield,
+      title: "Data Sovereignty",
+      description: "Your conversations belong to you. Export, delete, or manage your data at any time.",
+      ref: featureCard5Ref,
+      delay: "delay-400"
+    },
+    {
+      icon: Zap,
+      title: "Real-Time Streaming",
+      description: "Watch responses appear in real-time. No waiting, no delays. Instant AI interaction.",
+      ref: featureCard6Ref,
+      delay: "delay-500"
+    },
+  ];
 
   const sentinels = [
     { name: "Vixen's Den", emoji: "🦊", color: "#FF6B6B", specialty: "Practical Strategy" },
@@ -202,71 +253,26 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <Users className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Multi-Sentinel Conversations</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Engage multiple AI personalities in a single conversation. Get diverse perspectives on complex problems.
-              </p>
-            </Card>
-
-            {/* Feature 2 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <Mic className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Voice-First Mode</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Speak naturally with your Sentinels. Advanced speech-to-text and text-to-speech for seamless interaction.
-              </p>
-            </Card>
-
-            {/* Feature 3 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <TrendingUp className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Analytics Dashboard</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Track your conversations, usage patterns, and insights. Understand how you interact with AI.
-              </p>
-            </Card>
-
-            {/* Feature 4 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <Layers className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Conversation Templates</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Pre-built workflows for common tasks. Brainstorming, decision-making, creative writing, and more.
-              </p>
-            </Card>
-
-            {/* Feature 5 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <Shield className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Data Sovereignty</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Your conversations belong to you. Export, delete, or manage your data at any time.
-              </p>
-            </Card>
-
-            {/* Feature 6 */}
-            <Card className="bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                <Zap className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Real-Time Streaming</h3>
-              <p className="text-gray-400 leading-relaxed">
-                Watch responses appear in real-time. No waiting, no delays. Instant AI interaction.
-              </p>
-            </Card>
+            {features.map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <Card
+                  key={idx}
+                  ref={feature.ref.ref}
+                  className={`bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all duration-700 ${
+                    feature.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                  } ${feature.delay}`}
+                >
+                  <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
+                    <Icon className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>

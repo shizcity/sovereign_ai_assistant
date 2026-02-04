@@ -956,3 +956,11 @@
 - [x] Apply animations to email capture CTA section
 - [x] Test animation performance and timing
 - [x] Save checkpoint with scroll animations
+
+## Animated Feature Cards
+- [x] Create animation hooks for each feature card (6 hooks with 0.2 threshold)
+- [x] Refactor feature cards into mapped array with refs and delays
+- [x] Apply staggered delay classes (100ms intervals: 0ms, 100ms, 200ms, 300ms, 400ms, 500ms)
+- [x] Add fade-in-up animation to each feature card with transition-all duration-700
+- [x] Test animation timing and visual flow
+- [x] Save checkpoint with animated feature cards
