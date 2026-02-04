@@ -996,12 +996,13 @@
 - [x] Insert testimonials between Sentinels and Pricing sections
 
 ### FAQ Accordion
-- [ ] Install/setup accordion component
-- [ ] Write 6-8 FAQ questions and answers
-- [ ] Create FAQ section with accordion UI
-- [ ] Add scroll animations to FAQ section
-- [ ] Place FAQ before email capture section
-- [ ] Test accordion expand/collapse functionality
+- [x] Use existing shadcn/ui accordion component
+- [x] Write 8 comprehensive FAQ questions and answers
+- [x] Create FAQ section with accordion UI (glassmorphism styling)
+- [x] Add scroll animations to FAQ section (header + accordion with 200ms delay)
+- [x] Place FAQ before email capture section
+- [x] Add hover effects on accordion triggers (cyan-400 color transition)
+- [x] Test accordion expand/collapse functionality
 
 ### Final Polish
 - [ ] Review all animations for consistency

@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { 
   Sparkles, 
   Brain, 
@@ -53,6 +59,8 @@ export default function Landing() {
   const testimonial1Ref = useScrollAnimation({ threshold: 0.2 });
   const testimonial2Ref = useScrollAnimation({ threshold: 0.2 });
   const testimonial3Ref = useScrollAnimation({ threshold: 0.2 });
+  const faqHeaderRef = useScrollAnimation();
+  const faqAccordionRef = useScrollAnimation({ threshold: 0.1 });
   const ctaRef = useScrollAnimation();
 
   useEffect(() => {
@@ -556,6 +564,104 @@ export default function Landing() {
                 </Button>
               </Link>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="relative z-10 py-32 px-6 border-t border-white/10">
+        <div className="container max-w-4xl mx-auto">
+          <div 
+            ref={faqHeaderRef.ref}
+            className={`text-center mb-16 transition-all duration-700 ${
+              faqHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <h2 className="text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+            <p className="text-xl text-gray-400">
+              Everything you need to know about Glow.
+            </p>
+          </div>
+
+          <div 
+            ref={faqAccordionRef.ref}
+            className={`transition-all duration-700 delay-200 ${
+              faqAccordionRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <Accordion type="single" collapsible className="space-y-4">
+              <AccordionItem value="item-1" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  What are Sentinels and how do they work?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Sentinels are specialized AI personalities, each with unique expertise and perspectives. Think of them as a council of advisors—Vixen's Den for practical strategy, Mischief.EXE for creative chaos, Lunaris.Vault for deep analysis, and more. You can chat with them individually or engage multiple Sentinels in the same conversation for diverse viewpoints.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  What's the difference between Free and Pro?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Free gives you 100 messages per month with access to all 6 Sentinels. Pro ($20/month) unlocks unlimited messages, Multi-Sentinel conversations (get multiple perspectives in one chat), Voice-First Mode (speak naturally instead of typing), and an Analytics Dashboard to track your usage patterns.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  How does Multi-Sentinel conversation work?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  With Pro, you can add multiple Sentinels to a single conversation thread. They'll respond in round-robin fashion, each offering their unique perspective on your question. It's like having a brainstorming session with experts from different fields—perfect for complex problems that benefit from diverse thinking.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  Is my data private and secure?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Yes. Your conversations are encrypted in transit and at rest. We don't sell your data to third parties. Sentinels use your conversation history to provide context within your account, but this data is isolated to you. You can delete your conversations anytime from your dashboard.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  Can I cancel my Pro subscription anytime?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Absolutely. You can cancel your Pro subscription at any time from your account settings. You'll retain Pro features until the end of your current billing period, then automatically switch to the Free plan. No hidden fees or cancellation charges.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  What is Voice-First Mode?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Voice-First Mode lets you speak naturally to Sentinels instead of typing. Perfect for brainstorming on the go, driving, or when you think faster than you type. Sentinels respond with text, but you can keep the conversation flowing entirely by voice. Available exclusively for Pro users.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-7" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  Do Sentinels remember past conversations?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Yes, within the same conversation thread. Each conversation maintains its own context, so Sentinels can reference earlier messages. However, conversations are isolated from each other for privacy. If you want to continue a previous discussion, you can reference it manually or start a new conversation.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-8" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
+                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+                  How do I get started?
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-300 leading-relaxed">
+                  Click "Start Chatting" or "Initialize" in the navigation to create your account. You'll go through a quick onboarding tutorial that introduces you to the Sentinels and shows you how to start your first conversation. No credit card required for the Free plan.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </section>
