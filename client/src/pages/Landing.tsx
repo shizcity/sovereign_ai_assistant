@@ -49,6 +49,10 @@ export default function Landing() {
   const pricingHeaderRef = useScrollAnimation();
   const pricingCard1Ref = useScrollAnimation({ threshold: 0.2 });
   const pricingCard2Ref = useScrollAnimation({ threshold: 0.2 });
+  const testimonialsHeaderRef = useScrollAnimation();
+  const testimonial1Ref = useScrollAnimation({ threshold: 0.2 });
+  const testimonial2Ref = useScrollAnimation({ threshold: 0.2 });
+  const testimonial3Ref = useScrollAnimation({ threshold: 0.2 });
   const ctaRef = useScrollAnimation();
 
   useEffect(() => {
@@ -360,6 +364,88 @@ export default function Landing() {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="relative z-10 py-32 px-6 border-t border-white/10">
+        <div className="container max-w-6xl mx-auto">
+          <div 
+            ref={testimonialsHeaderRef.ref}
+            className={`text-center mb-16 transition-all duration-700 ${
+              testimonialsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            }`}
+          >
+            <h2 className="text-5xl font-bold mb-4">Trusted by Innovators</h2>
+            <p className="text-xl text-gray-400">
+              See what people are saying about their Glow experience.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <Card 
+              ref={testimonial1Ref.ref}
+              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-0 ${
+                testimonial1Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-2xl">
+                  👨‍💼
+                </div>
+                <div>
+                  <div className="font-bold">Marcus Chen</div>
+                  <div className="text-sm text-gray-400">Product Manager</div>
+                </div>
+              </div>
+              <p className="text-gray-300 leading-relaxed">
+                "Glow's multi-Sentinel approach completely changed how I brainstorm. Getting different perspectives from specialized AI personalities helps me see blind spots I'd normally miss."
+              </p>
+            </Card>
+
+            {/* Testimonial 2 */}
+            <Card 
+              ref={testimonial2Ref.ref}
+              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-100 ${
+                testimonial2Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
+                  👩‍🎨
+                </div>
+                <div>
+                  <div className="font-bold">Sarah Williams</div>
+                  <div className="text-sm text-gray-400">Creative Director</div>
+                </div>
+              </div>
+              <p className="text-gray-300 leading-relaxed">
+                "Voice-First Mode is a game changer. I can brainstorm ideas while walking my dog. The natural conversation flow with multiple Sentinels feels like having a creative team in my pocket."
+              </p>
+            </Card>
+
+            {/* Testimonial 3 */}
+            <Card 
+              ref={testimonial3Ref.ref}
+              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-200 ${
+                testimonial3Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-2xl">
+                  👨‍💻
+                </div>
+                <div>
+                  <div className="font-bold">Alex Rodriguez</div>
+                  <div className="text-sm text-gray-400">Software Engineer</div>
+                </div>
+              </div>
+              <p className="text-gray-300 leading-relaxed">
+                "The analytics dashboard shows me exactly how I'm using each Sentinel. It's fascinating to see patterns in my thinking. Glow isn't just a tool—it's a mirror for my creative process."
+              </p>
+            </Card>
           </div>
         </div>
       </section>
