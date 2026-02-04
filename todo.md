@@ -1033,3 +1033,12 @@
 - [x] Add theme-color meta tag
 - [ ] Create og-image.png (1200x630) for social media previews
 - [ ] Test social media preview on Twitter/LinkedIn
+
+## Social Media Preview Image
+- [x] Generate 1200x630px og-image.png with Glow branding
+- [x] Include logo/icon (glowing sparkles with cyan-blue gradient), tagline, and SENTINELS_ONLINE status
+- [x] Use black background with cyan particle effects matching landing page aesthetic
+- [x] Upload image to S3 for CDN delivery (https://files.manuscdn.com/user_upload_by_module/session_file/86706373/XMimnGTKzlpUegGs.png)
+- [x] Update og:image and twitter:image URLs in index.html to use CDN URL
+- [ ] Test preview on Twitter Card Validator (https://cards-dev.twitter.com/validator)
+- [ ] Test preview on LinkedIn Post Inspector
