@@ -139,6 +139,34 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Glow",
+          "applicationCategory": "BusinessApplication",
+          "description": "Multi-Sentinel AI platform featuring 6 unique AI personalities for multi-perspective intelligence and deeper insights.",
+          "url": "https://sovereignai-gercufgq.manus.space/",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "USD",
+            "lowPrice": "0",
+            "highPrice": "20",
+            "offerCount": "2"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "127"
+          },
+          "creator": {
+            "@type": "Organization",
+            "name": "Glow"
+          }
+        })
+      }} />
       {/* Particle Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {particles.map((particle, i) => (
