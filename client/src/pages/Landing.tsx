@@ -331,12 +331,12 @@ export default function Landing() {
               heroCtasRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <Link href="/chat">
+            <a href="/chat">
               <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold px-8 py-6 text-lg">
                 Start Chatting
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-            </Link>
+            </a>
             <a href="#features">
               <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/5 px-8 py-6 text-lg">
                 Explore System
@@ -468,12 +468,12 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-12">
-            <Link href="/sentinels">
+            <a href="/sentinels">
               <Button variant="outline" className="border-cyan-500/30 hover:bg-cyan-500/10">
                 Explore All Sentinels
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -608,11 +608,11 @@ export default function Landing() {
                   <span>Basic templates</span>
                 </li>
               </ul>
-              <Link href="/chat">
+              <a href="/chat">
                 <Button variant="outline" className="w-full border-white/20 hover:bg-white/5">
                   Get Started
                 </Button>
-              </Link>
+              </a>
             </Card>
 
             {/* Pro Plan */}
@@ -660,11 +660,11 @@ export default function Landing() {
                   <span>Advanced templates</span>
                 </li>
               </ul>
-              <Link href="/chat">
+              <a href="/chat">
                 <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold">
                   Upgrade to Pro
                 </Button>
-              </Link>
+              </a>
             </Card>
           </div>
         </div>
@@ -811,7 +811,7 @@ export default function Landing() {
               <h4 className="font-bold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><Link href="/sentinels"><a className="hover:text-white transition-colors">Sentinels</a></Link></li>
+                <li><a href="/sentinels" className="hover:text-white transition-colors">Sentinels</a></li>
                 <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
               </ul>
             </div>

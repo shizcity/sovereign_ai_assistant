@@ -1067,3 +1067,30 @@
 - [x] Verify no console errors in browser after fix
 - [x] Test sign-in flow works correctly
 - [x] Save checkpoint with all errors fixed
+
+## Sign-In Flow Testing
+- [x] Navigate to landing page
+- [x] Click "Sign In" button
+- [x] Verify redirect to authentication
+- [x] Complete authentication flow
+- [x] Verify redirect to chat interface
+- [x] Verify onboarding modal appears for new users
+- [x] Test "Initialize" button flow
+- [x] Verify no console errors during sign-in
+
+## Login Issue Debugging
+- [x] Investigate user-reported login problem
+- [x] Check authentication redirect flow
+- [x] Verify OAuth configuration
+- [x] Test login from fresh browser session
+- [x] Check for JavaScript errors blocking login
+- [x] Verify login button functionality
+- [ ] Fix identified login issues - IDENTIFIED: Site is in Private/Preview mode
+- [ ] Make site Public to enable OAuth for external users
+
+## Nested Anchor Tag Error Fix (Landing Page)
+- [x] Locate all instances of nested <a> tags in Landing.tsx
+- [x] Replace Link components wrapping buttons with plain <a> tags or remove nesting
+- [x] Verify all CTAs work correctly after fix
+- [x] Test landing page with no console errors
+- [ ] Save checkpoint with fix
