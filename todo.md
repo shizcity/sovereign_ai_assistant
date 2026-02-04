@@ -927,3 +927,21 @@
 - [ ] Update README.md and documentation
 - [ ] Update package.json name and description
 - [x] Save checkpoint with new Glow branding
+
+## Public Landing Page (Adept Lexicon Aesthetic)
+- [x] Create Landing.tsx page component
+- [x] Implement hero section with status indicator and terminal aesthetic
+- [x] Add large headline with mixed typography weights
+- [x] Create dual CTA buttons (primary + secondary)
+- [x] Build stats/metrics section showcasing Glow capabilities
+- [x] Design feature cards grid with icons
+- [x] Add Sentinel showcase section
+- [x] Implement pricing comparison table (Free vs Pro)
+- [x] Add email capture form for waitlist
+- [x] Create particle/dot matrix background effect
+- [x] Add glassmorphism card styling
+- [x] Add route for landing page in App.tsx
+- [x] Fix onboarding modal to only show on authenticated routes
+- [x] Add navigation with smooth scroll anchors
+- [x] Add footer with links
+- [x] Save checkpoint with landing page
