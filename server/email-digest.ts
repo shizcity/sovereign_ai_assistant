@@ -286,7 +286,7 @@ export function generateMonthlyDigestHTML(data: DigestData): string {
           <tr>
             <td style="padding: 30px; text-align: center; border-top: 1px solid #334155;">
               <p style="margin: 0; font-size: 14px; color: #64748b;">
-                Monthly digest • Sovereign AI Assistant<br>
+                Monthly digest • Glow<br>
                 <a href="${process.env.VITE_OAUTH_PORTAL_URL || "https://app.manus.im"}/settings" style="color: #3b82f6; text-decoration: none;">Manage preferences</a>
               </p>
             </td>

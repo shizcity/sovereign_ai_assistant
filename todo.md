@@ -1052,3 +1052,10 @@
 - [x] Intersection Observer already implemented for scroll animations
 - [ ] Run Lighthouse audit and address recommendations
 - [ ] Test performance on low-end devices
+
+## Email Template Rebranding
+- [x] Find email template files (server/email-digest.ts)
+- [x] Update "Sovereign AI Assistant" to "Glow" in monthly digest footer
+- [x] Verify weekly digest footer (no branding found)
+- [x] Email headers and body content already brand-neutral
+- [x] Save checkpoint with rebranded email templates
