@@ -284,81 +284,170 @@ export default function Landing() {
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-10 pt-32 pb-20 px-6">
-        <div className="container max-w-6xl mx-auto">
-          {/* Status Indicator */}
-          <div 
-            ref={heroStatusRef.ref}
-            className={`flex items-center justify-center gap-2 mb-12 animate-pulse transition-all duration-700 delay-0 ${
-              heroStatusRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <div className="w-2 h-2 bg-cyan-400 rounded-full" />
-            <span className="text-cyan-400 font-mono text-sm tracking-wider">
-              SENTINELS_ONLINE
-            </span>
-          </div>
+      {/* Hero Section - Spectacular Redesign */}
+      <section className="relative z-10 pt-20 pb-32 px-6 overflow-hidden">
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+          <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+        </div>
 
-          {/* Main Headline */}
-          <div 
-            ref={heroHeadlineRef.ref}
-            className={`text-center mb-12 transition-all duration-700 delay-200 ${
-              heroHeadlineRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-6 leading-tight">
-              <span className="text-white">Multi-Sentinel</span>
-              <br />
-              <span className="text-gray-500">AI Platform</span>
-            </h1>
-            <p 
-              ref={heroTaglineRef.ref}
-              className={`text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed transition-all duration-700 delay-400 ${
-                heroTaglineRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        <div className="container max-w-7xl mx-auto relative">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Content */}
+            <div className="space-y-8">
+              {/* Status Badge */}
+              <div 
+                ref={heroStatusRef.ref}
+                className={`inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 backdrop-blur-sm transition-all duration-700 ${
+                  heroStatusRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+                }`}
+              >
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span className="text-cyan-300 font-mono text-sm font-semibold tracking-wider">
+                  6 SENTINELS ONLINE
+                </span>
+              </div>
+
+              {/* Headline */}
+              <div 
+                ref={heroHeadlineRef.ref}
+                className={`space-y-6 transition-all duration-700 delay-200 ${
+                  heroHeadlineRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+                }`}
+              >
+                <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-[0.9] tracking-tight">
+                  <span className="bg-gradient-to-r from-white via-cyan-200 to-purple-200 bg-clip-text text-transparent">
+                    Your AI
+                  </span>
+                  <br />
+                  <span className="text-white">
+                    Your Rules
+                  </span>
+                </h1>
+                
+                <p className="text-xl sm:text-2xl text-gray-300 leading-relaxed max-w-xl">
+                  Command a <span className="text-cyan-400 font-semibold">team of specialized AI Sentinels</span> that think differently, debate perspectives, and deliver insights no single AI can match.
+                </p>
+              </div>
+
+              {/* CTAs */}
+              <div 
+                ref={heroCtasRef.ref}
+                className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-400 ${
+                  heroCtasRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+                }`}
+              >
+                <a href="/chat">
+                  <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold px-10 py-7 text-lg shadow-lg shadow-cyan-500/50 transition-all hover:shadow-xl hover:shadow-cyan-500/60 hover:scale-105">
+                    Launch Glow
+                    <Sparkles className="ml-2 w-5 h-5" />
+                  </Button>
+                </a>
+                <a href="#sentinels">
+                  <Button size="lg" variant="outline" className="border-2 border-white/30 hover:bg-white/10 hover:border-white/50 px-10 py-7 text-lg font-semibold transition-all hover:scale-105">
+                    Meet the Sentinels
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </a>
+              </div>
+
+              {/* Social Proof */}
+              <div 
+                ref={heroTaglineRef.ref}
+                className={`flex items-center gap-6 pt-4 transition-all duration-700 delay-600 ${
+                  heroTaglineRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
+                }`}
+              >
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 border-2 border-gray-900" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-400">
+                  <span className="text-white font-semibold">1,000+</span> conversations powered by multi-Sentinel intelligence
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Visual */}
+            <div 
+              ref={heroTerminalRef.ref}
+              className={`relative transition-all duration-700 delay-300 ${
+                heroTerminalRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
               }`}
             >
-              Your AI. Your Identity. Your Sovereignty.
-              <br />
-              Experience conversations with specialized AI personalities.
-            </p>
-          </div>
+              {/* Floating Sentinel Cards */}
+              <div className="relative h-[500px] lg:h-[600px]">
+                {/* Card 1 - Front */}
+                <Card className="absolute top-0 left-1/2 -translate-x-1/2 w-80 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-cyan-500/20 hover:scale-105 transition-transform duration-300 animate-float">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center">
+                      <Brain className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">Sage</h3>
+                      <p className="text-xs text-cyan-300">Strategic Thinker</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    "Let me analyze this from multiple angles before we proceed..."
+                  </p>
+                </Card>
 
-          {/* CTAs */}
-          <div 
-            ref={heroCtasRef.ref}
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 transition-all duration-700 delay-600 ${
-              heroCtasRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <a href="/chat">
-              <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold px-8 py-6 text-lg">
-                Start Chatting
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </a>
-            <a href="#features">
-              <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/5 px-8 py-6 text-lg">
-                Explore System
-              </Button>
-            </a>
-          </div>
+                {/* Card 2 - Left */}
+                <Card className="absolute top-32 left-0 w-72 bg-gradient-to-br from-purple-500/20 to-pink-600/20 border-purple-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-purple-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1s' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">Nova</h3>
+                      <p className="text-xs text-purple-300">Creative Innovator</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    "What if we approached this completely differently?"
+                  </p>
+                </Card>
 
-          {/* Terminal-style code snippet */}
-          <div 
-            ref={heroTerminalRef.ref}
-            className={`max-w-2xl mx-auto transition-all duration-700 delay-[800ms] ${
-              heroTerminalRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-          >
-            <Card className="bg-black/50 border-cyan-500/30 backdrop-blur-xl p-4 sm:p-6">
-              <div className="font-mono text-xs sm:text-sm space-y-2">
-                <div className="text-gray-500">glow://core/sentinel-v2</div>
-                <div className="text-cyan-400">&gt; initializing_sequence</div>
-                <div className="text-cyan-400">&gt; sentinels_connected</div>
-                <div className="text-cyan-400">&gt; multi_perspective_mode... <span className="text-white">ACTIVE</span></div>
+                {/* Card 3 - Right */}
+                <Card className="absolute top-32 right-0 w-72 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border-blue-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-blue-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '2s' }}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">Bolt</h3>
+                      <p className="text-xs text-blue-300">Rapid Executor</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    "Here's the fastest path to your goal. Let's move."
+                  </p>
+                </Card>
+
+                {/* Connecting Lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
+                  <line x1="50%" y1="15%" x2="20%" y2="40%" stroke="url(#gradient1)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" />
+                  <line x1="50%" y1="15%" x2="80%" y2="40%" stroke="url(#gradient2)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  <defs>
+                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
