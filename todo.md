@@ -1094,3 +1094,15 @@
 - [x] Verify all CTAs work correctly after fix
 - [x] Test landing page with no console errors
 - [ ] Save checkpoint with fix
+
+## Domain Configuration Before Public Launch
+- [ ] Choose domain option (custom domain or Manus subdomain)
+- [ ] Configure domain in Management UI Settings → Domains
+- [ ] Verify domain is working correctly
+- [ ] Make site Public after domain is configured
+
+## Chat Input Enhancement
+- [x] Increase chat input text box visible lines from 2 to at least 5-6 lines
+- [x] Improve text box navigation and scrolling for longer prompts
+- [ ] Test chat input with long prompts to verify improvements
+- [ ] Save checkpoint with enhanced chat input

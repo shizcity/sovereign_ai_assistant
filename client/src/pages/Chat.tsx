@@ -63,6 +63,21 @@ export default function Chat() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    const textarea = messageInputRef.current;
+    if (!textarea) return;
+
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Calculate new height (max 6 lines, ~24px per line)
+    const maxHeight = 24 * 6; // 6 lines max
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    
+    textarea.style.height = `${newHeight}px`;
+  }, [inputMessage]);
+
   const utils = trpc.useUtils();
 
   // Fetch available models
@@ -1280,8 +1295,9 @@ export default function Chat() {
                       }
                     }}
                     placeholder="Type your message... (⏎ to send, ⇧⏎ for new line)"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200 hover:bg-white/10"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200 hover:bg-white/10 overflow-y-auto"
                     rows={1}
+                    style={{ minHeight: '44px', maxHeight: '144px' }}
                     disabled={sendMessage.isPending}
                   />
                   <Button
