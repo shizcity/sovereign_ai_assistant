@@ -1104,5 +1104,10 @@
 ## Chat Input Enhancement
 - [x] Increase chat input text box visible lines from 2 to at least 5-6 lines
 - [x] Improve text box navigation and scrolling for longer prompts
-- [ ] Test chat input with long prompts to verify improvements
-- [ ] Save checkpoint with enhanced chat input
+- [x] Test chat input with long prompts to verify improvements
+- [x] Save checkpoint with enhanced chat input
+
+## Increase Chat Box Size Further
+- [x] Increase chat input from 6 lines to 10-12 lines minimum
+- [x] Adjust max height to accommodate larger input area
+- [ ] Save checkpoint with larger chat input box
