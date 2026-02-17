@@ -705,162 +705,44 @@ export default function Chat() {
           </Button>
         </div>
 
-        {/* Folder Management */}
+        {/* Chat List Header */}
         <div className="p-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-gray-400">FOLDERS</span>
-            <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <FolderPlus className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-gray-900 border-white/10">
-                <DialogHeader>
-                  <DialogTitle className="text-white">Create New Folder</DialogTitle>
-                  <DialogDescription className="text-gray-400">
-                    Organize your conversations into folders
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="folder-name" className="text-white">Folder Name</Label>
-                    <Input
-                      id="folder-name"
-                      value={newFolderName}
-                      onChange={(e) => setNewFolderName(e.target.value)}
-                      placeholder="Work, Personal, etc."
-                      className="bg-white/5 border-white/10 text-white"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="folder-color" className="text-white">Color</Label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        id="folder-color"
-                        type="color"
-                        value={newFolderColor}
-                        onChange={(e) => setNewFolderColor(e.target.value)}
-                        className="h-10 w-20 rounded border border-white/10 bg-transparent cursor-pointer"
-                      />
-                      <span className="text-gray-400 text-sm">{newFolderColor}</span>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    onClick={() => createFolder.mutate({ name: newFolderName, color: newFolderColor })}
-                    disabled={!newFolderName.trim() || createFolder.isPending}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600"
-                  >
-                    Create Folder
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <span className="text-sm font-semibold text-gray-400">YOUR CHATS</span>
           </div>
         </div>
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          {/* Unfiled Conversations */}
-          {conversationsByFolder.unfiled && conversationsByFolder.unfiled.length > 0 && (
-            <div className="p-2">
-              <div className="text-xs font-semibold text-gray-500 px-3 py-2">UNFILED</div>
-              {conversationsByFolder.unfiled.map((conv) => (
-                <div
-                  key={conv.id}
-                  onClick={() => setSelectedConversation(conv.id)}
-                  className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedConversation === conv.id
-                      ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
-                      : "hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white truncate">{conv.title}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(conv.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteConversation.mutate({ id: conv.id });
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+          <div className="p-2">
+            {filteredConversations.map((conv) => (
+              <div
+                key={conv.id}
+                onClick={() => setSelectedConversation(conv.id)}
+                className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedConversation === conv.id
+                    ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
+                    : "hover:bg-white/5"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white truncate">{conv.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(conv.updatedAt).toLocaleDateString()}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Folders */}
-          {folders.map((folder) => {
-            const folderConvs = conversationsByFolder[folder.id] || [];
-            const isExpanded = expandedFolders.has(folder.id);
-            
-            return (
-              <div key={folder.id} className="p-2">
-                <div
-                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer group"
-                  onClick={() => toggleFolder(folder.id)}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteConversation.mutate({ id: conv.id });
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
                 >
-                  <div className="flex items-center gap-2 flex-1">
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    )}
-                    <Folder className="w-4 h-4" style={{ color: folder.color }} />
-                    <span className="text-sm text-white">{folder.name}</span>
-                    <span className="text-xs text-gray-500">({folderConvs.length})</span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Delete folder "${folder.name}"?`)) {
-                        deleteFolder.mutate({ id: folder.id });
-                      }
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-                
-                {isExpanded && folderConvs.map((conv) => (
-                  <div
-                    key={conv.id}
-                    onClick={() => setSelectedConversation(conv.id)}
-                    className={`group flex items-center justify-between p-3 ml-6 rounded-lg cursor-pointer transition-all duration-200 ${
-                      selectedConversation === conv.id
-                        ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
-                        : "hover:bg-white/5"
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{conv.title}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(conv.updatedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversation.mutate({ id: conv.id });
-                      }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
-            );
-          })}
+            ))}
+          </div>
 
           {filteredConversations.length === 0 && (
             <div className="flex flex-col items-center justify-center h-32 text-gray-500">

@@ -1,0 +1,160 @@
+{
+  "query": "SELECT id, title, userId FROM conversations ORDER BY id DESC LIMIT 30;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, title, userId FROM conversations ORDER BY id DESC LIMIT 30;",
+  "rows": [
+    {
+      "id": "540006",
+      "title": "New Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "540005",
+      "title": "New Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "540001",
+      "title": "New Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "510001",
+      "title": "Test Conversation",
+      "userId": "3990054"
+    },
+    {
+      "id": "480021",
+      "title": "Context Test",
+      "userId": "1"
+    },
+    {
+      "id": "480019",
+      "title": "Updated Title",
+      "userId": "1"
+    },
+    {
+      "id": "480018",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480017",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480016",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480015",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480014",
+      "title": "Tag Removal Test",
+      "userId": "1"
+    },
+    {
+      "id": "480013",
+      "title": "Multi-Tag Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480012",
+      "title": "Tagged Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480011",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "480010",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480009",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480008",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480007",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480006",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480005",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "480004",
+      "title": "Multi-Sentinel Test",
+      "userId": "1"
+    },
+    {
+      "id": "450035",
+      "title": "Context Test",
+      "userId": "1"
+    },
+    {
+      "id": "450033",
+      "title": "Updated Title",
+      "userId": "1"
+    },
+    {
+      "id": "450032",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "450031",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "450030",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "450029",
+      "title": "Test Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "450028",
+      "title": "Tag Removal Test",
+      "userId": "1"
+    },
+    {
+      "id": "450027",
+      "title": "Multi-Tag Conversation",
+      "userId": "1"
+    },
+    {
+      "id": "450026",
+      "title": "Tagged Conversation",
+      "userId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tuserId\n540006\tNew Conversation\t1\n540005\tNew Conversation\t1\n540001\tNew Conversation\t1\n510001\tTest Conversation\t3990054\n480021\tContext Test\t1\n480019\tUpdated Title\t1\n480018\tTest Conversation\t1\n480017\tTest Conversation\t1\n480016\tTest Conversation\t1\n480015\tTest Conversation\t1\n480014\tTag Removal Test\t1\n480013\tMulti-Tag Conversation\t1\n480012\tTagged Conversation\t1\n480011\tTest Conversation\t1\n480010\tMulti-Sentinel Test\t1\n480009\tMulti-Sentinel Test\t1\n480008\tMulti-Sentinel Test\t1\n480007\tMulti-Sentinel Test\t1\n480006\tMulti-Sentinel Test\t1\n480005\tMulti-Sentinel Test\t1\n480004\tMulti-Sentinel Test\t1\n450035\tContext Test\t1\n450033\tUpdated Title\t1\n450032\tTest Conversation\t1\n450031\tTest Conversation\t1\n450030\tTest Conversation\t1\n450029\tTest Conversation\t1\n450028\tTag Removal Test\t1\n450027\tMulti-Tag Conversation\t1\n450026\tTagged Conversation\t1\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

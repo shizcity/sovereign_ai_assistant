@@ -1110,4 +1110,18 @@
 ## Increase Chat Box Size Further
 - [x] Increase chat input from 6 lines to 10-12 lines minimum
 - [x] Adjust max height to accommodate larger input area
-- [ ] Save checkpoint with larger chat input box
+- [x] Save checkpoint with larger chat input box
+
+## Debug Chat Box Not Updating for User
+- [ ] Verify code changes are in Chat.tsx
+- [ ] Restart dev server to ensure changes are loaded
+- [ ] Test in browser with hard refresh (Cmd/Ctrl+Shift+R)
+- [ ] Confirm larger chat box is visible
+
+## Sidebar Cleanup - Simplify Chat Organization
+- [x] Remove all test conversations and folders from database
+- [x] Remove duplicate Work and Personal folders
+- [x] Simplify sidebar UI to show flat "Your Chats" list (ChatGPT style)
+- [x] Remove folder/tag complexity from sidebar
+- [x] Test simplified sidebar layout
+- [ ] Save checkpoint with clean sidebar
