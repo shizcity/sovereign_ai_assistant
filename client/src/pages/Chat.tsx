@@ -610,8 +610,15 @@ export default function Chat() {
   // Filter conversations
   const filteredConversations = conversations.filter((conv) => {
     // Search filter
-    if (searchQuery && !conv.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const title = conv.title.toLowerCase();
+      const dateStr = new Date(conv.updatedAt).toLocaleDateString().toLowerCase();
+      
+      // Search in title or date
+      if (!title.includes(query) && !dateStr.includes(query)) {
+        return false;
+      }
     }
     
     // Folder filter

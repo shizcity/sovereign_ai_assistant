@@ -1124,4 +1124,11 @@
 - [x] Simplify sidebar UI to show flat "Your Chats" list (ChatGPT style)
 - [x] Remove folder/tag complexity from sidebar
 - [x] Test simplified sidebar layout
-- [ ] Save checkpoint with clean sidebar
+- [x] Save checkpoint with clean sidebar
+
+## Real-Time Conversation Search
+- [x] Implement search filtering logic to filter conversations by title
+- [x] Add date-based search support (search by date strings)
+- [x] Ensure search updates instantly as user types
+- [ ] Test search with various keywords and edge cases
+- [ ] Save checkpoint with working search functionality
