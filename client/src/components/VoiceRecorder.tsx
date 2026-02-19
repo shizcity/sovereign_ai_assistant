@@ -17,9 +17,13 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [audioLevels, setAudioLevels] = useState<number[]>(Array(20).fill(0));
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const transcribeMutation = trpc.voice.transcribe.useMutation({
     onSuccess: (data) => {
@@ -40,6 +44,20 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Set up Web Audio API for visualization
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      
+      // Start visualizing audio levels
+      visualizeAudio();
       
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "audio/webm",
@@ -99,6 +117,21 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
       }
+      
+      // Stop audio visualization
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      
+      // Close audio context
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      
+      // Reset audio levels
+      setAudioLevels(Array(20).fill(0));
     }
   };
 
@@ -136,6 +169,30 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
     }
   };
 
+  // Visualize audio levels
+  const visualizeAudio = () => {
+    if (!analyserRef.current) return;
+    
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+    
+    const updateLevels = () => {
+      if (!analyserRef.current) return;
+      
+      analyserRef.current.getByteFrequencyData(dataArray);
+      
+      // Sample 20 frequency bins and normalize to 0-1 range
+      const levels = Array.from({ length: 20 }, (_, i) => {
+        const index = Math.floor((i / 20) * dataArray.length);
+        return dataArray[index] / 255;
+      });
+      
+      setAudioLevels(levels);
+      animationFrameRef.current = requestAnimationFrame(updateLevels);
+    };
+    
+    updateLevels();
+  };
+  
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -144,6 +201,12 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
       }
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
       }
     };
   }, [isRecording]);
@@ -189,7 +252,22 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
       </Button>
       
       {isRecording && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+          {/* Audio Waveform Visualization */}
+          <div className="flex items-center justify-center gap-1 h-16 bg-muted/30 rounded-lg p-3">
+            {audioLevels.map((level, i) => (
+              <div
+                key={i}
+                className="flex-1 bg-primary rounded-full transition-all duration-75"
+                style={{
+                  height: `${Math.max(level * 100, 10)}%`,
+                  opacity: 0.5 + level * 0.5,
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Timer and Progress */}
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
