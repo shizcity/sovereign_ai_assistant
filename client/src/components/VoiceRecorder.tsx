@@ -18,8 +18,12 @@ export function VoiceRecorder({ onTranscriptionComplete, disabled }: VoiceRecord
 
   const transcribeMutation = trpc.voice.transcribe.useMutation({
     onSuccess: (data) => {
-      onTranscriptionComplete(data.text);
-      toast.success("Voice transcribed successfully");
+      if (data && data.text && data.text.trim()) {
+        onTranscriptionComplete(data.text);
+        toast.success("Voice transcribed successfully");
+      } else {
+        toast.error("Transcription returned empty result");
+      }
       setIsProcessing(false);
     },
     onError: (error) => {

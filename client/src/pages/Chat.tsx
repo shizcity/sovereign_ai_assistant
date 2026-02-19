@@ -567,12 +567,16 @@ export default function Chat() {
             }
 
             const data = await response.json();
-            const transcribedText = data.result.data.text;
+            const transcribedText = data?.result?.data?.text;
             
-            // Insert transcribed text into message input
-            setInputMessage(prev => prev ? `${prev}\n${transcribedText}` : transcribedText);
-            toast.success("Transcription complete!");
-            messageInputRef.current?.focus();
+            if (transcribedText && transcribedText.trim()) {
+              // Insert transcribed text into message input
+              setInputMessage(prev => prev ? `${prev}\n${transcribedText}` : transcribedText);
+              toast.success("Transcription complete!");
+              messageInputRef.current?.focus();
+            } else {
+              toast.error("Transcription returned empty result");
+            }
           };
           reader.readAsDataURL(audioBlob);
         } catch (error) {
