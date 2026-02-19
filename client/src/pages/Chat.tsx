@@ -20,6 +20,7 @@ import { MessageSuggestions } from "@/components/MessageSuggestions";
 import { VoiceControls } from "@/components/VoiceControls";
 import { VoiceModeToggle } from "@/components/VoiceModeToggle";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { UnifiedVoiceInput } from "@/components/UnifiedVoiceInput";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
 import { voiceService } from "@/lib/voice";
@@ -49,6 +50,7 @@ export default function Chat() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [selectedTemplateForUse, setSelectedTemplateForUse] = useState<any>(null);
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
@@ -1132,18 +1134,33 @@ export default function Chat() {
                 
                 {/* Message Input */}
                 <div className="flex gap-3">
-                  <Button
-                    onClick={handleToggleRecording}
-                    disabled={sendMessage.isPending || isTranscribing}
-                    className={`${
-                      isRecording
-                        ? "bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 animate-pulse"
-                        : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500"
-                    } text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4`}
-                    title={isRecording ? "Stop recording" : "Start voice input"}
-                  >
-                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                  </Button>
+                  <Dialog open={voiceDialogOpen} onOpenChange={setVoiceDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        disabled={sendMessage.isPending}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4"
+                        title="Voice input"
+                      >
+                        <Mic className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Voice Input</DialogTitle>
+                        <DialogDescription>
+                          Choose between manual recording or continuous listening mode.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <UnifiedVoiceInput
+                        onTranscriptionComplete={(text) => {
+                          setInputMessage(prev => prev ? `${prev}\n${text}` : text);
+                          setVoiceDialogOpen(false);
+                          messageInputRef.current?.focus();
+                        }}
+                        disabled={sendMessage.isPending}
+                      />
+                    </DialogContent>
+                  </Dialog>
                   {/* Manual Sentinel Selector - only show if multiple Sentinels */}
                   {conversationSentinels.length > 1 && (
                     <Select

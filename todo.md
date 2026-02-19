@@ -1182,3 +1182,15 @@
 - [x] Keep single voice input method (microphone icon in message input)
 - [x] Remove orange template button that was confusing
 - [x] Test simplified voice input flow
+
+## Unified Voice Input System with Wake Phrase
+- [x] Design unified voice component architecture
+- [x] Implement continuous listening with Web Speech API
+- [x] Add 'hey glow' wake phrase detection
+- [x] Create mode toggle UI (manual vs continuous listening)
+- [x] Add visual indicators for listening states
+- [x] Implement auto-trigger when wake phrase detected
+- [x] Add proper cleanup and resource management
+- [x] Test both manual and continuous modes
+- [x] Prevent false triggers with phrase matching
+- [x] Add user-friendly mode explanations
