@@ -1194,3 +1194,9 @@
 - [x] Test both manual and continuous modes
 - [x] Prevent false triggers with phrase matching
 - [x] Add user-friendly mode explanations
+
+## Remove Duplicate Wake Word Component
+- [x] Find Wake Word component in Chat page
+- [x] Remove Wake Word component completely
+- [x] Verify only unified voice input dialog remains
+- [x] Test that voice input works correctly

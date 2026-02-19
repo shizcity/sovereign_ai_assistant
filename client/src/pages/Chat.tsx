@@ -17,8 +17,7 @@ import { Streamdown } from "streamdown";
 import { SentinelSelector } from "@/components/SentinelSelector";
 import { MultiSentinelManager } from "@/components/MultiSentinelManager";
 import { MessageSuggestions } from "@/components/MessageSuggestions";
-import { VoiceControls } from "@/components/VoiceControls";
-import { VoiceModeToggle } from "@/components/VoiceModeToggle";
+
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { UnifiedVoiceInput } from "@/components/UnifiedVoiceInput";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -1111,27 +1110,7 @@ export default function Chat() {
             {/* Input Area */}
             <div className="border-t border-white/10 backdrop-blur-xl bg-black/20 p-4">
               <div className="max-w-4xl mx-auto space-y-4">
-                {/* Voice Controls */}
-                <VoiceControls
-                  sentinelName={activeSentinel?.name}
-                  onTranscript={(transcript, isFinal) => {
-                    if (isFinal && transcript && transcript.trim()) {
-                      setInputMessage(transcript);
-                    }
-                  }}
-                  onWakeWord={(sentinel) => {
-                    // Find the Sentinel by name and set it as active
-                    const foundSentinel = allSentinels?.find((s: { id: number; name: string }) => s.name === sentinel);
-                    if (foundSentinel && selectedConversation) {
-                      addSentinelToConversation.mutate({
-                        conversationId: selectedConversation,
-                        sentinelId: foundSentinel.id,
-                        role: "primary",
-                      });
-                    }
-                  }}
-                />
-                
+
                 {/* Message Input */}
                 <div className="flex gap-3">
                   <Dialog open={voiceDialogOpen} onOpenChange={setVoiceDialogOpen}>
