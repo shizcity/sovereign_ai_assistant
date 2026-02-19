@@ -1200,3 +1200,14 @@
 - [x] Remove Wake Word component completely
 - [x] Verify only unified voice input dialog remains
 - [x] Test that voice input works correctly
+
+## Always-On Background Wake Phrase Listening
+- [x] Create background listening service that auto-starts on page load
+- [x] Implement Web Speech API continuous recognition in background
+- [x] Add wake phrase detection ("Hey Glow") without dialog
+- [x] Create subtle indicator (corner icon) showing listening is active
+- [x] Add toggle control to enable/disable background listening
+- [x] Save user preference to localStorage
+- [x] Implement proper cleanup on page unload
+- [x] Test wake phrase triggers message input correctly
+- [x] Ensure low CPU usage for always-on listening

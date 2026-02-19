@@ -24,6 +24,7 @@ import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
+import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -48,6 +49,9 @@ export default function Chat() {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [backgroundListeningEnabled, setBackgroundListeningEnabled] = useState(() => {
+    return localStorage.getItem('backgroundWakePhrase') === 'true';
+  });
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceDialogOpen, setVoiceDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
@@ -113,6 +117,18 @@ export default function Chat() {
 
   // Derive active sentinel from selectedSentinel
   const activeSentinel = allSentinels.find((s: any) => s.id === selectedSentinel);
+
+  // Background wake phrase listening
+  const { isListening: isBackgroundListening } = useBackgroundWakePhrase({
+    enabled: backgroundListeningEnabled,
+    onWakePhrase: () => {
+      // Focus the message input when wake phrase is detected
+      messageInputRef.current?.focus();
+      toast.success('Wake phrase detected! Start speaking...');
+      // Open voice dialog
+      setVoiceDialogOpen(true);
+    },
+  });
 
   // Set selected Sentinel when conversation changes
   useEffect(() => {
@@ -659,6 +675,47 @@ export default function Chat() {
 
   return (
     <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950 relative">
+      {/* Background Listening Indicator */}
+      {isBackgroundListening && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
+          <div className="relative">
+            <Mic className="w-4 h-4 text-green-400" />
+            <div className="absolute inset-0 animate-ping">
+              <Mic className="w-4 h-4 text-green-400 opacity-75" />
+            </div>
+          </div>
+          <span className="text-xs text-green-300 font-medium">Listening for "Hey Glow"</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 hover:bg-green-500/20"
+            onClick={() => {
+              setBackgroundListeningEnabled(false);
+              localStorage.setItem('backgroundWakePhrase', 'false');
+              toast.info('Background listening disabled');
+            }}
+          >
+            <X className="w-3 h-3 text-green-300" />
+          </Button>
+        </div>
+      )}
+      
+      {/* Background Listening Toggle (when disabled) */}
+      {!isBackgroundListening && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="fixed top-4 right-4 z-50 border-white/20 bg-black/40 backdrop-blur-sm hover:bg-white/10"
+          onClick={() => {
+            setBackgroundListeningEnabled(true);
+            localStorage.setItem('backgroundWakePhrase', 'true');
+            toast.success('Background listening enabled. Say "Hey Glow" to start.');
+          }}
+        >
+          <MicOff className="w-4 h-4 mr-2" />
+          Enable Wake Phrase
+        </Button>
+      )}
       {/* Sidebar */}
       <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20 overflow-hidden">
         {/* Header */}
