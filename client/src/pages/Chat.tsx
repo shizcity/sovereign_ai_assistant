@@ -1109,7 +1109,7 @@ export default function Chat() {
                 <VoiceControls
                   sentinelName={activeSentinel?.name}
                   onTranscript={(transcript, isFinal) => {
-                    if (isFinal && transcript.trim()) {
+                    if (isFinal && transcript && transcript.trim()) {
                       setInputMessage(transcript);
                     }
                   }}
