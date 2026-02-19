@@ -1176,3 +1176,9 @@
 - [x] Connect microphone stream to audio analyzer
 - [x] Display waveform visualization during recording
 - [x] Test waveform responds to voice input
+
+## Simplify Voice Input UI
+- [x] Remove confusing duplicate voice input buttons
+- [x] Keep single voice input method (microphone icon in message input)
+- [x] Remove orange template button that was confusing
+- [x] Test simplified voice input flow

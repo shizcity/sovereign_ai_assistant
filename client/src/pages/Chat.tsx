@@ -1133,14 +1133,6 @@ export default function Chat() {
                 {/* Message Input */}
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => setIsTemplateDialogOpen(true)}
-                    disabled={sendMessage.isPending}
-                    className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4"
-                    title="Use template"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                  </Button>
-                  <Button
                     onClick={handleToggleRecording}
                     disabled={sendMessage.isPending || isTranscribing}
                     className={`${
