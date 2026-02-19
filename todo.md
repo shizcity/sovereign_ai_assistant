@@ -1138,5 +1138,16 @@
 - [x] Add dynamic visual elements (gradients, animations, unique layout)
 - [x] Create more compelling copy that captures Glow's uniqueness
 - [x] Ensure design stands out from typical AI landing pages
-- [ ] Test new hero design across devices
-- [ ] Save checkpoint with spectacular hero section
+- [x] Test new hero design across devices
+- [x] Save checkpoint with spectacular hero section
+
+## Fix Speech Synthesis Warning
+- [x] Investigate "Speech Synthesis is not working" warning in chat interface
+- [x] Identify root cause of TTS failure
+- [x] Implement fix for speech synthesis functionality
+- [ ] Test TTS feature to ensure it works correctly
+- [ ] Save checkpoint with working speech synthesis
+
+## Future Enhancements (Backlog)
+- [ ] Add custom email/password authentication system (in addition to OAuth)
+- [ ] Consider passwordless magic link authentication

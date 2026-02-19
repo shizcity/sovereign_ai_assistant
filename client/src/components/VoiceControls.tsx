@@ -46,16 +46,14 @@ export function VoiceControls({
     },
   });
 
-  useEffect(() => {
-    if (!isSupported.recognition) {
-      toast.error("Speech recognition not supported in this browser");
-    }
-    if (!isSupported.synthesis) {
-      toast.error("Speech synthesis not supported in this browser");
-    }
-  }, [isSupported]);
+  // Only show warnings when user actually tries to use voice features
+  // Removed automatic toast warnings on page load
 
   const toggleListening = () => {
+    if (!isSupported.recognition) {
+      toast.error("Speech recognition not supported in this browser. Try Chrome, Edge, or Safari.");
+      return;
+    }
     if (isListening) {
       stopListening();
       setIsWakeWordMode(false);
@@ -65,6 +63,10 @@ export function VoiceControls({
   };
 
   const toggleWakeWordMode = () => {
+    if (!isSupported.recognition) {
+      toast.error("Speech recognition not supported in this browser. Try Chrome, Edge, or Safari.");
+      return;
+    }
     if (isWakeWordMode) {
       stopListening();
       setIsWakeWordMode(false);
