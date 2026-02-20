@@ -776,7 +776,7 @@ export default function Chat() {
         <div className="p-4 border-b border-white/10 space-y-2 flex-shrink-0">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-[1.02]"
+            className="button-lift w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50"
             disabled={createConversation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -1197,7 +1197,7 @@ export default function Chat() {
                     <DialogTrigger asChild>
                       <Button
                         disabled={sendMessage.isPending}
-                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-4"
+                        className="button-lift bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed px-4"
                         title="Voice input"
                       >
                         <Mic className="w-4 h-4" />
@@ -1264,7 +1264,7 @@ export default function Chat() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || sendMessage.isPending}
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 transition-all duration-300 hover:shadow-blue-500/70 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed px-6"
+                    className="button-lift bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed px-6"
                   >
                     <Send className="w-4 h-4" />
                   </Button>

@@ -1238,3 +1238,10 @@
 - [x] Apply purple glow to Nova avatar
 - [x] Apply blue glow to Bolt avatar
 - [x] Test glow effects and animation smoothness
+
+## Button Micro-interactions
+- [x] Add hover lift and press animation CSS classes
+- [x] Apply interactions to send button
+- [x] Apply interactions to voice input button
+- [x] Apply interactions to action buttons (new conversation, export, etc.)
+- [x] Test button feedback and animation smoothness
