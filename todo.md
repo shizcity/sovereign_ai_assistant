@@ -1211,3 +1211,9 @@
 - [x] Implement proper cleanup on page unload
 - [x] Test wake phrase triggers message input correctly
 - [x] Ensure low CPU usage for always-on listening
+
+## Glassmorphism Effects
+- [x] Add glassmorphism CSS utility classes to index.css
+- [x] Apply glass effects to chat messages
+- [x] Apply glass effects to sidebar
+- [x] Test visual appearance and backdrop blur

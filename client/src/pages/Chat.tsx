@@ -717,7 +717,7 @@ export default function Chat() {
         </Button>
       )}
       {/* Sidebar */}
-      <div className="w-80 border-r border-white/10 flex flex-col backdrop-blur-xl bg-black/20 overflow-hidden">
+      <div className="w-80 border-r border-white/10 flex flex-col glass overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-white/10 flex-shrink-0">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
@@ -1074,10 +1074,10 @@ export default function Chat() {
                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl p-4 backdrop-blur-xl ${
+                      className={`max-w-[80%] rounded-2xl p-4 glass-strong ${
                         message.role === "user"
-                          ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30"
-                          : "bg-white/5 border border-white/10"
+                          ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-blue-500/30"
+                          : ""
                       }`}
                     >
                       {editingMessageId === message.id ? (
