@@ -1094,7 +1094,7 @@ export default function Chat() {
                 {messages.map((message, index) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
+                    className={`flex ${message.role === "user" ? "justify-end animate-slide-in-right" : "justify-start animate-slide-in-left"}`}
                   >
                     <div
                       className={`max-w-[80%] rounded-2xl p-4 glass-strong ${

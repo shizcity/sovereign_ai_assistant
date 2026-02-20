@@ -1224,3 +1224,9 @@
 - [x] Apply animated gradient background to Chat page
 - [x] Add 12 randomized floating particles
 - [x] Test animation performance and smoothness
+
+## Message Entrance Animations
+- [x] Add slide-in + fade animation keyframes to CSS
+- [x] Apply entrance animation to new messages
+- [x] Differentiate user vs assistant message animation directions
+- [x] Test animation timing and smoothness
