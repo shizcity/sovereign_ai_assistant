@@ -674,7 +674,30 @@ export default function Chat() {
   }
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-black via-gray-900 to-blue-950 relative">
+    <div className="h-screen flex relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div 
+        className="absolute inset-0 animate-gradient" 
+        style={{
+          backgroundImage: 'linear-gradient(135deg, #000000 0%, #0a0e27 25%, #0f172a 50%, #0c1e3a 75%, #000000 100%)'
+        }} 
+      />
+      
+      {/* Ambient particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${8 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
       {/* Background Listening Indicator */}
       {isBackgroundListening && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
@@ -717,7 +740,7 @@ export default function Chat() {
         </Button>
       )}
       {/* Sidebar */}
-      <div className="w-80 border-r border-white/10 flex flex-col glass overflow-hidden">
+      <div className="w-80 border-r border-white/10 flex flex-col glass overflow-hidden relative z-10">
         {/* Header */}
         <div className="p-6 border-b border-white/10 flex-shrink-0">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
@@ -907,7 +930,7 @@ export default function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative z-10">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
