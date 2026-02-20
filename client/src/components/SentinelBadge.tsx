@@ -13,10 +13,19 @@ export function SentinelBadge({ sentinelId }: SentinelBadgeProps) {
   const sentinel = allSentinels?.find(s => s.id === sentinelId);
   if (!sentinel) return null;
 
+  // Map sentinel names to glow classes
+  const glowClass = {
+    'Sage': 'glow-sage',
+    'Nova': 'glow-nova',
+    'Bolt': 'glow-bolt'
+  }[sentinel.name] || '';
+
   return (
-    <span className="flex items-center gap-1 text-primary">
-      <Sparkles className="h-3 w-3" />
-      {sentinel.name}
-    </span>
+    <div className="flex items-center gap-2">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${glowClass}`} style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
+        <Sparkles className="h-4 w-4" />
+      </div>
+      <span className="text-sm font-medium">{sentinel.name}</span>
+    </div>
   );
 }

@@ -379,3 +379,31 @@
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* ===== SENTINEL AVATAR GLOWS ===== */
+
+/* Pulsing glow animation */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+  }
+}
+
+/* Sentinel-specific glow colors */
+.glow-sage {
+  color: rgb(34, 211, 238); /* cyan-400 */
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.glow-nova {
+  color: rgb(192, 132, 252); /* purple-400 */
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.glow-bolt {
+  color: rgb(96, 165, 250); /* blue-400 */
+  animation: pulseGlow 3s ease-in-out infinite;
+}

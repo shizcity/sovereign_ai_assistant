@@ -1230,3 +1230,11 @@
 - [x] Apply entrance animation to new messages
 - [x] Differentiate user vs assistant message animation directions
 - [x] Test animation timing and smoothness
+
+## Sentinel Avatar Glows
+- [x] Add pulsing glow animation keyframes to CSS
+- [x] Create color-specific glow classes for each Sentinel
+- [x] Apply cyan glow to Sage avatar
+- [x] Apply purple glow to Nova avatar
+- [x] Apply blue glow to Bolt avatar
+- [x] Test glow effects and animation smoothness
