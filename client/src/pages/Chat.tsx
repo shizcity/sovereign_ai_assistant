@@ -20,6 +20,7 @@ import { MessageSuggestions } from "@/components/MessageSuggestions";
 
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { UnifiedVoiceInput } from "@/components/UnifiedVoiceInput";
+import { TypingIndicator } from "@/components/TypingIndicator";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
 import { voiceService } from "@/lib/voice";
@@ -1183,6 +1184,16 @@ export default function Chat() {
                     )}
                   </div>
                 ))}
+                
+                {/* Typing Indicator */}
+                {sendMessage.isPending && (
+                  <div className="flex justify-start animate-slide-in-left">
+                    <div className="glass-strong rounded-2xl">
+                      <TypingIndicator />
+                    </div>
+                  </div>
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             </div>
