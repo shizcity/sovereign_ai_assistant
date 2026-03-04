@@ -1,21 +1,26 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { appRouter } from "./routers";
-import { db } from "./db";
+import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 describe("Voice Features", () => {
   let proUserId: number;
   let freeUserId: number;
+  const proOpenId = `test-pro-voice-${Date.now()}`;
+  const freeOpenId = `test-free-voice-${Date.now()}`;
 
   beforeAll(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available for tests");
+
     // Create test users
     const [proUser] = await db
       .insert(users)
       .values({
-        openId: `test-pro-${Date.now()}`,
+        openId: proOpenId,
         name: "Pro Test User",
-        email: `pro-test-${Date.now()}@example.com`,
+        email: `pro-voice-test-${Date.now()}@example.com`,
         loginMethod: "google",
         subscriptionTier: "pro",
         subscriptionStatus: "active",
@@ -26,9 +31,9 @@ describe("Voice Features", () => {
     const [freeUser] = await db
       .insert(users)
       .values({
-        openId: `test-free-${Date.now()}`,
+        openId: freeOpenId,
         name: "Free Test User",
-        email: `free-test-${Date.now()}@example.com`,
+        email: `free-voice-test-${Date.now()}@example.com`,
         loginMethod: "google",
         subscriptionTier: "free",
         subscriptionStatus: "active",
@@ -37,8 +42,18 @@ describe("Voice Features", () => {
     freeUserId = freeUser.id;
   });
 
+  afterAll(async () => {
+    const db = await getDb();
+    if (!db) return;
+    // Clean up test users
+    await db.delete(users).where(eq(users.openId, proOpenId));
+    await db.delete(users).where(eq(users.openId, freeOpenId));
+  });
+
   describe("Voice Transcription", () => {
     it("should allow Pro users to transcribe audio", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
@@ -64,6 +79,8 @@ describe("Voice Features", () => {
     });
 
     it("should block Free users from transcribing audio", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const freeUser = await db.select().from(users).where(eq(users.id, freeUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
@@ -85,6 +102,8 @@ describe("Voice Features", () => {
 
   describe("Text-to-Speech Synthesis", () => {
     it("should allow Pro users to synthesize speech", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
@@ -115,6 +134,8 @@ describe("Voice Features", () => {
     });
 
     it("should block Free users from synthesizing speech", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const freeUser = await db.select().from(users).where(eq(users.id, freeUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
@@ -132,6 +153,8 @@ describe("Voice Features", () => {
     });
 
     it("should reject empty text", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
@@ -149,6 +172,8 @@ describe("Voice Features", () => {
     });
 
     it("should reject text exceeding 4096 characters", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
       
       const caller = appRouter.createCaller({
