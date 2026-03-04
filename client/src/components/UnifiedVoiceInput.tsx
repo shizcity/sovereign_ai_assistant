@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, Loader2, Clock, Radio } from "lucide-react";
+import { Mic, MicOff, Loader2, Clock, Radio, Crown, Zap, Sparkles, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface UnifiedVoiceInputProps {
   onTranscriptionComplete: (text: string) => void;
@@ -15,7 +16,102 @@ interface UnifiedVoiceInputProps {
 const MAX_RECORDING_TIME = 120; // 2 minutes in seconds
 const WAKE_PHRASES = ["hey glow", "hi glow", "hello glow"];
 
+// Polished inline upgrade card shown to free-tier users
+function VoiceProUpgradeCard() {
+  const createCheckout = trpc.subscription.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.info("Redirecting to Stripe checkout…");
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to start checkout: ${error.message}`);
+    },
+  });
+
+  const features = [
+    "Speech-to-text transcription (Whisper AI)",
+    "Always-on 'Hey Glow' wake phrase detection",
+    "Text-to-speech responses from your Sentinel",
+    "Unlimited voice sessions — no time caps",
+  ];
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-yellow-500/30 bg-gradient-to-br from-yellow-950/60 via-orange-950/40 to-yellow-950/60 p-6 space-y-5">
+      {/* Decorative glow */}
+      <div className="absolute -top-8 -right-8 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl pointer-events-none" />
+
+      {/* Header */}
+      <div className="flex items-start gap-3 relative">
+        <div className="flex-shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/30">
+          <Mic className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="text-base font-semibold text-white">Voice Input</h3>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+              <Crown className="w-3 h-3" />
+              Pro
+            </span>
+          </div>
+          <p className="text-sm text-yellow-200/70">
+            Unlock hands-free AI conversations with your Sentinels.
+          </p>
+        </div>
+      </div>
+
+      {/* Feature list */}
+      <ul className="space-y-2 relative">
+        {features.map((feature) => (
+          <li key={feature} className="flex items-start gap-2.5 text-sm text-yellow-100/80">
+            <Check className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Price + CTA */}
+      <div className="relative space-y-3">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold text-white">$19</span>
+          <span className="text-sm text-yellow-200/60">/ month</span>
+          <span className="ml-2 text-xs text-yellow-300/60 line-through">$29</span>
+          <span className="text-xs font-medium text-green-400">Save 35%</span>
+        </div>
+
+        <Button
+          onClick={() => createCheckout.mutate()}
+          disabled={createCheckout.isPending}
+          className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-semibold shadow-lg shadow-yellow-500/25 transition-all duration-200 hover:shadow-yellow-500/40 hover:-translate-y-0.5"
+          size="lg"
+        >
+          {createCheckout.isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Redirecting…
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Upgrade to Pro — $19/month
+            </>
+          )}
+        </Button>
+
+        <p className="text-center text-xs text-yellow-200/40">
+          Cancel anytime · Instant access · Secure checkout via Stripe
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: UnifiedVoiceInputProps) {
+  const { user } = useAuth();
+  const isPro = user?.subscriptionTier === "pro";
+
   // Mode state
   const [continuousMode, setContinuousMode] = useState(false);
   
@@ -113,7 +209,7 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
         });
       }, 1000);
       
-      toast.info("Recording... Click again to stop");
+      toast.info("Recording… Click again to stop");
     } catch (error) {
       console.error("Error starting recording:", error);
       toast.error("Failed to access microphone. Please check permissions.");
@@ -192,7 +288,7 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
 
     recognition.onstart = () => {
       setIsListening(true);
-      toast.success("Listening for 'Hey Glow'...");
+      toast.success("Listening for 'Hey Glow'…");
     };
 
     recognition.onresult = (event: any) => {
@@ -333,13 +429,19 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
   };
 
   const progressPercentage = (recordingTime / MAX_RECORDING_TIME) * 100;
+
+  // ── Free-tier gate ────────────────────────────────────────────────────────
+  if (!isPro) {
+    return <VoiceProUpgradeCard />;
+  }
+  // ─────────────────────────────────────────────────────────────────────────
   
   return (
     <div className="space-y-3 w-full">
       {/* Mode Toggle */}
       <div className="flex items-center justify-between gap-3 p-3 bg-muted/30 rounded-lg">
         <div className="flex items-center gap-2">
-          <Radio className={`h-4 w-4 ${isListening ? 'text-green-500 animate-pulse' : 'text-muted-foreground'}`} />
+        
           <Label htmlFor="continuous-mode" className="text-sm cursor-pointer">
             Continuous Listening {isListening && "(Active)"}
           </Label>

@@ -1252,3 +1252,12 @@
 - [x] Show typing indicator when AI is generating response
 - [x] Hide typing indicator when response arrives
 - [x] Test animation timing and smoothness
+
+## Pro Upgrade Prompt in Voice Dialog
+- [x] Check subscription tier from auth context in voice dialog
+- [x] Show inline Pro upgrade card when user is on free tier
+- [x] Include feature list, price, and CTA button in upgrade card
+- [x] Wire CTA to Stripe checkout or pricing page
+- [x] Hide manual recording and continuous mode UI for free users
+- [x] Test upgrade card renders correctly for free tier
+- [x] Test voice UI still works normally for Pro users
