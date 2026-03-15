@@ -497,25 +497,22 @@ export default function Landing() {
         className={`relative z-10 py-20 px-6 border-y border-white/10 transition-all duration-700 ${
           statsRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
+        style={{ background: 'oklch(0.07 0.015 270 / 0.6)' }}
       >
         <div className="container max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-cyan-400 mb-2">6</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">Unique Sentinels</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-cyan-400 mb-2">∞</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">Conversations</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-cyan-400 mb-2">3</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">Pro Features</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-cyan-400 mb-2">24/7</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">System Uptime</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { value: '6', label: 'Unique Sentinels', sub: 'Built-in AI personalities' },
+              { value: '∞', label: 'Conversations', sub: 'No hard limits on Pro' },
+              { value: '3', label: 'Tiers Available', sub: 'Free, Pro & Creator' },
+              { value: '24/7', label: 'System Uptime', sub: 'Always available' },
+            ].map((stat, i) => (
+              <div key={i} className="relative group text-center p-6 rounded-2xl border border-white/8 bg-white/3 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300">
+                <div className="text-5xl font-black mb-2 bg-gradient-to-br from-cyan-300 to-indigo-400 bg-clip-text text-transparent">{stat.value}</div>
+                <div className="text-white font-semibold text-sm mb-1">{stat.label}</div>
+                <div className="text-gray-500 text-xs">{stat.sub}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -529,28 +526,37 @@ export default function Landing() {
               featuresHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Core Architecture</h2>
-            <p className="text-xl text-gray-400">
-              Advanced capabilities for multi-perspective intelligence.
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
+              <Zap className="w-3 h-3" /> Platform Capabilities
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Built for Deep Thinking</h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Every feature is designed to help you think more clearly, explore more broadly, and decide more confidently.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
                 <Card
                   key={idx}
                   ref={feature.ref.ref}
-                  className={`bg-black/50 border-cyan-500/20 backdrop-blur-xl p-8 hover:border-cyan-500/50 transition-all duration-700 ${
+                  className={`group relative bg-black/40 border-white/8 backdrop-blur-xl p-8 hover:border-cyan-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-500 overflow-hidden ${
                     feature.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                   } ${feature.delay}`}
                 >
-                  <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-6">
-                    <Icon className="w-6 h-6 text-cyan-400" />
+                  {/* subtle top gradient line on hover */}
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative w-14 h-14 mb-6">
+                    <div className="absolute inset-0 rounded-xl bg-cyan-500/15 group-hover:bg-cyan-500/25 transition-colors duration-300" />
+                    <div className="absolute inset-0 rounded-xl ring-1 ring-cyan-500/20 group-hover:ring-cyan-500/50 transition-all duration-300" />
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300" />
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <h3 className="text-xl font-bold mb-3 group-hover:text-cyan-100 transition-colors duration-300">{feature.title}</h3>
+                  <p className="text-gray-400 leading-relaxed text-sm">
                     {feature.description}
                   </p>
                 </Card>
@@ -561,43 +567,62 @@ export default function Landing() {
       </section>
 
       {/* Sentinels Showcase */}
-      <section id="sentinels" className="relative z-10 py-32 px-6 border-t border-white/10">
+      <section id="sentinels" className="relative z-10 py-32 px-6 border-t border-white/10" style={{ background: 'oklch(0.07 0.015 270 / 0.4)' }}>
         <div className="container max-w-6xl mx-auto">
           <div 
             ref={sentinelsHeaderRef.ref}
             className={`text-center mb-16 transition-all duration-700 ${
               sentinelsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
-          >            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Meet Your Sentinels</h2>
-            <p className="text-xl text-gray-400">
-              Six specialized AI personalities, each with unique expertise and perspective.
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold uppercase tracking-widest mb-6">
+              <Sparkles className="w-3 h-3" /> The Council
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Meet Your Sentinels</h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Six specialized AI personalities. Each thinks differently. Together, they think better.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sentinels.map((sentinel, idx) => (
               <Card
                 key={idx}
                 ref={sentinel.ref.ref}
-                className={`bg-black/50 border-white/10 backdrop-blur-xl p-6 hover:border-cyan-500/50 transition-all duration-700 text-center ${
+                className={`group relative bg-black/40 border-white/8 backdrop-blur-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-500 ${
                   sentinel.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 } ${sentinel.delay}`}
+                style={{ '--sentinel-color': sentinel.color } as React.CSSProperties}
               >
-                <div
-                  className="text-5xl mb-4 w-20 h-20 rounded-full flex items-center justify-center mx-auto"
-                  style={{ background: `${sentinel.color}20` }}
-                >
-                  {sentinel.emoji}
+                {/* Color accent top bar */}
+                <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${sentinel.color}80, ${sentinel.color}20)` }} />
+                <div className="p-6 flex items-start gap-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-lg"
+                    style={{ background: `${sentinel.color}20`, boxShadow: `0 4px 20px ${sentinel.color}20` }}
+                  >
+                    {sentinel.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-bold text-white">{sentinel.name}</h3>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        idx < 3
+                          ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                          : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      }`}>{idx < 3 ? 'FREE' : 'PRO'}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3">{sentinel.specialty}</p>
+                    <div className="h-px w-full" style={{ background: `${sentinel.color}20` }} />
+                  </div>
                 </div>
-                <h3 className="font-bold mb-2 text-sm">{sentinel.name}</h3>
-                <p className="text-xs text-gray-400">{sentinel.specialty}</p>
               </Card>
             ))}
           </div>
 
           <div className="text-center mt-12">
             <a href="/sentinels">
-              <Button variant="outline" className="border-cyan-500/30 hover:bg-cyan-500/10">
+              <Button variant="outline" className="border-cyan-500/30 hover:bg-cyan-500/10 hover:border-cyan-500/50 transition-all">
                 Explore All Sentinels
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -615,81 +640,73 @@ export default function Landing() {
               testimonialsHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold uppercase tracking-widest mb-6">
+              <MessageSquare className="w-3 h-3" /> User Stories
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Trusted by Innovators</h2>
-            <p className="text-xl text-gray-400">
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               See what people are saying about their Glow experience.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <Card 
-              ref={testimonial1Ref.ref}
-              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-0 ${
-                testimonial1Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-2xl">
-                  👨‍💼
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'Marcus Chen', role: 'Product Manager',
+                gradient: 'from-cyan-500 to-blue-500', emoji: '👨‍💼',
+                quote: "Glow's multi-Sentinel approach completely changed how I brainstorm. Getting different perspectives from specialized AI personalities helps me see blind spots I'd normally miss.",
+                ref: testimonial1Ref, delay: 'delay-0'
+              },
+              {
+                name: 'Sarah Williams', role: 'Creative Director',
+                gradient: 'from-purple-500 to-pink-500', emoji: '👩‍🎨',
+                quote: "Voice-First Mode is a game changer. I can brainstorm ideas while walking my dog. The natural conversation flow with multiple Sentinels feels like having a creative team in my pocket.",
+                ref: testimonial2Ref, delay: 'delay-100'
+              },
+              {
+                name: 'Alex Rodriguez', role: 'Software Engineer',
+                gradient: 'from-orange-500 to-red-500', emoji: '👨‍💻',
+                quote: "The analytics dashboard shows me exactly how I'm using each Sentinel. It's fascinating to see patterns in my thinking. Glow isn't just a tool—it's a mirror for my creative process.",
+                ref: testimonial3Ref, delay: 'delay-200'
+              },
+            ].map((t, i) => (
+              <Card
+                key={i}
+                ref={t.ref.ref}
+                className={`group relative bg-black/40 border-white/8 backdrop-blur-xl p-8 hover:border-white/20 hover:-translate-y-1 transition-all duration-500 overflow-hidden ${t.delay} ${
+                  t.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                }`}
+              >
+                {/* Large decorative quote mark */}
+                <div className="absolute top-4 right-6 text-7xl font-serif text-white/5 leading-none select-none">&ldquo;</div>
+                {/* Star rating */}
+                <div className="flex gap-0.5 mb-5">
+                  {[...Array(5)].map((_, s) => (
+                    <svg key={s} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
                 </div>
-                <div>
-                  <div className="font-bold">Marcus Chen</div>
-                  <div className="text-sm text-gray-400">Product Manager</div>
+                <p className="text-gray-300 leading-relaxed mb-6 text-sm relative z-10">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-lg flex-shrink-0`}>
+                    {t.emoji}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-white">{t.name}</div>
+                    <div className="text-xs text-gray-500">{t.role}</div>
+                  </div>
                 </div>
-              </div>
-              <p className="text-gray-300 leading-relaxed">
-                "Glow's multi-Sentinel approach completely changed how I brainstorm. Getting different perspectives from specialized AI personalities helps me see blind spots I'd normally miss."
-              </p>
-            </Card>
-
-            {/* Testimonial 2 */}
-            <Card 
-              ref={testimonial2Ref.ref}
-              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-100 ${
-                testimonial2Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
-                  👩‍🎨
-                </div>
-                <div>
-                  <div className="font-bold">Sarah Williams</div>
-                  <div className="text-sm text-gray-400">Creative Director</div>
-                </div>
-              </div>
-              <p className="text-gray-300 leading-relaxed">
-                "Voice-First Mode is a game changer. I can brainstorm ideas while walking my dog. The natural conversation flow with multiple Sentinels feels like having a creative team in my pocket."
-              </p>
-            </Card>
-
-            {/* Testimonial 3 */}
-            <Card 
-              ref={testimonial3Ref.ref}
-              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 transition-all duration-700 delay-200 ${
-                testimonial3Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
-            >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-2xl">
-                  👨‍💻
-                </div>
-                <div>
-                  <div className="font-bold">Alex Rodriguez</div>
-                  <div className="text-sm text-gray-400">Software Engineer</div>
-                </div>
-              </div>
-              <p className="text-gray-300 leading-relaxed">
-                "The analytics dashboard shows me exactly how I'm using each Sentinel. It's fascinating to see patterns in my thinking. Glow isn't just a tool—it's a mirror for my creative process."
-              </p>
-            </Card>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="relative z-10 py-32 px-6 border-t border-white/10">
+      <section id="pricing" className="relative z-10 py-32 px-6 border-t border-white/10" style={{ background: 'oklch(0.065 0.015 270 / 0.5)' }}>
         <div className="container max-w-6xl mx-auto">
           <div 
             ref={pricingHeaderRef.ref}
@@ -697,6 +714,9 @@ export default function Landing() {
               pricingHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
+              <TrendingUp className="w-3 h-3" /> Pricing
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Choose Your Path</h2>
             <p className="text-xl text-gray-400">
               Start free. Upgrade when you need more power.
@@ -847,6 +867,40 @@ export default function Landing() {
               </a>
             </Card>
           </div>
+
+          {/* Feature Comparison Table */}
+          <div className="mt-16 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-4 pr-8 text-gray-400 font-medium w-1/3">Feature</th>
+                  <th className="text-center py-4 px-4 text-gray-300 font-semibold">Free</th>
+                  <th className="text-center py-4 px-4 text-cyan-300 font-semibold">Pro</th>
+                  <th className="text-center py-4 px-4 text-amber-300 font-semibold">Creator</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {[
+                  ['Monthly messages', '50', 'Unlimited', 'Unlimited'],
+                  ['Sentinels included', '3', '6', '6'],
+                  ['Custom Sentinels', '—', '—', 'Up to 5'],
+                  ['Multi-Sentinel conversations', '—', '✓', '✓'],
+                  ['Voice transcription', '—', '✓', '✓'],
+                  ['Text-to-speech', '—', '✓', '✓'],
+                  ['Conversation templates', '—', '✓', '✓'],
+                  ['Memory retention', '30 days', 'Unlimited', 'Unlimited'],
+                  ['Priority support', '—', '✓', '✓'],
+                ].map(([feature, free, pro, creator], i) => (
+                  <tr key={i} className="hover:bg-white/2 transition-colors">
+                    <td className="py-3.5 pr-8 text-gray-300">{feature}</td>
+                    <td className="py-3.5 px-4 text-center text-gray-400">{free}</td>
+                    <td className="py-3.5 px-4 text-center text-cyan-300">{pro}</td>
+                    <td className="py-3.5 px-4 text-center text-amber-300">{creator}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -859,6 +913,9 @@ export default function Landing() {
               faqHeaderRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-gray-300 text-xs font-semibold uppercase tracking-widest mb-6">
+              <Brain className="w-3 h-3" /> FAQ
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-400">
               Everything you need to know about Glow.
@@ -871,9 +928,9 @@ export default function Landing() {
               faqAccordionRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="item-1" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+            <Accordion type="single" collapsible className="space-y-3">
+              <AccordionItem value="item-1" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What are Sentinels and how do they work?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -881,8 +938,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-2" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-2" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What's the difference between Free and Pro?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -890,8 +947,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-3" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-3" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   How does Multi-Sentinel conversation work?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -899,8 +956,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-4" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-4" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Is my data private and secure?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -908,8 +965,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-5" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-5" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Can I cancel my Pro subscription anytime?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -917,8 +974,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-6" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-6" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What is Voice-First Mode?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -926,8 +983,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-7" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-7" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Do Sentinels remember past conversations?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -935,8 +992,8 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-8" className="bg-black/50 border-white/10 backdrop-blur-xl rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-semibold hover:text-cyan-400 transition-colors">
+              <AccordionItem value="item-8" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+                <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   How do I get started?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
@@ -949,71 +1006,107 @@ export default function Landing() {
       </section>
 
       {/* Email Capture CTA */}
-      <section className="relative z-10 py-32 px-6 border-t border-white/10">
+      <section className="relative z-10 py-40 px-6 border-t border-white/10 overflow-hidden">
+        {/* Radial glow behind headline */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[600px] h-[400px] rounded-full" style={{ background: 'radial-gradient(ellipse, oklch(0.55 0.18 200 / 0.12) 0%, transparent 70%)' }} />
+        </div>
         <div 
           ref={ctaRef.ref}
-          className={`container max-w-4xl mx-auto text-center transition-all duration-700 ${
+          className={`container max-w-4xl mx-auto text-center relative z-10 transition-all duration-700 ${
             ctaRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
           }`}
         >
-          <h2 className="text-5xl font-bold mb-6">Ready to illuminate your thinking?</h2>
-          <p className="text-xl text-gray-400 mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-8">
+            <Sparkles className="w-3 h-3" /> Get Started Free
+          </div>
+          <h2 className="text-5xl sm:text-6xl font-black mb-6 leading-tight">Ready to illuminate<br />your thinking?</h2>
+          <p className="text-xl text-gray-400 mb-4 max-w-xl mx-auto">
             Join thousands experiencing multi-perspective AI conversations.
-            <br />
-            No credit card required. Start free today.
           </p>
+          <p className="text-sm text-gray-500 mb-12">No credit card required. Start free today.</p>
 
-          <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto mb-8">
+          <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-8">
             <Input
               type="email"
               placeholder="enter_your_email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-black/50 border-white/20 text-white placeholder:text-gray-500 font-mono"
+              className="bg-black/60 border-white/15 text-white placeholder:text-gray-600 font-mono flex-1 focus:border-cyan-500/50"
               required
             />
-            <Button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-black font-semibold">
+            <Button type="submit" className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 shadow-lg shadow-cyan-500/20 transition-all">
               Initialize
             </Button>
           </form>
 
-          <p className="text-sm text-gray-500">
-            Encryption standard: AES-256 • Data sovereignty guaranteed
-          </p>
+          <div className="flex items-center justify-center gap-6 text-xs text-gray-600">
+            <span className="flex items-center gap-1.5"><Shield className="w-3 h-3" /> AES-256 Encrypted</span>
+            <span className="w-px h-3 bg-white/10" />
+            <span className="flex items-center gap-1.5"><Layers className="w-3 h-3" /> Data Sovereignty</span>
+            <span className="w-px h-3 bg-white/10" />
+            <span className="flex items-center gap-1.5"><Zap className="w-3 h-3" /> Cancel Anytime</span>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 py-12 px-6">
+      <footer className="relative z-10 border-t border-white/10 pt-16 pb-10 px-6" style={{ background: 'oklch(0.055 0.01 270)' }}>
+        {/* Gradient top divider */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
         <div className="container max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          {/* Top row: brand + nav columns */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+            {/* Brand column */}
+            <div className="col-span-2 md:col-span-2">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-300 to-indigo-300 bg-clip-text text-transparent">Glow</span>
+              </div>
+              <p className="text-sm text-gray-500 leading-relaxed max-w-xs mb-6">
+                Your AI. Your Identity. Your Sovereignty.<br />
+                Multi-perspective intelligence for the modern mind.
+              </p>
+              {/* Social links */}
+              <div className="flex items-center gap-3">
+                {[
+                  { label: 'Twitter / X', path: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z' },
+                  { label: 'GitHub', path: 'M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z' },
+                  { label: 'Discord', path: 'M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.053a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z' },
+                ].map((social) => (
+                  <a key={social.label} href="#" aria-label={social.label}
+                    className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:border-white/20 hover:bg-white/10 transition-all">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d={social.path} />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Nav columns */}
             <div>
-              <h4 className="font-bold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Product</h4>
+              <ul className="space-y-2.5 text-sm text-gray-400">
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="/sentinels" className="hover:text-white transition-colors">Sentinels</a></li>
                 <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/my-sentinels" className="hover:text-white transition-colors">Creator</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Company</h4>
+              <ul className="space-y-2.5 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Legal</h4>
+              <ul className="space-y-2.5 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
@@ -1021,13 +1114,13 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              <span className="font-bold">Glow</span>
-            </div>
-            <p className="text-sm text-gray-400">
-              © 2026 Glow. Your AI. Your Identity. Your Sovereignty.
+          {/* Bottom bar */}
+          <div className="border-t border-white/8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-xs text-gray-600">
+              © 2026 Glow. All rights reserved.
+            </p>
+            <p className="text-xs text-gray-700 italic">
+              Your AI. Your Identity. Your Sovereignty.
             </p>
           </div>
         </div>

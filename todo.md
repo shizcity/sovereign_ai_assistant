@@ -1312,3 +1312,13 @@
 - [x] GUI Refresh: chat sidebar frosted glass and nav
 - [x] GUI Refresh: chat bubbles with Sentinel accents
 - [ ] GUI Refresh: landing page animated hero
+
+## Landing Page GUI Upgrade
+- [ ] Landing: upgrade Features section with icon glow, gradient borders, hover lift
+- [ ] Landing: upgrade Stats section with animated counters and richer styling
+- [ ] Landing: upgrade Sentinels showcase with larger cards and specialty tags
+- [ ] Landing: upgrade Testimonials with star ratings and quote marks
+- [ ] Landing: upgrade Pricing with a feature comparison table below cards
+- [ ] Landing: upgrade FAQ with better accordion styling
+- [ ] Landing: upgrade final CTA section with mesh gradient and bolder copy
+- [ ] Landing: upgrade footer with logo, tagline, and social links
