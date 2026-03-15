@@ -212,15 +212,49 @@ function SentinelForm({
     setForm((f) => ({ ...f, [key]: value }));
 
   const [hasGenerated, setHasGenerated] = useState(false);
+  // Prompt history: stores up to 3 previously generated prompts
+  const [promptHistory, setPromptHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1); // -1 = current (not navigating)
 
   const generatePrompt = trpc.sentinels.custom.generatePrompt.useMutation({
     onSuccess: (data) => {
+      // Save current prompt to history before replacing (max 3 entries)
+      if (form.systemPrompt.trim().length > 0) {
+        setPromptHistory((prev) => [form.systemPrompt, ...prev].slice(0, 3));
+      }
+      setHistoryIndex(-1);
       set("systemPrompt", data.prompt);
       setHasGenerated(true);
       toast.success(hasGenerated ? "Prompt regenerated!" : "System prompt generated!");
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const handleRestoreHistory = (direction: "prev" | "next") => {
+    if (promptHistory.length === 0) return;
+    if (direction === "prev") {
+      // Save current prompt as the "future" if we haven't navigated yet
+      const newIndex = historyIndex === -1 ? 0 : Math.min(historyIndex + 1, promptHistory.length - 1);
+      if (historyIndex === -1) {
+        // Store current prompt at the front so "next" can return to it
+        setPromptHistory((prev) => [form.systemPrompt, ...prev].slice(0, 3));
+        setHistoryIndex(0);
+        set("systemPrompt", [form.systemPrompt, ...promptHistory].slice(0, 3)[0 + 1] ?? form.systemPrompt);
+      } else {
+        setHistoryIndex(newIndex);
+        set("systemPrompt", promptHistory[newIndex]);
+      }
+    } else {
+      if (historyIndex <= 0) {
+        setHistoryIndex(-1);
+        set("systemPrompt", promptHistory[0] ?? form.systemPrompt);
+      } else {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        set("systemPrompt", promptHistory[newIndex]);
+      }
+    }
+  };
 
   const canGenerate =
     form.name.length >= 2 &&
@@ -382,33 +416,72 @@ function SentinelForm({
           placeholder="You are [Name], a [archetype] who specializes in... Your communication style is... You always..."
           className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none h-32"
         />
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">Fill in Name, Archetype, and Primary Function above to unlock AI generation.</p>
-          {hasGenerated && (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() =>
-                generatePrompt.mutate({
-                  name: form.name,
-                  archetype: form.archetype,
-                  primaryFunction: form.primaryFunction,
-                  personalityTraits: form.personalityTraits,
-                  communicationStyle: form.communicationStyle,
-                  specializationDomains: form.specializationDomains,
-                })
-              }
-              disabled={!canGenerate || generatePrompt.isPending}
-              className="text-xs text-gray-400 hover:text-amber-400 transition-colors h-6 px-2"
-            >
-              {generatePrompt.isPending ? (
-                <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Regenerating…</>
-              ) : (
-                <><RefreshCw className="w-3 h-3 mr-1" />Try again</>
-              )}
-            </Button>
-          )}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-xs text-gray-500">
+            {!canGenerate
+              ? "Fill in Name, Archetype, and Primary Function above to unlock AI generation."
+              : promptHistory.length > 0
+              ? `${promptHistory.length} previous version${promptHistory.length > 1 ? "s" : ""} saved`
+              : "AI generation ready."}
+          </p>
+          <div className="flex items-center gap-1">
+            {/* History navigation — only shown when history exists */}
+            {promptHistory.length > 0 && (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleRestoreHistory("prev")}
+                  disabled={historyIndex >= promptHistory.length - 1 || generatePrompt.isPending}
+                  title="Previous version"
+                  className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                >
+                  ← Prev
+                </Button>
+                <span className="text-xs text-gray-600">
+                  {historyIndex === -1 ? "current" : `v${historyIndex + 1}/${promptHistory.length}`}
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleRestoreHistory("next")}
+                  disabled={historyIndex <= 0 || generatePrompt.isPending}
+                  title="Next version"
+                  className="text-xs text-gray-400 hover:text-white h-6 px-2"
+                >
+                  Next →
+                </Button>
+                <span className="text-gray-600 text-xs">|</span>
+              </>
+            )}
+            {hasGenerated && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  generatePrompt.mutate({
+                    name: form.name,
+                    archetype: form.archetype,
+                    primaryFunction: form.primaryFunction,
+                    personalityTraits: form.personalityTraits,
+                    communicationStyle: form.communicationStyle,
+                    specializationDomains: form.specializationDomains,
+                  })
+                }
+                disabled={!canGenerate || generatePrompt.isPending}
+                className="text-xs text-gray-400 hover:text-amber-400 transition-colors h-6 px-2"
+              >
+                {generatePrompt.isPending ? (
+                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Regenerating…</>
+                ) : (
+                  <><RefreshCw className="w-3 h-3 mr-1" />Try again</>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
