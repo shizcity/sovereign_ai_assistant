@@ -1296,3 +1296,5 @@
 - [x] Add Creator highlight card to Landing hero section
 - [x] Add Regenerate ghost button in MySentinels system prompt section
 - [x] Add post-upgrade success toast via ?upgraded=1 query param
+- [x] Add custom Sentinel support to MultiSentinelManager with grouped picker
+- [x] Add user responsibility disclaimer in multi-Sentinel picker for custom Sentinels
