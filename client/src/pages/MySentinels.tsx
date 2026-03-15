@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,8 @@ function CreatorUpgradeCard() {
     onError: () => toast.error("Could not start checkout. Please try again."),
   });
 
+  const handleUpgrade = () => createCheckout.mutate({ tier: "creator" });
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -115,7 +118,7 @@ function CreatorUpgradeCard() {
             </div>
             <Button
               className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-semibold"
-              onClick={() => createCheckout.mutate()}
+              onClick={handleUpgrade}
               disabled={createCheckout.isPending}
             >
               {createCheckout.isPending ? (
@@ -455,6 +458,7 @@ export default function MySentinels() {
   const { user } = useAuth();
   const tier = (user?.subscriptionTier ?? "free").toLowerCase();
   const isCreator = tier === "creator";
+  useUpgradeToast();
 
   const [showCreate, setShowCreate] = useState(false);
   const [editTarget, setEditTarget] = useState<CustomSentinel | null>(null);

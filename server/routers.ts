@@ -1868,7 +1868,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
       };
     }),
 
-    createCheckoutSession: protectedProcedure.mutation(async ({ ctx }) => {
+    createCheckoutSession: protectedProcedure
+      .input(z.object({ tier: z.enum(["pro", "creator"]).optional().default("pro") }))
+      .mutation(async ({ ctx, input }) => {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: "2026-01-28.clover",
@@ -1876,20 +1878,25 @@ Reference these memories naturally when relevant. For example: "Remember when we
       const { SUBSCRIPTION_TIERS } = await import("./products");
 
       const origin = ctx.req.headers.origin || "http://localhost:3000";
-      
-      // Get or create the Pro price
-      let priceId = SUBSCRIPTION_TIERS.PRO.stripePriceId;
+      const targetTier = input.tier ?? "pro";
+
+      // Determine price based on tier
+      const tierKey = targetTier.toUpperCase() as "PRO" | "CREATOR";
+      let priceId = SUBSCRIPTION_TIERS[tierKey]?.stripePriceId;
       
       if (!priceId) {
         // Create product and price dynamically for test mode
+        const isCreator = targetTier === "creator";
         const product = await stripe.products.create({
-          name: "Sovereign AI Pro",
-          description: "Unlimited messages and all premium features",
+          name: isCreator ? "Sovereign AI Creator" : "Sovereign AI Pro",
+          description: isCreator
+            ? "Build custom AI Sentinels + all Pro features"
+            : "Unlimited messages and all premium features",
         });
         
         const price = await stripe.prices.create({
           product: product.id,
-          unit_amount: 1900, // $19.00
+          unit_amount: isCreator ? 2900 : 1900, // $29 or $19
           currency: "usd",
           recurring: {
             interval: "month",
@@ -1897,8 +1904,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
         });
         
         priceId = price.id;
-        console.log(`[Stripe] Created test price: ${priceId}`);
+        console.log(`[Stripe] Created test price for ${targetTier}: ${priceId}`);
       }
+
+      // Determine success redirect based on tier
+      const successPath = targetTier === "creator" ? "/my-sentinels?upgraded=creator" : "/chat?upgraded=pro";
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
@@ -1909,8 +1919,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
             quantity: 1,
           },
         ],
-        success_url: `${origin}/settings?upgrade=success`,
-        cancel_url: `${origin}/settings?upgrade=canceled`,
+        success_url: `${origin}${successPath}`,
+        cancel_url: `${origin}/chat?upgrade=canceled`,
         customer_email: ctx.user.email || undefined,
         client_reference_id: ctx.user.id.toString(),
         metadata: {

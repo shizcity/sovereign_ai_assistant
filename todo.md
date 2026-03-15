@@ -1295,3 +1295,4 @@
 - [x] Wire "Generate for me" button into MySentinels creation wizard
 - [x] Add Creator highlight card to Landing hero section
 - [x] Add Regenerate ghost button in MySentinels system prompt section
+- [x] Add post-upgrade success toast via ?upgraded=1 query param

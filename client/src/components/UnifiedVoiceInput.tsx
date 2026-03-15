@@ -82,7 +82,7 @@ function VoiceProUpgradeCard() {
         </div>
 
         <Button
-          onClick={() => createCheckout.mutate()}
+          onClick={() => createCheckout.mutate({ tier: "pro" })}
           disabled={createCheckout.isPending}
           className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-semibold shadow-lg shadow-yellow-500/25 transition-all duration-200 hover:shadow-yellow-500/40 hover:-translate-y-0.5"
           size="lg"

@@ -26,12 +26,14 @@ import { SentinelBadge } from "@/components/SentinelBadge";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
+import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 export default function Chat() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  useUpgradeToast();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedSentinel, setSelectedSentinel] = useState<number | undefined>();

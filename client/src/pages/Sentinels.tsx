@@ -163,7 +163,7 @@ export default function Sentinels() {
                   }}
                   onClick={() => {
                     if (isLocked) {
-                      createCheckout.mutate();
+                      createCheckout.mutate({ tier: "pro" });
                     } else {
                       setSelectedSentinel(selectedSentinel === sentinel.id ? null : sentinel.id);
                     }
@@ -224,7 +224,7 @@ export default function Sentinels() {
                           className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-semibold"
                           onClick={(e) => {
                             e.stopPropagation();
-                            createCheckout.mutate();
+                            createCheckout.mutate({ tier: "pro" });
                           }}
                           disabled={createCheckout.isPending}
                         >

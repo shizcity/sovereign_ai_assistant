@@ -79,7 +79,7 @@ export function SubscriptionCard() {
           </div>
           {isFree ? (
             <Button
-              onClick={() => createCheckout.mutate()}
+              onClick={() => createCheckout.mutate({ tier: "pro" })}
               disabled={createCheckout.isPending}
               className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
             >
