@@ -1290,3 +1290,4 @@
 - [ ] Frontend: Sidebar nav link to My Sentinels
 - [ ] Frontend: Upgrade card for non-Creator users
 - [ ] Write tests for custom Sentinel CRUD and tier gate
+- [x] Show custom Sentinels in SentinelSelector with Custom badge for Creator users
