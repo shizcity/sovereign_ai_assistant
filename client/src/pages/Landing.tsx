@@ -58,6 +58,7 @@ export default function Landing() {
   const pricingHeaderRef = useScrollAnimation();
   const pricingCard1Ref = useScrollAnimation({ threshold: 0.2 });
   const pricingCard2Ref = useScrollAnimation({ threshold: 0.2 });
+  const pricingCard3Ref = useScrollAnimation({ threshold: 0.2 });
   const testimonialsHeaderRef = useScrollAnimation();
   const testimonial1Ref = useScrollAnimation({ threshold: 0.2 });
   const testimonial2Ref = useScrollAnimation({ threshold: 0.2 });
@@ -664,7 +665,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {/* Free Plan */}
             <Card 
               ref={pricingCard1Ref.ref}
@@ -730,6 +731,10 @@ export default function Landing() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
+                  <span className="font-semibold">All 6 Sentinels</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-cyan-400" />
                   <span className="font-semibold">Multi-Sentinel conversations</span>
                 </li>
                 <li className="flex items-center gap-2">
@@ -738,20 +743,68 @@ export default function Landing() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
-                  <span className="font-semibold">Analytics Dashboard</span>
+                  <span>Analytics Dashboard</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
                   <span>Priority support</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-cyan-400" />
-                  <span>Advanced templates</span>
-                </li>
               </ul>
               <a href="/chat">
                 <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold">
                   Upgrade to Pro
+                </Button>
+              </a>
+            </Card>
+
+            {/* Creator Plan */}
+            <Card
+              ref={pricingCard3Ref.ref}
+              className={`bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/40 backdrop-blur-xl p-6 sm:p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-all duration-700 delay-200 ${
+                pricingCard3Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`}
+            >
+              <div className="absolute top-4 right-4">
+                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-bold px-3 py-1 rounded-full">
+                  CREATOR
+                </span>
+              </div>
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-2">Creator</h3>
+                <div className="text-4xl font-bold mb-4">
+                  $29<span className="text-lg text-gray-400">/month</span>
+                </div>
+                <p className="text-gray-400">Build your own AI Sentinels</p>
+              </div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span className="font-semibold text-amber-200">Create up to 5 custom Sentinels</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span className="font-semibold text-amber-200">Full personality &amp; prompt control</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span>Everything in Pro</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span>Unlimited messages</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span>Voice-First Mode</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-amber-400" />
+                  <span>Priority support</span>
+                </li>
+              </ul>
+              <a href="/my-sentinels">
+                <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-semibold">
+                  Become a Creator
                 </Button>
               </a>
             </Card>
@@ -795,7 +848,7 @@ export default function Landing() {
                   What's the difference between Free and Pro?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-300 leading-relaxed">
-                  Free gives you 100 messages per month with access to all 6 Sentinels. Pro ($20/month) unlocks unlimited messages, Multi-Sentinel conversations (get multiple perspectives in one chat), Voice-First Mode (speak naturally instead of typing), and an Analytics Dashboard to track your usage patterns.
+                  Free gives you 50 messages per month with access to 3 Sentinels. Pro ($19/month) unlocks unlimited messages, all 6 Sentinels, Multi-Sentinel conversations, Voice-First Mode, and an Analytics Dashboard. Creator ($29/month) includes everything in Pro plus the ability to build up to 5 fully custom AI Sentinels with your own personality, expertise, and system prompt.
                 </AccordionContent>
               </AccordionItem>
 
