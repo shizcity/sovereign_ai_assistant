@@ -682,11 +682,11 @@ export default function Landing() {
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
-                  <span>100 messages per month</span>
+                  <span>50 messages per month</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
-                  <span>Access to all 6 Sentinels</span>
+                  <span>3 Sentinels included</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-cyan-400" />
@@ -719,7 +719,7 @@ export default function Landing() {
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2">Pro</h3>
                 <div className="text-4xl font-bold mb-4">
-                  $20<span className="text-lg text-gray-400">/month</span>
+                  $19<span className="text-lg text-gray-400">/month</span>
                 </div>
                 <p className="text-gray-400">For power users</p>
               </div>

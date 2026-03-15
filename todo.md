@@ -1261,3 +1261,21 @@
 - [x] Hide manual recording and continuous mode UI for free users
 - [x] Test upgrade card renders correctly for free tier
 - [x] Test voice UI still works normally for Pro users
+
+## Tier Limit Enforcement (50 messages / 3 Sentinels for Free)
+- [x] Fix landing page: change "100 messages" to "50 messages" for Free tier
+- [x] Fix landing page: change "Access to all 6 Sentinels" to "3 Sentinels included" for Free tier
+- [x] Fix landing page: align Pro price to $19/month (currently shows $20)
+- [x] Enforce 3-Sentinel limit in backend sentinels.list procedure
+- [x] Add frontend filter so free users only see their 3 accessible Sentinels
+- [x] Add upgrade prompt in Sentinel selector when free user tries to access a Pro-only Sentinel
+- [x] Write/update tests for Sentinel access gate
+
+## Tier Limit Enforcement (50 messages / 3 Sentinels for Free)
+- [x] Fix landing page: change "100 messages" to "50 messages" for Free tier
+- [x] Fix landing page: change "Access to all 6 Sentinels" to "3 Sentinels included" for Free tier
+- [x] Fix landing page: align Pro price to $19/month (currently shows $20)
+- [x] Enforce 3-Sentinel limit in backend sentinels.list procedure
+- [x] Add frontend filter so free users only see their 3 accessible Sentinels
+- [x] Add upgrade prompt in Sentinel selector when free user tries to access a Pro-only Sentinel
+- [x] Write/update tests for Sentinel access gate

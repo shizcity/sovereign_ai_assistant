@@ -37,13 +37,27 @@ export const SUBSCRIPTION_TIERS = {
 export type SubscriptionTier = keyof typeof SUBSCRIPTION_TIERS;
 
 /**
+ * The 3 Sentinels available on the Free tier, in order of insertion.
+ * Vixen's Den, Mischief.EXE, Lunaris.Vault
+ */
+export const FREE_TIER_SENTINEL_SLUGS = ["vixens-den", "mischief-exe", "lunaris-vault"] as const;
+
+/**
+ * Get the number of Sentinels a tier can access (-1 = all)
+ */
+export function getSentinelLimit(tier: string): number {
+  const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
+  return tierData?.features.sentinelsAccess ?? SUBSCRIPTION_TIERS.FREE.features.sentinelsAccess;
+}
+
+/**
  * Check if a user has access to a specific feature based on their tier
  */
 export function hasFeatureAccess(
   tier: string,
   feature: keyof typeof SUBSCRIPTION_TIERS.FREE.features
 ): boolean {
-  const tierData = SUBSCRIPTION_TIERS[tier as SubscriptionTier];
+  const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
   if (!tierData) return false;
   
   const featureValue = tierData.features[feature];
@@ -57,6 +71,6 @@ export function hasFeatureAccess(
  * Get the message limit for a tier (-1 means unlimited)
  */
 export function getMessageLimit(tier: string): number {
-  const tierData = SUBSCRIPTION_TIERS[tier as SubscriptionTier];
+  const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
   return tierData?.features.messagesPerMonth ?? SUBSCRIPTION_TIERS.FREE.features.messagesPerMonth;
 }

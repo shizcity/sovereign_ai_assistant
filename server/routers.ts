@@ -1174,9 +1174,20 @@ Reference these memories naturally when relevant. For example: "Remember when we
 
   // Sentinel management
   sentinels: router({
-    list: publicProcedure.query(async () => {
+    list: publicProcedure.query(async ({ ctx }) => {
       const { getAllSentinels } = await import("./sentinels-db");
-      return getAllSentinels();
+      const { FREE_TIER_SENTINEL_SLUGS } = await import("./products");
+      const allSentinels = await getAllSentinels();
+
+      // Free-tier users only see the 3 included Sentinels
+      const tier = (ctx.user?.subscriptionTier ?? "free").toLowerCase();
+      if (tier !== "pro") {
+        return allSentinels.filter((s) =>
+          (FREE_TIER_SENTINEL_SLUGS as readonly string[]).includes(s.slug)
+        );
+      }
+
+      return allSentinels;
     }),
 
     getById: publicProcedure
@@ -1224,7 +1235,19 @@ Reference these memories naturally when relevant. For example: "Remember when we
         sentinelId: z.number(),
         role: z.enum(["primary", "collaborator"]),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        // Pro-tier gating: free users can only have 1 Sentinel per conversation
+        const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+        if (tier !== "pro" && input.role === "collaborator") {
+          const { getConversationSentinels } = await import("./sentinels-db");
+          const existing = await getConversationSentinels(input.conversationId);
+          if (existing.length >= 1) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Multi-Sentinel conversations are a Pro feature. Upgrade to add multiple Sentinels to your conversations.",
+            });
+          }
+        }
         const { addSentinelToConversation } = await import("./sentinels-db");
         return addSentinelToConversation(input.conversationId, input.sentinelId, input.role);
       }),

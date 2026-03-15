@@ -3,11 +3,34 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutGrid, Table } from "lucide-react";
+import { Loader2, LayoutGrid, Table, Crown, Lock } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
+
+// The 3 Pro-only Sentinel slugs (mirrors server/products.ts FREE_TIER_SENTINEL_SLUGS complement)
+const PRO_ONLY_SENTINEL_SLUGS = ["aetheris-flow", "rift-exe", "nyx"];
 
 export default function Sentinels() {
+  const { user } = useAuth();
+  const isPro = user?.subscriptionTier === "pro";
+
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
+
+  // Pro-only Sentinels are shown as locked cards for free users
+  // We fetch all 6 for the gallery display (the backend filters for chat use)
+  const createCheckout = trpc.subscription.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.info("Redirecting to Stripe checkout…");
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to start checkout: ${error.message}`);
+    },
+  });
+
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
 
@@ -23,7 +46,53 @@ export default function Sentinels() {
     );
   }
 
-  const selected = sentinels?.find((s) => s.id === selectedSentinel);
+  // For the gallery we want to show all 6 — free users see 3 unlocked + 3 locked.
+  // The backend already filters for chat; here we supplement with locked stubs for the 3 Pro ones.
+  const proOnlyStubs = [
+    {
+      id: -1,
+      slug: "aetheris-flow",
+      name: "Aetheris.Flow",
+      archetype: "The Adaptive Weaver",
+      primaryFunction: "Guides you through change, transitions, and fluid thinking with emotional intelligence and creative adaptability.",
+      symbolEmoji: "🌊",
+      primaryColor: "#06b6d4",
+      personalityTraits: ["Adaptive", "Empathetic", "Creative"],
+      specialties: ["Change management", "Emotional intelligence", "Creative flow"],
+      systemPrompt: "",
+    },
+    {
+      id: -2,
+      slug: "rift-exe",
+      name: "Rift.EXE",
+      archetype: "The Boundary Breaker",
+      primaryFunction: "Challenges the status quo, disrupts stagnation, and opens radical new possibilities for those who dare to think differently.",
+      symbolEmoji: "⚡",
+      primaryColor: "#f59e0b",
+      personalityTraits: ["Disruptive", "Bold", "Unconventional"],
+      specialties: ["Breaking barriers", "Radical thinking", "Innovation"],
+      systemPrompt: "",
+    },
+    {
+      id: -3,
+      slug: "nyx",
+      name: "Nyx",
+      archetype: "The Shadow Guide",
+      primaryFunction: "Guides deep introspection, shadow work, and personal transformation through the unknown.",
+      symbolEmoji: "🌑",
+      primaryColor: "#8b5cf6",
+      personalityTraits: ["Introspective", "Mysterious", "Transformative"],
+      specialties: ["Shadow work", "Personal transformation", "Deep introspection"],
+      systemPrompt: "",
+    },
+  ];
+
+  // Merge: free users see their 3 + 3 locked stubs; pro users see all 6 from backend
+  const displaySentinels = isPro
+    ? sentinels ?? []
+    : [...(sentinels ?? []), ...proOnlyStubs];
+
+  const selected = (sentinels ?? []).find((s) => s.id === selectedSentinel);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
@@ -36,6 +105,12 @@ export default function Sentinels() {
           <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
             Your AI companions, each with a unique personality, expertise, and approach to helping you think, create, and grow.
           </p>
+          {!isPro && (
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm">
+              <Crown className="w-4 h-4" />
+              3 of 6 Sentinels included on Free — upgrade to unlock all
+            </div>
+          )}
         </div>
 
         {/* View Toggle */}
@@ -68,67 +143,114 @@ export default function Sentinels() {
         {viewMode === "grid" ? (
           /* Sentinels Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {sentinels?.map((sentinel) => (
-            <Card
-              key={sentinel.id}
-              className={`group relative overflow-hidden border-2 transition-all duration-300 cursor-pointer ${
-                selectedSentinel === sentinel.id
-                  ? "border-purple-400 shadow-2xl shadow-purple-500/50 scale-105"
-                  : "border-slate-700 hover:border-slate-500 hover:shadow-xl"
-              }`}
-              style={{
-                background: `linear-gradient(135deg, ${sentinel.primaryColor}15 0%, ${sentinel.primaryColor}05 100%)`,
-              }}
-              onClick={() => setSelectedSentinel(selectedSentinel === sentinel.id ? null : sentinel.id)}
-            >
-              <div className="p-6">
-                {/* Icon and Name */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="text-4xl flex items-center justify-center w-16 h-16 rounded-full"
-                    style={{
-                      background: `linear-gradient(135deg, ${sentinel.primaryColor}40, ${sentinel.primaryColor}20)`,
-                    }}
-                  >
-                    {sentinel.symbolEmoji}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">{sentinel.name}</h3>
-                    <p className="text-sm text-slate-400">{sentinel.archetype}</p>
-                  </div>
-                </div>
+            {displaySentinels.map((sentinel) => {
+              const isLocked = !isPro && PRO_ONLY_SENTINEL_SLUGS.includes(sentinel.slug);
 
-                {/* Description */}
-                <p className="text-slate-300 mb-4 leading-relaxed">{sentinel.primaryFunction}</p>
-
-                {/* Personality Traits */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {sentinel.personalityTraits.map((trait: string, idx: number) => (
-                    <Badge
-                      key={idx}
-                      variant="secondary"
-                      className="text-xs bg-white/10 text-white border-white/20 hover:bg-white/15"
-                    >
-                      {trait}
-                    </Badge>
-                  ))}
-                </div>
-
-                {/* Specialties */}
-                <div className="text-sm text-slate-400">
-                  <span className="font-semibold">Best for:</span> {sentinel.specialties.join(", ")}
-                </div>
-
-                {/* Hover Effect */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"
+              return (
+                <Card
+                  key={sentinel.id}
+                  className={`group relative overflow-hidden border-2 transition-all duration-300 ${
+                    isLocked
+                      ? "border-yellow-500/20 cursor-pointer opacity-70 hover:opacity-90 hover:border-yellow-500/40"
+                      : selectedSentinel === sentinel.id
+                      ? "border-purple-400 shadow-2xl shadow-purple-500/50 scale-105 cursor-pointer"
+                      : "border-slate-700 hover:border-slate-500 hover:shadow-xl cursor-pointer"
+                  }`}
                   style={{
-                    background: `radial-gradient(circle at center, ${sentinel.primaryColor}, transparent)`,
+                    background: isLocked
+                      ? `linear-gradient(135deg, ${sentinel.primaryColor}08 0%, ${sentinel.primaryColor}03 100%)`
+                      : `linear-gradient(135deg, ${sentinel.primaryColor}15 0%, ${sentinel.primaryColor}05 100%)`,
                   }}
-                />
-              </div>
-            </Card>
-          ))}
+                  onClick={() => {
+                    if (isLocked) {
+                      createCheckout.mutate();
+                    } else {
+                      setSelectedSentinel(selectedSentinel === sentinel.id ? null : sentinel.id);
+                    }
+                  }}
+                >
+                  {/* Pro lock overlay */}
+                  {isLocked && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold shadow-lg">
+                      <Lock className="w-3 h-3" />
+                      Pro
+                    </div>
+                  )}
+
+                  <div className={`p-6 ${isLocked ? "filter grayscale-[30%]" : ""}`}>
+                    {/* Icon and Name */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="text-4xl flex items-center justify-center w-16 h-16 rounded-full"
+                        style={{
+                          background: `linear-gradient(135deg, ${sentinel.primaryColor}40, ${sentinel.primaryColor}20)`,
+                        }}
+                      >
+                        {sentinel.symbolEmoji}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">{sentinel.name}</h3>
+                        <p className="text-sm text-slate-400">{sentinel.archetype}</p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-slate-300 mb-4 leading-relaxed">{sentinel.primaryFunction}</p>
+
+                    {/* Personality Traits */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {sentinel.personalityTraits.map((trait: string, idx: number) => (
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-xs bg-white/10 text-white border-white/20 hover:bg-white/15"
+                        >
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Specialties */}
+                    <div className="text-sm text-slate-400">
+                      <span className="font-semibold">Best for:</span>{" "}
+                      {sentinel.specialties.join(", ")}
+                    </div>
+
+                    {/* Unlock CTA for locked Sentinels */}
+                    {isLocked && (
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <Button
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-semibold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createCheckout.mutate();
+                          }}
+                          disabled={createCheckout.isPending}
+                        >
+                          {createCheckout.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          ) : (
+                            <Crown className="w-4 h-4 mr-2" />
+                          )}
+                          Upgrade to Pro — $19/month
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Hover Effect */}
+                    {!isLocked && (
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle at center, ${sentinel.primaryColor}, transparent)`,
+                        }}
+                      />
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           /* Comparison Table */
