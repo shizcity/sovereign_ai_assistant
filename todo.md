@@ -1299,3 +1299,4 @@
 - [x] Add custom Sentinel support to MultiSentinelManager with grouped picker
 - [x] Add user responsibility disclaimer in multi-Sentinel picker for custom Sentinels
 - [x] Add prompt history/undo (last 3 versions) to MySentinels wizard
+- [x] Add upgrade cancellation notice toast for ?upgrade=canceled
