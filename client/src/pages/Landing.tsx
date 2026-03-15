@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { GlowLogo } from "@/components/GlowLogo";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
@@ -192,12 +193,7 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="relative z-50 border-b border-white/8 backdrop-blur-2xl" style={{ background: 'oklch(0.065 0.012 270 / 0.85)' }}>
         <div className="container max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-300 to-indigo-300 bg-clip-text text-transparent">Glow</span>
-          </div>
+          <GlowLogo size="md" showWordmark showTagline={false} />
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -1059,11 +1055,8 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             {/* Brand column */}
             <div className="col-span-2 md:col-span-2">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center shadow-md shadow-cyan-500/30">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-300 to-indigo-300 bg-clip-text text-transparent">Glow</span>
+              <div className="mb-4">
+                <GlowLogo size="md" showWordmark showTagline={false} />
               </div>
               <p className="text-sm text-gray-500 leading-relaxed max-w-xs mb-6">
                 Your AI. Your Identity. Your Sovereignty.<br />

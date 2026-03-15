@@ -1322,3 +1322,4 @@
 - [ ] Landing: upgrade FAQ with better accordion styling
 - [ ] Landing: upgrade final CTA section with mesh gradient and bolder copy
 - [ ] Landing: upgrade footer with logo, tagline, and social links
+- [x] Enhance Glow logo: GlowLogo component with animated glow ring, vibrant wordmark, and apply across nav/footer/sidebar

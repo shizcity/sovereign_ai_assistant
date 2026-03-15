@@ -25,6 +25,7 @@ import { TypingIndicator } from "@/components/TypingIndicator";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
 import { SentinelAvatar } from "@/components/SentinelAvatar";
+import { GlowLogo } from "@/components/GlowLogo";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
@@ -747,16 +748,8 @@ export default function Chat() {
       {/* Sidebar */}
       <div className="w-80 flex flex-col sidebar-glass overflow-hidden relative z-10">
         {/* Header */}
-        <div className="px-5 py-5 border-b border-white/8 flex-shrink-0 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent leading-none">
-              Glow
-            </h1>
-            <p className="text-[11px] text-white/40 mt-0.5 truncate">Your AI. Your Rules.</p>
-          </div>
+        <div className="px-5 py-5 border-b border-white/8 flex-shrink-0">
+          <GlowLogo size="md" showWordmark showTagline />
         </div>
 
         {/* Search Bar */}
