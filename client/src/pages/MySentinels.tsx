@@ -208,6 +208,19 @@ function SentinelForm({
   const set = (key: keyof SentinelFormData, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  const generatePrompt = trpc.sentinels.custom.generatePrompt.useMutation({
+    onSuccess: (data) => {
+      set("systemPrompt", data.prompt);
+      toast.success("System prompt generated!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const canGenerate =
+    form.name.length >= 2 &&
+    form.archetype.length >= 2 &&
+    form.primaryFunction.length >= 10;
+
   const valid =
     form.name.length >= 2 &&
     form.archetype.length >= 2 &&
@@ -331,14 +344,39 @@ function SentinelForm({
 
       {/* System prompt */}
       <div className="space-y-2">
-        <Label className="text-gray-300">System Prompt * <span className="text-gray-500 font-normal">(the core instruction)</span></Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-gray-300">System Prompt * <span className="text-gray-500 font-normal">(the core instruction)</span></Label>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              generatePrompt.mutate({
+                name: form.name,
+                archetype: form.archetype,
+                primaryFunction: form.primaryFunction,
+                personalityTraits: form.personalityTraits,
+                communicationStyle: form.communicationStyle,
+                specializationDomains: form.specializationDomains,
+              })
+            }
+            disabled={!canGenerate || generatePrompt.isPending}
+            className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 bg-transparent text-xs h-7 px-2.5"
+          >
+            {generatePrompt.isPending ? (
+              <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Generating…</>
+            ) : (
+              <><Sparkles className="w-3 h-3 mr-1.5" />Generate for me</>
+            )}
+          </Button>
+        </div>
         <Textarea
           value={form.systemPrompt}
           onChange={(e) => set("systemPrompt", e.target.value)}
           placeholder="You are [Name], a [archetype] who specializes in... Your communication style is... You always..."
           className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 resize-none h-32"
         />
-        <p className="text-xs text-gray-500">This is the instruction that defines your Sentinel's behavior in every conversation.</p>
+        <p className="text-xs text-gray-500">Fill in Name, Archetype, and Primary Function above to unlock AI generation.</p>
       </div>
 
       {/* Preview */}

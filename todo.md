@@ -1291,3 +1291,6 @@
 - [ ] Frontend: Upgrade card for non-Creator users
 - [ ] Write tests for custom Sentinel CRUD and tier gate
 - [x] Show custom Sentinels in SentinelSelector with Custom badge for Creator users
+- [x] Add AI-assisted system prompt generator backend procedure (sentinels.generatePrompt)
+- [x] Wire "Generate for me" button into MySentinels creation wizard
+- [x] Add Creator highlight card to Landing hero section

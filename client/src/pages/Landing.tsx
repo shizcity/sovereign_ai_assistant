@@ -22,7 +22,8 @@ import {
   ArrowRight,
   Check,
   Menu,
-  X
+  X,
+  Wand2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -432,10 +433,35 @@ export default function Landing() {
                   </p>
                 </Card>
 
+                {/* Card 4 - Creator highlight (bottom center) */}
+                <Card className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-amber-500/40 backdrop-blur-xl p-5 shadow-2xl shadow-amber-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1.5s' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                      <Wand2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-white">Your Sentinel</h3>
+                        <span className="text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-black px-1.5 py-0.5 rounded-full">CREATOR</span>
+                      </div>
+                      <p className="text-xs text-amber-300">Custom AI Persona</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    "Design me from scratch — my personality, expertise, and voice are all yours to define."
+                  </p>
+                  <a href="/my-sentinels" className="mt-3 flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors font-medium">
+                    <Sparkles className="w-3 h-3" />
+                    Build your own Sentinel
+                  </a>
+                </Card>
+
                 {/* Connecting Lines */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
                   <line x1="50%" y1="15%" x2="20%" y2="40%" stroke="url(#gradient1)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" />
                   <line x1="50%" y1="15%" x2="80%" y2="40%" stroke="url(#gradient2)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  <line x1="20%" y1="60%" x2="50%" y2="82%" stroke="url(#gradient3)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" style={{ animationDelay: '1s' }} />
+                  <line x1="80%" y1="60%" x2="50%" y2="82%" stroke="url(#gradient4)" strokeWidth="2" strokeDasharray="5,5" className="animate-pulse" style={{ animationDelay: '1.5s' }} />
                   <defs>
                     <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#06b6d4" />
@@ -444,6 +470,14 @@ export default function Landing() {
                     <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#06b6d4" />
                       <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#a855f7" />
+                      <stop offset="100%" stopColor="#f59e0b" />
+                    </linearGradient>
+                    <linearGradient id="gradient4" x1="100%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#f59e0b" />
                     </linearGradient>
                   </defs>
                 </svg>

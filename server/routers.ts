@@ -1354,6 +1354,51 @@ Reference these memories naturally when relevant. For example: "Remember when we
 
           return { success: true };
         }),
+
+      generatePrompt: protectedProcedure
+        .input(
+          z.object({
+            name: z.string().min(1),
+            archetype: z.string().min(1),
+            primaryFunction: z.string().min(5),
+            personalityTraits: z.array(z.string()),
+            communicationStyle: z.string(),
+            specializationDomains: z.array(z.string()),
+          })
+        )
+        .mutation(async ({ ctx, input }) => {
+          const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+          if (tier !== "creator") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "AI prompt generation requires the Creator tier." });
+          }
+          const { invokeLLM } = await import("./_core/llm");
+          const traitsStr = input.personalityTraits.join(", ") || "thoughtful, precise";
+          const domainsStr = input.specializationDomains.join(", ") || "general knowledge";
+          const result = await invokeLLM({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are an expert AI persona designer. Write a concise, powerful system prompt for a custom AI assistant. " +
+                  "The prompt should be 3-5 sentences, written in second person (\"You are...\"), and capture the essence of the persona. " +
+                  "Make it specific, vivid, and immediately actionable. Do not add any preamble or explanation — output only the system prompt text.",
+              },
+              {
+                role: "user",
+                content:
+                  `Create a system prompt for an AI named "${input.name}" with the following profile:\n` +
+                  `- Archetype: ${input.archetype}\n` +
+                  `- Primary Function: ${input.primaryFunction}\n` +
+                  `- Personality Traits: ${traitsStr}\n` +
+                  `- Communication Style: ${input.communicationStyle || "clear and direct"}\n` +
+                  `- Specialization Domains: ${domainsStr}`,
+              },
+            ],
+          });
+          const prompt = result?.choices?.[0]?.message?.content ?? "";
+          if (!prompt) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to generate prompt." });
+          return { prompt };
+        }),
     }),
 
     getById: publicProcedure
