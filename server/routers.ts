@@ -1179,8 +1179,46 @@ Reference these memories naturally when relevant. For example: "Remember when we
       const { FREE_TIER_SENTINEL_SLUGS } = await import("./products");
       const allSentinels = await getAllSentinels();
 
-      // Free-tier users only see the 3 included Sentinels
       const tier = (ctx.user?.subscriptionTier ?? "free").toLowerCase();
+
+      // Creator tier: include custom Sentinels owned by this user
+      if (tier === "creator" && ctx.user) {
+        const { getDb } = await import("./db");
+        const { customSentinels } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        const custom = db
+          ? await db.select().from(customSentinels).where(eq(customSentinels.userId, ctx.user.id))
+          : [];
+        // Map custom Sentinels to the same shape as built-in ones
+        const customMapped = custom.map((c) => ({
+          specialties: [] as string[],
+          id: c.id + 100000, // offset to avoid ID collision with built-in Sentinels
+          slug: c.slug,
+          name: c.name,
+          archetype: c.archetype,
+          primaryFunction: c.primaryFunction,
+          energySignature: null,
+          personalityTraits: c.personalityTraits,
+          communicationStyle: c.communicationStyle,
+          specializationDomains: c.specializationDomains,
+          idealUseCases: null,
+          primaryColor: c.primaryColor,
+          secondaryColor: c.primaryColor,
+          accentColor: c.primaryColor,
+          symbolEmoji: c.symbolEmoji,
+          systemPrompt: c.systemPrompt,
+          displayOrder: 999,
+          isActive: c.isActive,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          isCustom: true,
+          customId: c.id,
+        }));
+        return [...allSentinels, ...customMapped];
+      }
+
+      // Free-tier users only see the 3 included Sentinels
       if (tier !== "pro") {
         return allSentinels.filter((s) =>
           (FREE_TIER_SENTINEL_SLUGS as readonly string[]).includes(s.slug)
@@ -1188,6 +1226,134 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }
 
       return allSentinels;
+    }),
+
+    // Custom Sentinel CRUD (Creator tier only)
+    custom: router({
+      list: protectedProcedure.query(async ({ ctx }) => {
+        const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+        if (tier !== "creator") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Custom Sentinels require the Creator tier." });
+        }
+        const { getDb } = await import("./db");
+        const { customSentinels } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+        return db.select().from(customSentinels).where(eq(customSentinels.userId, ctx.user.id));
+      }),
+
+      create: protectedProcedure
+        .input(z.object({
+          name: z.string().min(2).max(100),
+          archetype: z.string().min(2).max(255),
+          primaryFunction: z.string().min(10),
+          personalityTraits: z.array(z.string()).min(1).max(10),
+          communicationStyle: z.string().min(5),
+          specializationDomains: z.array(z.string()).min(1).max(10),
+          primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default("#8b5cf6"),
+          symbolEmoji: z.string().max(10).default("✨"),
+          systemPrompt: z.string().min(20),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+          if (tier !== "creator") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Custom Sentinel creation requires the Creator tier." });
+          }
+          const { getDb } = await import("./db");
+          const { customSentinels } = await import("../drizzle/schema");
+          const { eq, count } = await import("drizzle-orm");
+          const { getMaxCustomSentinels } = await import("./products");
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+          // Enforce max custom Sentinels limit
+          const [countResult] = await db.select({ count: count() }).from(customSentinels).where(eq(customSentinels.userId, ctx.user.id));
+          const maxAllowed = getMaxCustomSentinels(tier);
+          if ((countResult?.count ?? 0) >= maxAllowed) {
+            throw new TRPCError({ code: "FORBIDDEN", message: `You have reached the maximum of ${maxAllowed} custom Sentinels.` });
+          }
+
+          // Generate a unique slug from the name
+          const baseSlug = `custom-${input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${ctx.user.id}`;
+
+          const [result] = await db.insert(customSentinels).values({
+            userId: ctx.user.id,
+            name: input.name,
+            slug: baseSlug,
+            archetype: input.archetype,
+            primaryFunction: input.primaryFunction,
+            personalityTraits: JSON.stringify(input.personalityTraits),
+            communicationStyle: input.communicationStyle,
+            specializationDomains: JSON.stringify(input.specializationDomains),
+            primaryColor: input.primaryColor,
+            symbolEmoji: input.symbolEmoji,
+            systemPrompt: input.systemPrompt,
+          }).$returningId();
+
+          return { id: result.id, slug: baseSlug };
+        }),
+
+      update: protectedProcedure
+        .input(z.object({
+          id: z.number(),
+          name: z.string().min(2).max(100).optional(),
+          archetype: z.string().min(2).max(255).optional(),
+          primaryFunction: z.string().min(10).optional(),
+          personalityTraits: z.array(z.string()).min(1).max(10).optional(),
+          communicationStyle: z.string().min(5).optional(),
+          specializationDomains: z.array(z.string()).min(1).max(10).optional(),
+          primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+          symbolEmoji: z.string().max(10).optional(),
+          systemPrompt: z.string().min(20).optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+          if (tier !== "creator") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Custom Sentinel editing requires the Creator tier." });
+          }
+          const { getDb } = await import("./db");
+          const { customSentinels } = await import("../drizzle/schema");
+          const { eq, and } = await import("drizzle-orm");
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+          const updateData: Record<string, unknown> = {};
+          if (input.name !== undefined) updateData.name = input.name;
+          if (input.archetype !== undefined) updateData.archetype = input.archetype;
+          if (input.primaryFunction !== undefined) updateData.primaryFunction = input.primaryFunction;
+          if (input.personalityTraits !== undefined) updateData.personalityTraits = JSON.stringify(input.personalityTraits);
+          if (input.communicationStyle !== undefined) updateData.communicationStyle = input.communicationStyle;
+          if (input.specializationDomains !== undefined) updateData.specializationDomains = JSON.stringify(input.specializationDomains);
+          if (input.primaryColor !== undefined) updateData.primaryColor = input.primaryColor;
+          if (input.symbolEmoji !== undefined) updateData.symbolEmoji = input.symbolEmoji;
+          if (input.systemPrompt !== undefined) updateData.systemPrompt = input.systemPrompt;
+
+          await db.update(customSentinels)
+            .set(updateData)
+            .where(and(eq(customSentinels.id, input.id), eq(customSentinels.userId, ctx.user.id)));
+
+          return { success: true };
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+          if (tier !== "creator") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Custom Sentinel deletion requires the Creator tier." });
+          }
+          const { getDb } = await import("./db");
+          const { customSentinels } = await import("../drizzle/schema");
+          const { eq, and } = await import("drizzle-orm");
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+          await db.delete(customSentinels)
+            .where(and(eq(customSentinels.id, input.id), eq(customSentinels.userId, ctx.user.id)));
+
+          return { success: true };
+        }),
     }),
 
     getById: publicProcedure

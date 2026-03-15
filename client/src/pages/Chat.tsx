@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -895,6 +895,12 @@ export default function Chat() {
             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
               <Sparkles className="w-4 h-4 mr-2" />
               Meet the Sentinels
+            </Button>
+          </Link>
+          <Link href="/my-sentinels">
+            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
+              <Wand2 className="w-4 h-4 mr-2" />
+              My Sentinels
             </Button>
           </Link>
           <Link href="/memories">

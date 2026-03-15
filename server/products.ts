@@ -15,13 +15,15 @@ export const SUBSCRIPTION_TIERS = {
       voiceMode: false,
       memoryRetentionDays: 30,
       templateCreation: false,
+      customSentinelCreation: false,
+      maxCustomSentinels: 0,
       prioritySupport: false,
     },
   },
   PRO: {
     name: "Pro",
     price: 19, // $19/month
-    stripePriceId: process.env.STRIPE_PRO_PRICE_ID || "", // Will be created dynamically if empty
+    stripePriceId: process.env.STRIPE_PRO_PRICE_ID || "",
     features: {
       messagesPerMonth: -1, // Unlimited
       sentinelsAccess: 6, // All Sentinels
@@ -29,6 +31,24 @@ export const SUBSCRIPTION_TIERS = {
       voiceMode: true,
       memoryRetentionDays: -1, // Unlimited
       templateCreation: true,
+      customSentinelCreation: false,
+      maxCustomSentinels: 0,
+      prioritySupport: true,
+    },
+  },
+  CREATOR: {
+    name: "Creator",
+    price: 29, // $29/month
+    stripePriceId: process.env.STRIPE_CREATOR_PRICE_ID || "",
+    features: {
+      messagesPerMonth: -1, // Unlimited
+      sentinelsAccess: 6, // All Sentinels
+      multiSentinelConversations: true,
+      voiceMode: true,
+      memoryRetentionDays: -1, // Unlimited
+      templateCreation: true,
+      customSentinelCreation: true,
+      maxCustomSentinels: 5,
       prioritySupport: true,
     },
   },
@@ -59,11 +79,11 @@ export function hasFeatureAccess(
 ): boolean {
   const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
   if (!tierData) return false;
-  
+
   const featureValue = tierData.features[feature];
   if (typeof featureValue === "boolean") return featureValue;
   if (typeof featureValue === "number") return featureValue > 0 || featureValue === -1;
-  
+
   return false;
 }
 
@@ -73,4 +93,20 @@ export function hasFeatureAccess(
 export function getMessageLimit(tier: string): number {
   const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
   return tierData?.features.messagesPerMonth ?? SUBSCRIPTION_TIERS.FREE.features.messagesPerMonth;
+}
+
+/**
+ * Get the max number of custom Sentinels allowed for a tier
+ */
+export function getMaxCustomSentinels(tier: string): number {
+  const tierData = SUBSCRIPTION_TIERS[tier.toUpperCase() as SubscriptionTier];
+  return tierData?.features.maxCustomSentinels ?? 0;
+}
+
+/**
+ * Check if a tier includes Pro-level features (Pro or Creator)
+ */
+export function isProOrAbove(tier: string): boolean {
+  const t = tier.toLowerCase();
+  return t === "pro" || t === "creator";
 }

@@ -306,3 +306,27 @@ export const memorySuggestions = mysqlTable("memory_suggestions", {
 
 export type MemorySuggestion = typeof memorySuggestions.$inferSelect;
 export type InsertMemorySuggestion = typeof memorySuggestions.$inferInsert;
+
+/**
+ * Custom Sentinels - User-created AI personas (Creator tier only)
+ */
+export const customSentinels = mysqlTable("custom_sentinels", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 120 }).notNull(),
+  archetype: varchar("archetype", { length: 255 }).notNull(),
+  primaryFunction: text("primaryFunction").notNull(),
+  personalityTraits: text("personalityTraits").notNull(), // JSON array
+  communicationStyle: text("communicationStyle").notNull(),
+  specializationDomains: text("specializationDomains").notNull(), // JSON array
+  primaryColor: varchar("primaryColor", { length: 20 }).notNull().default("#8b5cf6"),
+  symbolEmoji: varchar("symbolEmoji", { length: 10 }).notNull().default("✨"),
+  systemPrompt: text("systemPrompt").notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CustomSentinel = typeof customSentinels.$inferSelect;
+export type InsertCustomSentinel = typeof customSentinels.$inferInsert;

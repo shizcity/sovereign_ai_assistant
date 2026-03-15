@@ -1279,3 +1279,14 @@
 - [x] Add frontend filter so free users only see their 3 accessible Sentinels
 - [x] Add upgrade prompt in Sentinel selector when free user tries to access a Pro-only Sentinel
 - [x] Write/update tests for Sentinel access gate
+
+## Custom Sentinel Creator Tier
+- [x] Add Creator tier to products.ts with custom Sentinel creation feature
+- [ ] Add Stripe price for Creator tier
+- [ ] Add customSentinels table to drizzle schema and push migration
+- [ ] Backend: create, update, delete, list custom Sentinels procedures (Creator-gated)
+- [ ] Backend: integrate custom Sentinels into sentinels.list for the owning user
+- [ ] Frontend: Custom Sentinel creation wizard page (/my-sentinels)
+- [ ] Frontend: Sidebar nav link to My Sentinels
+- [ ] Frontend: Upgrade card for non-Creator users
+- [ ] Write tests for custom Sentinel CRUD and tier gate
