@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2 } from "lucide-react";
+import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -856,6 +857,9 @@ export default function Chat() {
             </div>
           )}
         </div>
+
+        {/* Usage Widget */}
+        <UsageWidget />
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-white/10 space-y-2 flex-shrink-0">

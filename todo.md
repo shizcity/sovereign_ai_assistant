@@ -1301,3 +1301,4 @@
 - [x] Add prompt history/undo (last 3 versions) to MySentinels wizard
 - [x] Add upgrade cancellation notice toast for ?upgrade=canceled
 - [x] Add Quick-create shortcut in SentinelSelector for Creator users
+- [x] Add usage dashboard widget to chat sidebar
