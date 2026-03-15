@@ -11,6 +11,7 @@ const mockUser = {
   name: "Test User",
   email: "test@example.com",
   role: "user" as const,
+  subscriptionTier: "pro" as const,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

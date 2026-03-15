@@ -24,6 +24,7 @@ import { UnifiedVoiceInput } from "@/components/UnifiedVoiceInput";
 import { TypingIndicator } from "@/components/TypingIndicator";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
+import { SentinelAvatar } from "@/components/SentinelAvatar";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
@@ -744,26 +745,31 @@ export default function Chat() {
         </Button>
       )}
       {/* Sidebar */}
-      <div className="w-80 border-r border-white/10 flex flex-col glass overflow-hidden relative z-10">
+      <div className="w-80 flex flex-col sidebar-glass overflow-hidden relative z-10">
         {/* Header */}
-        <div className="p-6 border-b border-white/10 flex-shrink-0">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Glow
-          </h1>
-          <p className="text-sm text-gray-400 mt-1">Your AI. Your Identity. Your Sovereignty.</p>
+        <div className="px-5 py-5 border-b border-white/8 flex-shrink-0 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent leading-none">
+              Glow
+            </h1>
+            <p className="text-[11px] text-white/40 mt-0.5 truncate">Your AI. Your Rules.</p>
+          </div>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-white/10 flex-shrink-0">
+        <div className="px-4 py-3 border-b border-white/8 flex-shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="Search conversations... (⌘K)"
+              placeholder="Search conversations… (⌘K)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 focus:border-blue-500 transition-colors"
+              className="pl-9 h-8 text-sm bg-white/5 border-white/10 focus:border-cyan-500/50 focus:bg-white/8 transition-all placeholder:text-white/25 input-glow"
             />
             {searchQuery && (
               <button
@@ -777,10 +783,10 @@ export default function Chat() {
         </div>
 
         {/* New Conversation Button */}
-        <div className="p-4 border-b border-white/10 space-y-2 flex-shrink-0">
+        <div className="px-4 py-3 border-b border-white/8 space-y-2 flex-shrink-0">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
-            className="button-lift w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50"
+            className="button-lift w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-md shadow-cyan-500/20 transition-all duration-200 font-semibold"
             disabled={createConversation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -793,19 +799,17 @@ export default function Chat() {
               }
             }}
             variant="outline"
-            className="w-full border-white/20 text-white hover:bg-white/10"
+            className="w-full border-white/10 text-white/60 hover:text-white hover:bg-white/8 text-xs"
             disabled={cleanupEmpty.isPending}
           >
-            <Trash2 className="w-4 h-4 mr-2" />
+            <Trash2 className="w-3.5 h-3.5 mr-2" />
             Clear Empty
           </Button>
         </div>
 
         {/* Chat List Header */}
-        <div className="p-4 border-b border-white/10 flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-gray-400">YOUR CHATS</span>
-          </div>
+        <div className="px-4 pt-3 pb-1 flex-shrink-0">
+          <span className="text-[10px] font-semibold tracking-widest text-white/30 uppercase">Conversations</span>
         </div>
 
         {/* Conversations List */}
@@ -815,15 +819,15 @@ export default function Chat() {
               <div
                 key={conv.id}
                 onClick={() => setSelectedConversation(conv.id)}
-                className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
                   selectedConversation === conv.id
-                    ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
-                    : "hover:bg-white/5"
+                    ? "nav-item-active"
+                    : "hover:bg-white/6 border-l-2 border-transparent"
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">{conv.title}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-white/90 truncate">{conv.title}</p>
+                  <p className="text-[11px] text-white/35">
                     {new Date(conv.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -885,60 +889,36 @@ export default function Chat() {
               Export All
             </Button>
           </div>
-          <Link href="/analytics">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Analytics
-            </Button>
-          </Link>
-          <Link href="/templates">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <FileText className="w-4 h-4 mr-2" />
-              Templates
-            </Button>
-          </Link>
-          <Link href="/sentinels">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Meet the Sentinels
-            </Button>
-          </Link>
-          <Link href="/my-sentinels">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <Wand2 className="w-4 h-4 mr-2" />
-              My Sentinels
-            </Button>
-          </Link>
-          <Link href="/memories">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <Brain className="w-4 h-4 mr-2" />
-              Memories
-            </Button>
-          </Link>
-          <Link href="/insights">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Insights Dashboard
-            </Button>
-          </Link>
-          <Link href="/voice">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <Mic className="w-4 h-4 mr-2" />
-              Voice Chat
-            </Button>
-          </Link>
-          <Link href="/settings">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-          </Link>
-          <Link href="/">
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          </Link>
+          {([
+            { href: '/analytics', icon: DollarSign, label: 'Analytics' },
+            { href: '/templates', icon: FileText, label: 'Templates' },
+            { href: '/sentinels', icon: Sparkles, label: 'Meet the Sentinels' },
+            { href: '/my-sentinels', icon: Wand2, label: 'My Sentinels' },
+            { href: '/memories', icon: Brain, label: 'Memories' },
+            { href: '/insights', icon: TrendingUp, label: 'Insights' },
+            { href: '/voice', icon: Mic, label: 'Voice Chat' },
+          ] as const).map(({ href, icon: Icon, label }) => (
+            <Link key={href} href={href}>
+              <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
+                <Icon className="w-4 h-4 mr-2.5 shrink-0" />
+                {label}
+              </Button>
+            </Link>
+          ))}
+          <div className="border-t border-white/8 pt-1 mt-1">
+            <Link href="/settings">
+              <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
+                <Settings className="w-4 h-4 mr-2.5 shrink-0" />
+                Settings
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="ghost" className="w-full justify-start text-white/40 hover:text-red-400 hover:bg-red-500/8 transition-all duration-150 text-sm font-normal h-9">
+                <LogOut className="w-4 h-4 mr-2.5 shrink-0" />
+                Logout
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -1103,17 +1083,24 @@ export default function Chat() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-4xl mx-auto space-y-6">
+              <div className="max-w-4xl mx-auto space-y-5">
                 {messages.map((message, index) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end animate-slide-in-right" : "justify-start animate-slide-in-left"}`}
+                    className={`flex msg-fade-in ${
+                      message.role === "user" ? "justify-end" : "justify-start gap-3"
+                    }`}
+                    style={{ animationDelay: `${Math.min(index * 30, 200)}ms` }}
                   >
+                    {/* Sentinel avatar for assistant messages */}
+                    {message.role === "assistant" && (
+                      <SentinelAvatar sentinelId={(message as any).sentinelId} />
+                    )}
                     <div
-                      className={`max-w-[80%] rounded-2xl p-4 glass-strong ${
+                      className={`max-w-[78%] rounded-2xl p-4 ${
                         message.role === "user"
-                          ? "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-blue-500/30"
-                          : ""
+                          ? "chat-bubble-user text-white"
+                          : "chat-bubble-assistant text-white/90"
                       }`}
                     >
                       {editingMessageId === message.id ? (

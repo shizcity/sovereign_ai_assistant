@@ -1302,3 +1302,13 @@
 - [x] Add upgrade cancellation notice toast for ?upgrade=canceled
 - [x] Add Quick-create shortcut in SentinelSelector for Creator users
 - [x] Add usage dashboard widget to chat sidebar
+
+## GUI Refresh
+- [ ] Update global theme: palette, typography (Plus Jakarta Sans), CSS tokens
+- [ ] Redesign chat sidebar: frosted glass, gradient border, icon-first nav
+- [ ] Redesign chat bubbles: Sentinel-colored accents, avatar icons, fade-in
+- [ ] Refresh landing page hero: animated gradient mesh, card animations
+- [x] GUI Refresh: global theme, typography, palette
+- [x] GUI Refresh: chat sidebar frosted glass and nav
+- [x] GUI Refresh: chat bubbles with Sentinel accents
+- [ ] GUI Refresh: landing page animated hero

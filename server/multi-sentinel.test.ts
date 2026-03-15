@@ -34,7 +34,7 @@ describe("Multi-Sentinel Conversations", () => {
   });
 
   it("should add multiple Sentinels to a conversation", async () => {
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add first Sentinel as primary
     await caller.sentinels.addToConversation({
@@ -69,7 +69,7 @@ describe("Multi-Sentinel Conversations", () => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add two Sentinels
     await caller.sentinels.addToConversation({
@@ -105,7 +105,7 @@ describe("Multi-Sentinel Conversations", () => {
   });
 
   it("should remove a Sentinel from conversation", async () => {
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add two Sentinels
     await caller.sentinels.addToConversation({
@@ -136,7 +136,7 @@ describe("Multi-Sentinel Conversations", () => {
   });
 
   it("should list all Sentinels in a conversation", async () => {
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add three Sentinels
     await caller.sentinels.addToConversation({
@@ -167,7 +167,7 @@ describe("Multi-Sentinel Conversations", () => {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add Sentinel
     await caller.sentinels.addToConversation({
@@ -192,7 +192,7 @@ describe("Multi-Sentinel Conversations", () => {
   });
 
   it("should allow manual Sentinel selection overriding automatic rotation", async () => {
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add three Sentinels
     await caller.sentinels.addToConversation({
@@ -230,7 +230,7 @@ describe("Multi-Sentinel Conversations", () => {
   });
 
   it("should throw error when manually selecting Sentinel not in conversation", async () => {
-    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user" } } as any);
+    const caller = appRouter.createCaller({ user: { id: testUserId, role: "user", subscriptionTier: "pro" } } as any);
 
     // Add only sentinel1
     await caller.sentinels.addToConversation({
