@@ -26,6 +26,7 @@ import { AudioPlayer } from "@/components/AudioPlayer";
 import { SentinelBadge } from "@/components/SentinelBadge";
 import { SentinelAvatar } from "@/components/SentinelAvatar";
 import { GlowLogo } from "@/components/GlowLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
@@ -899,12 +900,15 @@ export default function Chat() {
             </Link>
           ))}
           <div className="border-t border-white/8 pt-1 mt-1">
-            <Link href="/settings">
-              <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
-                <Settings className="w-4 h-4 mr-2.5 shrink-0" />
-                Settings
-              </Button>
-            </Link>
+            <div className="flex items-center justify-between px-1 py-0.5">
+              <Link href="/settings" className="flex-1">
+                <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
+                  <Settings className="w-4 h-4 mr-2.5 shrink-0" />
+                  Settings
+                </Button>
+              </Link>
+              <ThemeToggle variant="icon" className="flex-shrink-0" />
+            </div>
             <Link href="/">
               <Button variant="ghost" className="w-full justify-start text-white/40 hover:text-red-400 hover:bg-red-500/8 transition-all duration-150 text-sm font-normal h-9">
                 <LogOut className="w-4 h-4 mr-2.5 shrink-0" />

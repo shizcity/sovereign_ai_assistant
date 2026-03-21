@@ -1323,3 +1323,10 @@
 - [ ] Landing: upgrade final CTA section with mesh gradient and bolder copy
 - [ ] Landing: upgrade footer with logo, tagline, and social links
 - [x] Enhance Glow logo: GlowLogo component with animated glow ring, vibrant wordmark, and apply across nav/footer/sidebar
+
+## Dark/Light Theme Toggle
+- [x] Define light mode CSS variables in index.css
+- [x] Build ThemeToggle component with Sun/Moon icon and smooth transition
+- [x] Add ThemeToggle to chat sidebar bottom nav
+- [x] Add ThemeToggle to landing page nav
+- [x] Persist theme preference in localStorage

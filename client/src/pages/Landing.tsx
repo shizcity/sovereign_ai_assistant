@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { GlowLogo } from "@/components/GlowLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Landing() {
   const [email, setEmail] = useState("");
@@ -203,7 +204,8 @@ export default function Landing() {
           </div>
           
           {/* Desktop CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle variant="icon" />
             <a href="/chat">
               <Button variant="ghost" className="text-gray-400 hover:text-white">
                 Sign In
