@@ -66,6 +66,8 @@ export default function Chat() {
   const [templateVariables, setTemplateVariables] = useState<Record<string, string>>({});
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [editingConvId, setEditingConvId] = useState<number | null>(null);
+  const [editingConvTitle, setEditingConvTitle] = useState("");
   const [voiceMode, setVoiceMode] = useState<"off" | "manual" | "continuous">("off");
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -216,6 +218,18 @@ export default function Chat() {
       utils.conversations.list.invalidate();
       setSelectedConversation(null);
       toast.success("Conversation deleted");
+    },
+  });
+
+  // Update conversation title mutation
+  const updateConvTitle = trpc.conversations.updateTitle.useMutation({
+    onSuccess: () => {
+      utils.conversations.list.invalidate();
+      setEditingConvId(null);
+      setEditingConvTitle("");
+    },
+    onError: (error) => {
+      toast.error(`Failed to rename: ${error.message}`);
     },
   });
 
@@ -856,7 +870,7 @@ export default function Chat() {
                   {conversationsByDate[group].map((conv) => (
                     <div
                       key={conv.id}
-                      onClick={() => setSelectedConversation(conv.id)}
+                      onClick={() => editingConvId !== conv.id && setSelectedConversation(conv.id)}
                       className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
                         selectedConversation === conv.id
                           ? "nav-item-active"
@@ -864,22 +878,71 @@ export default function Chat() {
                       }`}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white/90 truncate">{conv.title}</p>
+                        {editingConvId === conv.id ? (
+                          <input
+                            autoFocus
+                            value={editingConvTitle}
+                            onChange={(e) => setEditingConvTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const trimmed = editingConvTitle.trim();
+                                if (trimmed) updateConvTitle.mutate({ id: conv.id, title: trimmed });
+                                else { setEditingConvId(null); setEditingConvTitle(""); }
+                              } else if (e.key === "Escape") {
+                                setEditingConvId(null);
+                                setEditingConvTitle("");
+                              }
+                            }}
+                            onBlur={() => {
+                              const trimmed = editingConvTitle.trim();
+                              if (trimmed && trimmed !== conv.title) updateConvTitle.mutate({ id: conv.id, title: trimmed });
+                              else { setEditingConvId(null); setEditingConvTitle(""); }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full text-sm font-medium bg-white/10 text-white rounded px-1.5 py-0.5 outline-none border border-cyan-500/50 focus:border-cyan-400"
+                          />
+                        ) : (
+                          <p
+                            className="text-sm font-medium text-white/90 truncate"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              setEditingConvId(conv.id);
+                              setEditingConvTitle(conv.title);
+                            }}
+                          >{conv.title}</p>
+                        )}
                         <p className="text-[11px] text-white/35">
                           {group === "Today"
                             ? new Date(conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                             : new Date(conv.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}
                         </p>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteConversation.mutate({ id: conv.id });
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {editingConvId !== conv.id && (
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingConvId(conv.id);
+                              setEditingConvTitle(conv.title);
+                            }}
+                            className="text-gray-400 hover:text-cyan-400"
+                            title="Rename"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteConversation.mutate({ id: conv.id });
+                            }}
+                            className="text-gray-400 hover:text-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

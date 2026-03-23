@@ -1304,24 +1304,24 @@
 - [x] Add usage dashboard widget to chat sidebar
 
 ## GUI Refresh
-- [ ] Update global theme: palette, typography (Plus Jakarta Sans), CSS tokens
-- [ ] Redesign chat sidebar: frosted glass, gradient border, icon-first nav
-- [ ] Redesign chat bubbles: Sentinel-colored accents, avatar icons, fade-in
-- [ ] Refresh landing page hero: animated gradient mesh, card animations
+- [x] Update global theme: palette, typography (Plus Jakarta Sans), CSS tokens
+- [x] Redesign chat sidebar: frosted glass, gradient border, icon-first nav
+- [x] Redesign chat bubbles: Sentinel-colored accents, avatar icons, fade-in
+- [x] Refresh landing page hero: animated gradient mesh, card animations
 - [x] GUI Refresh: global theme, typography, palette
 - [x] GUI Refresh: chat sidebar frosted glass and nav
 - [x] GUI Refresh: chat bubbles with Sentinel accents
-- [ ] GUI Refresh: landing page animated hero
+- [x] GUI Refresh: landing page animated hero
 
 ## Landing Page GUI Upgrade
-- [ ] Landing: upgrade Features section with icon glow, gradient borders, hover lift
-- [ ] Landing: upgrade Stats section with animated counters and richer styling
-- [ ] Landing: upgrade Sentinels showcase with larger cards and specialty tags
-- [ ] Landing: upgrade Testimonials with star ratings and quote marks
-- [ ] Landing: upgrade Pricing with a feature comparison table below cards
-- [ ] Landing: upgrade FAQ with better accordion styling
-- [ ] Landing: upgrade final CTA section with mesh gradient and bolder copy
-- [ ] Landing: upgrade footer with logo, tagline, and social links
+- [x] Landing: upgrade Features section with icon glow, gradient borders, hover lift
+- [x] Landing: upgrade Stats section with animated counters and richer styling
+- [x] Landing: upgrade Sentinels showcase with larger cards and specialty tags
+- [x] Landing: upgrade Testimonials with star ratings and quote marks
+- [x] Landing: upgrade Pricing with a feature comparison table below cards
+- [x] Landing: upgrade FAQ with better accordion styling
+- [x] Landing: upgrade final CTA section with mesh gradient and bolder copy
+- [x] Landing: upgrade footer with logo, tagline, and social links
 - [x] Enhance Glow logo: GlowLogo component with animated glow ring, vibrant wordmark, and apply across nav/footer/sidebar
 
 ## Dark/Light Theme Toggle
@@ -1330,5 +1330,14 @@
 - [x] Add ThemeToggle to chat sidebar bottom nav
 - [x] Add ThemeToggle to landing page nav
 - [x] Persist theme preference in localStorage
-- [ ] Add conversation search bar to chat sidebar (keyword filter)
+- [x] Add conversation search bar to chat sidebar (keyword filter)
 - [x] Add conversation date grouping (Today/Yesterday/Last 7 Days/Last 30 Days/Older)
+
+## Inline Conversation Renaming
+- [x] Add editingConvId and editingConvTitle state to Chat.tsx
+- [x] Wire updateConvTitle mutation to conversations.updateTitle tRPC procedure
+- [x] Add pencil icon button on hover next to delete button in sidebar
+- [x] Double-click on conversation title to activate inline edit input
+- [x] Save on Enter or blur; cancel on Escape
+- [x] Prevent conversation selection while editing
+- [x] conversations.updateTitle already covered by existing vitest test (conversations.test.ts)
