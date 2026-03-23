@@ -27,6 +27,7 @@ import { SentinelBadge } from "@/components/SentinelBadge";
 import { SentinelAvatar } from "@/components/SentinelAvatar";
 import { GlowLogo } from "@/components/GlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { OnboardingChecklist, loadOnboardingSteps, saveOnboardingStep, isOnboardingDismissed, dismissOnboarding, isOnboardingComplete, type OnboardingStepState } from "@/components/OnboardingChecklist";
 import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
@@ -70,6 +71,23 @@ export default function Chat() {
   const [editingConvTitle, setEditingConvTitle] = useState("");
   const [voiceMode, setVoiceMode] = useState<"off" | "manual" | "continuous">("off");
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
+
+  // Onboarding checklist state
+  const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStepState>(() => loadOnboardingSteps());
+  const [onboardingVisible, setOnboardingVisible] = useState<boolean>(() => {
+    if (isOnboardingDismissed()) return false;
+    const steps = loadOnboardingSteps();
+    return !isOnboardingComplete(steps);
+  });
+
+  const markOnboardingStep = (step: Parameters<typeof saveOnboardingStep>[0]) => {
+    saveOnboardingStep(step);
+    const updated = loadOnboardingSteps();
+    setOnboardingSteps(updated);
+    if (isOnboardingComplete(updated)) {
+      // Keep visible briefly so user sees all checked, then auto-dismiss via component
+    }
+  };
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
@@ -371,6 +389,8 @@ export default function Chat() {
 
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !selectedConversation) return;
+    // Mark onboarding step on first message send
+    markOnboardingStep("send_message");
     sendMessage.mutate({
       conversationId: selectedConversation,
       content: inputMessage,
@@ -815,6 +835,17 @@ export default function Chat() {
           </div>
         </div>
 
+        {/* Onboarding Checklist — shown to new users until all steps complete or dismissed */}
+        {onboardingVisible && (
+          <OnboardingChecklist
+            steps={onboardingSteps}
+            onDismiss={() => {
+              dismissOnboarding();
+              setOnboardingVisible(false);
+            }}
+          />
+        )}
+
         {/* New Conversation Button */}
         <div className="px-4 py-3 border-b border-white/8 space-y-2 flex-shrink-0">
           <Button
@@ -987,7 +1018,7 @@ export default function Chat() {
             { href: '/insights', icon: TrendingUp, label: 'Insights' },
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
           ] as const).map(({ href, icon: Icon, label }) => (
-            <Link key={href} href={href}>
+            <Link key={href} href={href} onClick={() => { if (href === '/memories') markOnboardingStep('explore_memory'); }}>
               <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
                 <Icon className="w-4 h-4 mr-2.5 shrink-0" />
                 {label}
@@ -1109,6 +1140,8 @@ export default function Chat() {
                     value={selectedSentinel}
                     onChange={(sentinelId) => {
                       setSelectedSentinel(sentinelId);
+                      // Mark onboarding step when user picks a Sentinel
+                      if (sentinelId) markOnboardingStep("pick_sentinel");
                       // Persist Sentinel selection to conversation
                       if (selectedConversation) {
                         addSentinelToConversation.mutate({
@@ -1295,7 +1328,7 @@ export default function Chat() {
 
                 {/* Message Input */}
                 <div className="flex gap-3">
-                  <Dialog open={voiceDialogOpen} onOpenChange={setVoiceDialogOpen}>
+                  <Dialog open={voiceDialogOpen} onOpenChange={(open) => { setVoiceDialogOpen(open); if (open) markOnboardingStep("try_voice"); }}>
                     <DialogTrigger asChild>
                       <Button
                         disabled={sendMessage.isPending}

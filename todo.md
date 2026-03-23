@@ -1391,3 +1391,17 @@
 - [x] Wire ShareNudgeCard into Sentinels.tsx post-upgrade useEffect
 - [x] Write 9 vitest tests for share nudge visibility and Twitter URL logic (all pass)
 - [x] Save checkpoint with referral share nudge
+
+## Onboarding Checklist (New Users)
+- [x] Read Chat.tsx sidebar to understand structure and plan checklist placement
+- [x] Build OnboardingChecklist component: 4 steps, progress bar, dismiss button
+- [x] Steps: Pick a Sentinel, Send first message, Try voice mode, Explore memory
+- [x] Track completed steps in localStorage (glow_onboarding_steps key)
+- [x] Auto-complete "Pick a Sentinel" when user selects a Sentinel in sidebar
+- [x] Auto-complete "Send first message" when user sends their first message
+- [x] Auto-complete "Try voice mode" when user opens voice dialog
+- [x] Auto-complete "Explore memory" when user clicks Memories nav link
+- [x] Hide checklist permanently after all steps complete (4s delay) or user dismisses
+- [x] Wire OnboardingChecklist into Chat.tsx sidebar (between search bar and New Conversation)
+- [x] Write 15 vitest tests for checklist step tracking, visibility, and progress logic (all pass)
+- [x] Save checkpoint with onboarding checklist
