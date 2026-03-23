@@ -1341,3 +1341,13 @@
 - [x] Save on Enter or blur; cancel on Escape
 - [x] Prevent conversation selection while editing
 - [x] conversations.updateTitle already covered by existing vitest test (conversations.test.ts)
+
+## Sentinel Preview Modal (Locked Pro Sentinels)
+- [x] Read Sentinels.tsx and sentinels-db.ts to understand current data shape
+- [x] Create SentinelPreviewModal component with glassmorphic design
+- [x] Show personality traits, specialties, archetype, and sample response
+- [x] Add lock badge and Pro upgrade CTA for Free-tier users
+- [x] Wire modal to Sentinels gallery page (click locked Sentinel card)
+- [x] Ensure Pro/Creator users see a "Start Chat" CTA instead of upgrade prompt
+- [x] Write vitest test for Sentinel preview data availability (covered by existing sentinels.test.ts)
+- [x] Save checkpoint with Sentinel preview modal

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, LayoutGrid, Table, Crown, Lock } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
+import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -33,6 +34,11 @@ export default function Sentinels() {
 
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
+  const [previewSentinel, setPreviewSentinel] = useState<{
+    id: number; slug: string; name: string; archetype: string; primaryFunction: string;
+    symbolEmoji: string; primaryColor: string; personalityTraits: string[]; specialties: string[];
+  } | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Meet the Sentinels - Glow";
@@ -163,7 +169,8 @@ export default function Sentinels() {
                   }}
                   onClick={() => {
                     if (isLocked) {
-                      createCheckout.mutate({ tier: "pro" });
+                      setPreviewSentinel(sentinel as any);
+                      setPreviewOpen(true);
                     } else {
                       setSelectedSentinel(selectedSentinel === sentinel.id ? null : sentinel.id);
                     }
@@ -171,10 +178,19 @@ export default function Sentinels() {
                 >
                   {/* Pro lock overlay */}
                   {isLocked && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold shadow-lg">
-                      <Lock className="w-3 h-3" />
-                      Pro
-                    </div>
+                    <>
+                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold shadow-lg">
+                        <Lock className="w-3 h-3" />
+                        Pro
+                      </div>
+                      {/* Hover reveal hint */}
+                      <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-[inherit]" style={{ background: `linear-gradient(135deg, ${sentinel.primaryColor}22, ${sentinel.primaryColor}10)` }}>
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 text-white text-sm font-medium shadow-xl">
+                          <Crown className="w-4 h-4 text-yellow-400" />
+                          Click to preview
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   <div className={`p-6 ${isLocked ? "filter grayscale-[30%]" : ""}`}>
@@ -224,16 +240,12 @@ export default function Sentinels() {
                           className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-semibold"
                           onClick={(e) => {
                             e.stopPropagation();
-                            createCheckout.mutate({ tier: "pro" });
+                            setPreviewSentinel(sentinel as any);
+                            setPreviewOpen(true);
                           }}
-                          disabled={createCheckout.isPending}
                         >
-                          {createCheckout.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          ) : (
-                            <Crown className="w-4 h-4 mr-2" />
-                          )}
-                          Upgrade to Pro — $19/month
+                          <Crown className="w-4 h-4 mr-2" />
+                          Preview &amp; Unlock
                         </Button>
                       </div>
                     )}
@@ -365,6 +377,18 @@ export default function Sentinels() {
           </a>
         </div>
       </div>
+
+      {/* Sentinel Preview Modal for locked Pro Sentinels */}
+      <SentinelPreviewModal
+        sentinel={previewSentinel}
+        open={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setPreviewSentinel(null);
+        }}
+        isPro={isPro || user?.subscriptionTier === "creator"}
+        onUpgrade={() => createCheckout.mutate({ tier: "pro" })}
+      />
     </div>
   );
 }
