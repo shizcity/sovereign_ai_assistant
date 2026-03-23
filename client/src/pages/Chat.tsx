@@ -72,6 +72,10 @@ export default function Chat() {
   const [voiceMode, setVoiceMode] = useState<"off" | "manual" | "continuous">("off");
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
 
+  // Welcome screen Sentinel card interaction state
+  const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
+  const [creatingForSentinelId, setCreatingForSentinelId] = useState<number | null>(null);
+
   // Onboarding checklist state
   const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStepState>(() => loadOnboardingSteps());
   const [onboardingVisible, setOnboardingVisible] = useState<boolean>(() => {
@@ -1452,32 +1456,111 @@ export default function Chat() {
                 </p>
               </div>
 
-              {/* Free Sentinel cards */}
+              {/* Free Sentinel cards — rich interaction */}
               <div className="grid grid-cols-3 gap-3 mb-6">
-                {allSentinels.filter((s: any) => !s.proOnly).slice(0, 3).map((sentinel: any) => (
-                  <button
-                    key={sentinel.id}
-                    onClick={() => createConversation.mutate({ title: `Chat with ${sentinel.name}`, defaultModel: selectedModel })}
-                    disabled={createConversation.isPending}
-                    className="group flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200 disabled:opacity-50 text-center"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      borderColor: "rgba(255,255,255,0.08)",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = sentinel.primaryColor + "66")}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
-                  >
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
-                      style={{ background: sentinel.primaryColor + "22", border: `1px solid ${sentinel.primaryColor}44` }}
+                {allSentinels.filter((s: any) => !s.proOnly).slice(0, 3).map((sentinel: any) => {
+                  const isHovered = hoveredSentinelId === sentinel.id;
+                  const isCreating = creatingForSentinelId === sentinel.id;
+                  const otherCreating = creatingForSentinelId !== null && creatingForSentinelId !== sentinel.id;
+                  return (
+                    <button
+                      key={sentinel.id}
+                      onClick={() => {
+                        if (createConversation.isPending) return;
+                        setCreatingForSentinelId(sentinel.id);
+                        createConversation.mutate(
+                          { title: `Chat with ${sentinel.name}`, defaultModel: selectedModel },
+                          { onSettled: () => setCreatingForSentinelId(null) }
+                        );
+                      }}
+                      disabled={createConversation.isPending}
+                      onMouseEnter={() => setHoveredSentinelId(sentinel.id)}
+                      onMouseLeave={() => setHoveredSentinelId(null)}
+                      className="group relative flex flex-col items-center gap-2 p-3 rounded-xl border text-center select-none"
+                      style={{
+                        background: isHovered
+                          ? `linear-gradient(135deg, ${sentinel.primaryColor}14 0%, rgba(255,255,255,0.06) 100%)`
+                          : "rgba(255,255,255,0.04)",
+                        borderColor: isHovered ? sentinel.primaryColor + "88" : "rgba(255,255,255,0.08)",
+                        boxShadow: isHovered ? `0 0 20px ${sentinel.primaryColor}33, 0 4px 16px rgba(0,0,0,0.3)` : "none",
+                        transform: isCreating ? "scale(0.96)" : isHovered ? "scale(1.04) translateY(-2px)" : "scale(1)",
+                        opacity: otherCreating ? 0.4 : 1,
+                        transition: "all 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                        minHeight: isHovered ? "auto" : undefined,
+                      }}
                     >
-                      {sentinel.symbolEmoji}
-                    </div>
-                    <div>
-                      <p className="text-white/90 text-xs font-semibold leading-none">{sentinel.name}</p>
-                      <p className="text-white/35 text-[10px] mt-0.5 leading-snug">{sentinel.archetype}</p>
-                    </div>
-                  </button>
-                ))}
+                      {/* Pulsing glow ring on hover */}
+                      {isHovered && !isCreating && (
+                        <span
+                          className="absolute inset-0 rounded-xl pointer-events-none animate-ping"
+                          style={{
+                            border: `1px solid ${sentinel.primaryColor}55`,
+                            animationDuration: "1.4s",
+                          }}
+                        />
+                      )}
+
+                      {/* Emoji icon */}
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                        style={{
+                          background: isHovered ? sentinel.primaryColor + "33" : sentinel.primaryColor + "1a",
+                          border: `1px solid ${sentinel.primaryColor}${isHovered ? "66" : "33"}`,
+                          boxShadow: isHovered ? `0 4px 12px ${sentinel.primaryColor}44` : "none",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {isCreating ? (
+                          <Loader2 className="w-5 h-5 animate-spin" style={{ color: sentinel.primaryColor }} />
+                        ) : (
+                          sentinel.symbolEmoji
+                        )}
+                      </div>
+
+                      {/* Name + archetype */}
+                      <div className="w-full">
+                        <p className="text-white/90 text-xs font-semibold leading-none">{sentinel.name}</p>
+                        <p className="text-white/40 text-[10px] mt-0.5">{sentinel.archetype}</p>
+                      </div>
+
+                      {/* Hover reveal: primary function teaser + top specialties */}
+                      <div
+                        className="w-full overflow-hidden"
+                        style={{
+                          maxHeight: isHovered ? "120px" : "0px",
+                          opacity: isHovered ? 1 : 0,
+                          transition: "max-height 0.25s ease, opacity 0.2s ease",
+                        }}
+                      >
+                        <div className="pt-1 border-t mt-1" style={{ borderColor: sentinel.primaryColor + "33" }}>
+                          <p className="text-white/50 text-[10px] leading-relaxed mb-1.5">
+                            {sentinel.primaryFunction?.slice(0, 60)}{sentinel.primaryFunction?.length > 60 ? "…" : ""}
+                          </p>
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {(sentinel.specialties || []).slice(0, 2).map((spec: string) => (
+                              <span
+                                key={spec}
+                                className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+                                style={{
+                                  background: sentinel.primaryColor + "22",
+                                  color: sentinel.primaryColor,
+                                  border: `1px solid ${sentinel.primaryColor}33`,
+                                }}
+                              >
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {isCreating && (
+                          <p className="text-[10px] mt-1.5 font-medium" style={{ color: sentinel.primaryColor }}>
+                            Starting conversation…
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Divider */}

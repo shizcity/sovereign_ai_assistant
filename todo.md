@@ -1412,3 +1412,13 @@
 - [x] Replace main chat area empty state with a rich welcome panel (3 free Sentinel cards + blank conversation CTA)
 - [x] Ensure search empty state remains separate (shows "No conversations found" + clear button)
 - [x] Save checkpoint with empty state upgrade
+
+## Sentinel Card Interaction Details (Welcome Screen)
+- [x] Read current Sentinel card JSX in Chat.tsx welcome screen
+- [x] Add hover reveal showing primary function teaser + top 2 specialties as tags
+- [x] Add pulsing glow ring animation on hover (Sentinel colour, animate-ping)
+- [x] Add pressed scale-down (scale 0.96) on click, spring bounce on hover (scale 1.04 translateY -2px)
+- [x] Add per-card Loader2 spinner replacing emoji when that card is creating a conversation
+- [x] Dim other cards (opacity 0.4) while one card is creating
+- [x] Gradient background tint on hover using Sentinel primaryColor
+- [x] Save checkpoint with Sentinel card interaction details
