@@ -3,11 +3,12 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutGrid, Table, Crown, Lock } from "lucide-react";
+import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 // The 3 Pro-only Sentinel slugs (mirrors server/products.ts FREE_TIER_SENTINEL_SLUGS complement)
 const PRO_ONLY_SENTINEL_SLUGS = ["aetheris-flow", "rift-exe", "nyx"];
@@ -42,6 +43,59 @@ export default function Sentinels() {
 
   useEffect(() => {
     document.title = "Meet the Sentinels - Glow";
+  }, []);
+
+  // Detect post-upgrade redirect from Stripe and show celebration
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const upgraded = params.get("upgraded");
+    if (upgraded === "pro") {
+      // Clean up the URL immediately
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+
+      // Small delay so the page renders before the celebration fires
+      const timer = setTimeout(() => {
+        // Confetti burst
+        confetti({
+          particleCount: 160,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ec4899", "#f9a8d4", "#fbbf24"],
+        });
+        // Second burst for extra flair
+        setTimeout(() => {
+          confetti({
+            particleCount: 80,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 },
+            colors: ["#8b5cf6", "#ec4899", "#fbbf24"],
+          });
+          confetti({
+            particleCount: 80,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 },
+            colors: ["#8b5cf6", "#ec4899", "#fbbf24"],
+          });
+        }, 250);
+
+        // Toast notification
+        toast.success("You're now Pro — all 6 Sentinels are unlocked!", {
+          duration: 6000,
+          icon: <PartyPopper className="w-5 h-5 text-yellow-400" />,
+          description: "Choose any Sentinel below and start a conversation.",
+          style: {
+            background: "linear-gradient(135deg, #1e0a3c, #2d1060)",
+            border: "1px solid rgba(139,92,246,0.4)",
+            color: "#fff",
+          },
+        });
+      }, 600);
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   if (isLoading) {

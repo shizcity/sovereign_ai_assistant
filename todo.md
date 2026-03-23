@@ -1362,3 +1362,13 @@
 - [x] Add "Got it" dismiss button that saves current version to localStorage
 - [x] Write vitest test for changelog version comparison logic (7 tests pass)
 - [x] Save checkpoint with What's New modal
+
+## Post-Upgrade Redirect to Sentinels
+- [x] Read Stripe checkout session creation to find success_url
+- [x] Update success_url to /sentinels?upgraded=pro (or upgraded=creator)
+- [x] On Sentinels page, detect ?upgraded= query param on mount
+- [x] Show celebration toast "You're now Pro — all 6 Sentinels are unlocked!"
+- [x] Add confetti burst animation on the Sentinels page after upgrade
+- [x] Clean up the query param from URL after showing toast (replace history state)
+- [x] Write vitest test for the upgrade param detection logic (7 tests pass)
+- [x] Save checkpoint with post-upgrade redirect

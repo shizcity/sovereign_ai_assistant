@@ -1908,7 +1908,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }
 
       // Determine success redirect based on tier
-      const successPath = targetTier === "creator" ? "/my-sentinels?upgraded=creator" : "/chat?upgraded=pro";
+      const successPath = targetTier === "creator" ? "/my-sentinels?upgraded=creator" : "/sentinels?upgraded=pro";
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
