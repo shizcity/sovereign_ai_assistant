@@ -1405,3 +1405,10 @@
 - [x] Wire OnboardingChecklist into Chat.tsx sidebar (between search bar and New Conversation)
 - [x] Write 15 vitest tests for checklist step tracking, visibility, and progress logic (all pass)
 - [x] Save checkpoint with onboarding checklist
+
+## Empty State Upgrade (New Users)
+- [x] Read Chat.tsx sidebar and main area empty states
+- [x] Replace sidebar "No conversations yet" with an inviting action prompt (glassmorphic card + CTA button)
+- [x] Replace main chat area empty state with a rich welcome panel (3 free Sentinel cards + blank conversation CTA)
+- [x] Ensure search empty state remains separate (shows "No conversations found" + clear button)
+- [x] Save checkpoint with empty state upgrade

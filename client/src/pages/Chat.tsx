@@ -875,20 +875,47 @@ export default function Chat() {
         <div className="flex-1 overflow-y-auto min-h-0">
           <div className="p-2">
             {filteredConversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-                <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-                <p className="text-sm">
-                  {searchQuery ? "No conversations found" : "No conversations yet"}
-                </p>
-                {searchQuery && (
+              searchQuery ? (
+                /* Search returned no results */
+                <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+                  <Search className="w-7 h-7 mb-2 opacity-40" />
+                  <p className="text-sm text-white/40">No conversations found</p>
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-2"
+                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 transition-colors"
                   >
                     Clear search
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                /* Brand-new user — no conversations yet */
+                <div className="mx-2 mt-4 mb-2 rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(20,8,50,0.9) 0%, rgba(30,12,70,0.9) 100%)",
+                    border: "1px solid rgba(139,92,246,0.2)",
+                  }}
+                >
+                  <div className="px-4 pt-5 pb-2 text-center">
+                    <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
+                      style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", boxShadow: "0 4px 16px rgba(139,92,246,0.4)" }}
+                    >
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-white/90 text-sm font-semibold leading-snug">Ready to meet your Sentinels?</p>
+                    <p className="text-white/40 text-xs mt-1 leading-relaxed">Start a conversation and choose an AI companion to guide you.</p>
+                  </div>
+                  <div className="px-4 pb-4 pt-2">
+                    <button
+                      onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
+                      disabled={createConversation.isPending}
+                      className="w-full py-2 rounded-lg text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50"
+                      style={{ background: "linear-gradient(90deg, #8b5cf6, #06b6d4)", boxShadow: "0 2px 10px rgba(139,92,246,0.3)" }}
+                    >
+                      {createConversation.isPending ? "Creating…" : "Start your first conversation"}
+                    </button>
+                  </div>
+                </div>
+              )
             ) : (
               DATE_GROUP_ORDER.filter(group => conversationsByDate[group]?.length > 0).map(group => (
                 <div key={group}>
@@ -1408,14 +1435,71 @@ export default function Chat() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center max-w-md p-8 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
-              <MessageSquare className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-                Welcome to Glow
-              </h2>
-              <p className="text-gray-400">
-                Select a conversation from the sidebar or create a new one to get started.
+          <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+            <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-600">
+              {/* Hero */}
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", boxShadow: "0 8px 32px rgba(139,92,246,0.4)" }}
+                >
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
+                  Welcome to Glow
+                </h2>
+                <p className="text-white/50 text-sm leading-relaxed">
+                  Choose a Sentinel to guide your conversation, then send your first message.
+                </p>
+              </div>
+
+              {/* Free Sentinel cards */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {allSentinels.filter((s: any) => !s.proOnly).slice(0, 3).map((sentinel: any) => (
+                  <button
+                    key={sentinel.id}
+                    onClick={() => createConversation.mutate({ title: `Chat with ${sentinel.name}`, defaultModel: selectedModel })}
+                    disabled={createConversation.isPending}
+                    className="group flex flex-col items-center gap-2 p-3 rounded-xl border transition-all duration-200 disabled:opacity-50 text-center"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      borderColor: "rgba(255,255,255,0.08)",
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = sentinel.primaryColor + "66")}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+                  >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                      style={{ background: sentinel.primaryColor + "22", border: `1px solid ${sentinel.primaryColor}44` }}
+                    >
+                      {sentinel.symbolEmoji}
+                    </div>
+                    <div>
+                      <p className="text-white/90 text-xs font-semibold leading-none">{sentinel.name}</p>
+                      <p className="text-white/35 text-[10px] mt-0.5 leading-snug">{sentinel.archetype}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px bg-white/8" />
+                <span className="text-white/25 text-xs">or</span>
+                <div className="flex-1 h-px bg-white/8" />
+              </div>
+
+              {/* Generic new conversation CTA */}
+              <button
+                onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
+                disabled={createConversation.isPending}
+                className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(90deg, #8b5cf6, #06b6d4)", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}
+              >
+                <Plus className="w-4 h-4" />
+                {createConversation.isPending ? "Creating…" : "Start a blank conversation"}
+              </button>
+
+              <p className="text-center text-white/20 text-xs mt-4">
+                You can switch Sentinels at any time during the conversation.
               </p>
             </div>
           </div>
