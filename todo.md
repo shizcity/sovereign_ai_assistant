@@ -1330,3 +1330,5 @@
 - [x] Add ThemeToggle to chat sidebar bottom nav
 - [x] Add ThemeToggle to landing page nav
 - [x] Persist theme preference in localStorage
+- [ ] Add conversation search bar to chat sidebar (keyword filter)
+- [x] Add conversation date grouping (Today/Yesterday/Last 7 Days/Last 30 Days/Older)

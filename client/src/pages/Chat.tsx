@@ -666,6 +666,31 @@ export default function Chat() {
     conversationsByFolder[folder.id] = filteredConversations.filter(c => c.folderId === folder.id);
   });
 
+  // Group conversations by date
+  const getDateGroup = (updatedAt: Date | number | string): string => {
+    const now = new Date();
+    const ts = updatedAt instanceof Date ? updatedAt.getTime() : new Date(updatedAt).getTime();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const yesterdayStart = todayStart - 86400000;
+    const sevenDaysAgo = todayStart - 6 * 86400000;
+    const thirtyDaysAgo = todayStart - 29 * 86400000;
+
+    if (ts >= todayStart) return "Today";
+    if (ts >= yesterdayStart) return "Yesterday";
+    if (ts >= sevenDaysAgo) return "Last 7 Days";
+    if (ts >= thirtyDaysAgo) return "Last 30 Days";
+    return "Older";
+  };
+
+  const DATE_GROUP_ORDER = ["Today", "Yesterday", "Last 7 Days", "Last 30 Days", "Older"];
+
+  const conversationsByDate: Record<string, typeof conversations> = {};
+  filteredConversations.forEach(conv => {
+    const group = getDateGroup(conv.updatedAt);
+    if (!conversationsByDate[group]) conversationsByDate[group] = [];
+    conversationsByDate[group].push(conv);
+  });
+
   const selectedConv = conversations.find(c => c.id === selectedConversation);
 
   if (!user) {
@@ -801,59 +826,66 @@ export default function Chat() {
           </Button>
         </div>
 
-        {/* Chat List Header */}
-        <div className="px-4 pt-3 pb-1 flex-shrink-0">
-          <span className="text-[10px] font-semibold tracking-widest text-white/30 uppercase">Conversations</span>
-        </div>
-
-        {/* Conversations List */}
+        {/* Conversations List — date grouped */}
         <div className="flex-1 overflow-y-auto min-h-0">
           <div className="p-2">
-            {filteredConversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => setSelectedConversation(conv.id)}
-                className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
-                  selectedConversation === conv.id
-                    ? "nav-item-active"
-                    : "hover:bg-white/6 border-l-2 border-transparent"
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white/90 truncate">{conv.title}</p>
-                  <p className="text-[11px] text-white/35">
-                    {new Date(conv.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteConversation.mutate({ id: conv.id });
-                  }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+            {filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+                <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
+                <p className="text-sm">
+                  {searchQuery ? "No conversations found" : "No conversations yet"}
+                </p>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 mt-2"
+                  >
+                    Clear search
+                  </button>
+                )}
               </div>
-            ))}
+            ) : (
+              DATE_GROUP_ORDER.filter(group => conversationsByDate[group]?.length > 0).map(group => (
+                <div key={group}>
+                  {/* Date group header */}
+                  <div className="flex items-center gap-2 px-2 pt-3 pb-1">
+                    <span className="text-[10px] font-semibold tracking-widest text-white/25 uppercase">{group}</span>
+                    <div className="flex-1 h-px bg-white/8" />
+                  </div>
+                  {/* Conversations in this group */}
+                  {conversationsByDate[group].map((conv) => (
+                    <div
+                      key={conv.id}
+                      onClick={() => setSelectedConversation(conv.id)}
+                      className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
+                        selectedConversation === conv.id
+                          ? "nav-item-active"
+                          : "hover:bg-white/6 border-l-2 border-transparent"
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white/90 truncate">{conv.title}</p>
+                        <p className="text-[11px] text-white/35">
+                          {group === "Today"
+                            ? new Date(conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            : new Date(conv.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConversation.mutate({ id: conv.id });
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-400 ml-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ))
+            )}
           </div>
-
-          {filteredConversations.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-              <MessageSquare className="w-8 h-8 mb-2 opacity-50" />
-              <p className="text-sm">
-                {searchQuery ? "No conversations found" : "No conversations yet"}
-              </p>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="text-xs text-blue-400 hover:text-blue-300 mt-2"
-                >
-                  Clear search
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Usage Widget */}
