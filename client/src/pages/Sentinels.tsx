@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
+import { ShareNudgeCard } from "@/components/ShareNudgeCard";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -35,6 +36,7 @@ export default function Sentinels() {
 
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
+  const [showShareNudge, setShowShareNudge] = useState(false);
   const [previewSentinel, setPreviewSentinel] = useState<{
     id: number; slug: string; name: string; archetype: string; primaryFunction: string;
     symbolEmoji: string; primaryColor: string; personalityTraits: string[]; specialties: string[];
@@ -92,9 +94,23 @@ export default function Sentinels() {
             color: "#fff",
           },
         });
+
+        // Show share nudge 3 seconds after celebration — only once per upgrade
+        const nudgeKey = "glow_share_nudge_shown";
+        if (!localStorage.getItem(nudgeKey)) {
+          const nudgeTimer = setTimeout(() => {
+            setShowShareNudge(true);
+          }, 3000);
+          // Store cleanup ref on window to avoid stale closure issues
+          (window as unknown as Record<string, unknown>).__glowNudgeTimer = nudgeTimer;
+        }
       }, 600);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        const t = (window as unknown as Record<string, unknown>).__glowNudgeTimer;
+        if (typeof t === "number") clearTimeout(t);
+      };
     }
   }, []);
 
@@ -450,6 +466,16 @@ export default function Sentinels() {
         isPro={isPro || user?.subscriptionTier === "creator"}
         onUpgrade={() => createCheckout.mutate({ tier: "pro" })}
       />
+
+      {/* Share nudge card — appears 3s after post-upgrade confetti */}
+      {showShareNudge && (
+        <ShareNudgeCard
+          onDismiss={() => {
+            setShowShareNudge(false);
+            localStorage.setItem("glow_share_nudge_shown", "1");
+          }}
+        />
+      )}
     </div>
   );
 }

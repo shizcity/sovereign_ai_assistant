@@ -1382,3 +1382,12 @@
 - [x] Pass isPro, proOnlySlugs, and onUpgrade from Sentinels.tsx to SentinelComparison
 - [x] Write 11 vitest tests for Pro lock detection logic (all pass)
 - [x] Save checkpoint with comparison table Pro lock indicators
+
+## Referral Share Nudge (Post-Upgrade)
+- [x] Read Sentinels.tsx upgrade celebration flow to plan share card placement
+- [x] Build ShareNudgeCard component: glassmorphic card, copy link, Twitter/X share, dismiss
+- [x] Trigger ShareNudgeCard 3 seconds after confetti celebration fires
+- [x] Use localStorage to ensure nudge only shows once per upgrade (glow_share_nudge_shown key)
+- [x] Wire ShareNudgeCard into Sentinels.tsx post-upgrade useEffect
+- [x] Write 9 vitest tests for share nudge visibility and Twitter URL logic (all pass)
+- [x] Save checkpoint with referral share nudge
