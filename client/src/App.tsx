@@ -5,6 +5,7 @@ import { UsageWarningBanner } from "@/components/UsageWarningBanner";
 import { UsageWarningModal } from "@/components/UsageWarningModal";
 import { LimitReachedOverlay } from "@/components/LimitReachedOverlay";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { WhatsNewModal, shouldShowWhatsNew } from "@/components/WhatsNewModal";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
@@ -56,12 +57,22 @@ function Router() {
 function App() {
   const { data: user } = trpc.auth.me.useQuery();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [location] = useLocation();
 
   useEffect(() => {
     // Only show onboarding on authenticated routes (not landing page)
     if (user && !user.onboardingCompleted && location !== "/") {
       setShowOnboarding(true);
+    }
+  }, [user, location]);
+
+  useEffect(() => {
+    // Show What's New modal once per version, only for logged-in users on non-landing routes
+    if (user && user.onboardingCompleted && location !== "/" && shouldShowWhatsNew()) {
+      // Small delay so the page renders first before the modal pops
+      const timer = setTimeout(() => setShowWhatsNew(true), 800);
+      return () => clearTimeout(timer);
     }
   }, [user, location]);
 
@@ -83,6 +94,8 @@ function App() {
           <LimitReachedOverlay />
           {/* Onboarding Modal */}
           <OnboardingModal open={showOnboarding} onComplete={handleOnboardingComplete} />
+          {/* What's New Modal */}
+          <WhatsNewModal open={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

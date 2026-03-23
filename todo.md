@@ -1351,3 +1351,14 @@
 - [x] Ensure Pro/Creator users see a "Start Chat" CTA instead of upgrade prompt
 - [x] Write vitest test for Sentinel preview data availability (covered by existing sentinels.test.ts)
 - [x] Save checkpoint with Sentinel preview modal
+
+## What's New Changelog Modal
+- [x] Read App.tsx and auth context to understand login flow
+- [x] Create CHANGELOG constant with versioned feature entries (icons, title, description)
+- [x] Build WhatsNewModal component with glassmorphic design and feature list
+- [x] Use localStorage to track last-seen version per user (key: glow_whats_new_seen)
+- [x] Trigger modal on first render after login when current version > last-seen version
+- [x] Wire modal into App.tsx so it shows once after authentication (800ms delay)
+- [x] Add "Got it" dismiss button that saves current version to localStorage
+- [x] Write vitest test for changelog version comparison logic (7 tests pass)
+- [x] Save checkpoint with What's New modal
