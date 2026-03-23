@@ -321,7 +321,14 @@ export default function Sentinels() {
         ) : (
           /* Comparison Table */
           <div className="mb-16">
-            {sentinels && <SentinelComparison sentinels={sentinels} />}
+            {sentinels && (
+              <SentinelComparison
+                sentinels={sentinels}
+                isPro={isPro || user?.subscriptionTier === "creator"}
+                proOnlySlugs={PRO_ONLY_SENTINEL_SLUGS}
+                onUpgrade={() => createCheckout.mutate({ tier: "pro" })}
+              />
+            )}
           </div>
         )}
 

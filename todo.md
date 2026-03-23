@@ -1372,3 +1372,13 @@
 - [x] Clean up the query param from URL after showing toast (replace history state)
 - [x] Write vitest test for the upgrade param detection logic (7 tests pass)
 - [x] Save checkpoint with post-upgrade redirect
+
+## Sentinel Comparison Table — Pro Lock Indicators
+- [x] Read SentinelComparison component to understand column structure
+- [x] Accept isPro, proOnlySlugs, and onUpgrade props in SentinelComparison
+- [x] Mute locked Pro columns (reduced opacity, grayscale filter on header icon/badges)
+- [x] Add lock badge + "Pro Only" label in the header of each locked column
+- [x] Replace "Start Chat" with "Unlock Pro" CTA button in locked columns
+- [x] Pass isPro, proOnlySlugs, and onUpgrade from Sentinels.tsx to SentinelComparison
+- [x] Write 11 vitest tests for Pro lock detection logic (all pass)
+- [x] Save checkpoint with comparison table Pro lock indicators

@@ -2,10 +2,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
-import { X, Filter } from "lucide-react";
+import { X, Filter, Lock, Crown } from "lucide-react";
 
 interface Sentinel {
   id: number;
+  slug: string;
   name: string;
   symbolEmoji: string;
   archetype: string;
@@ -17,23 +18,37 @@ interface Sentinel {
 
 interface SentinelComparisonProps {
   sentinels: Sentinel[];
+  /** Whether the current user has Pro or Creator tier */
+  isPro?: boolean;
+  /** Slugs that require Pro to use */
+  proOnlySlugs?: string[];
+  /** Called when user clicks "Unlock Pro" on a locked column */
+  onUpgrade?: () => void;
 }
 
-export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
+export function SentinelComparison({
+  sentinels,
+  isPro = false,
+  proOnlySlugs = [],
+  onUpgrade,
+}: SentinelComparisonProps) {
   const [, setLocation] = useLocation();
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
+  const isLocked = (sentinel: Sentinel) =>
+    !isPro && proOnlySlugs.includes(sentinel.slug);
+
   // Extract all unique traits and specialties
   const allTraits = useMemo(() => {
     const traits = new Set<string>();
-    sentinels.forEach(s => s.personalityTraits.forEach(t => traits.add(t)));
+    sentinels.forEach((s) => s.personalityTraits.forEach((t) => traits.add(t)));
     return Array.from(traits).sort();
   }, [sentinels]);
 
   const allSpecialties = useMemo(() => {
     const specialties = new Set<string>();
-    sentinels.forEach(s => s.specialties.forEach(sp => specialties.add(sp)));
+    sentinels.forEach((s) => s.specialties.forEach((sp) => specialties.add(sp)));
     return Array.from(specialties).sort();
   }, [sentinels]);
 
@@ -42,12 +57,13 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
     if (selectedTraits.length === 0 && selectedSpecialties.length === 0) {
       return sentinels;
     }
-
-    return sentinels.filter(sentinel => {
-      const matchesTraits = selectedTraits.length === 0 || 
-        selectedTraits.some(trait => sentinel.personalityTraits.includes(trait));
-      const matchesSpecialties = selectedSpecialties.length === 0 || 
-        selectedSpecialties.some(specialty => sentinel.specialties.includes(specialty));
+    return sentinels.filter((sentinel) => {
+      const matchesTraits =
+        selectedTraits.length === 0 ||
+        selectedTraits.some((trait) => sentinel.personalityTraits.includes(trait));
+      const matchesSpecialties =
+        selectedSpecialties.length === 0 ||
+        selectedSpecialties.some((specialty) => sentinel.specialties.includes(specialty));
       return matchesTraits && matchesSpecialties;
     });
   }, [sentinels, selectedTraits, selectedSpecialties]);
@@ -57,14 +73,14 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
   };
 
   const toggleTrait = (trait: string) => {
-    setSelectedTraits(prev => 
-      prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]
+    setSelectedTraits((prev) =>
+      prev.includes(trait) ? prev.filter((t) => t !== trait) : [...prev, trait]
     );
   };
 
   const toggleSpecialty = (specialty: string) => {
-    setSelectedSpecialties(prev => 
-      prev.includes(specialty) ? prev.filter(s => s !== specialty) : [...prev, specialty]
+    setSelectedSpecialties((prev) =>
+      prev.includes(specialty) ? prev.filter((s) => s !== specialty) : [...prev, specialty]
     );
   };
 
@@ -84,7 +100,10 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
             <Filter className="w-4 h-4 text-slate-400" />
             <h3 className="font-semibold text-slate-200">Filter Sentinels</h3>
             {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+              <Badge
+                variant="secondary"
+                className="bg-blue-500/20 text-blue-300 border-blue-500/30"
+              >
                 {activeFilterCount} active
               </Badge>
             )}
@@ -106,7 +125,7 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-300">Personality Traits</label>
           <div className="flex flex-wrap gap-2">
-            {allTraits.map(trait => (
+            {allTraits.map((trait) => (
               <Badge
                 key={trait}
                 variant={selectedTraits.includes(trait) ? "default" : "outline"}
@@ -127,7 +146,7 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-300">Specialties</label>
           <div className="flex flex-wrap gap-2">
-            {allSpecialties.map(specialty => (
+            {allSpecialties.map((specialty) => (
               <Badge
                 key={specialty}
                 variant={selectedSpecialties.includes(specialty) ? "default" : "outline"}
@@ -154,97 +173,168 @@ export function SentinelComparison({ sentinels }: SentinelComparisonProps) {
 
       {/* Comparison Table */}
       <div className="w-full overflow-x-auto">
-      <table className="w-full border-collapse min-w-[1200px]">
-        <thead>
-          <tr className="border-b border-slate-700">
-            <th className="text-left p-4 text-slate-400 font-semibold sticky left-0 bg-slate-900/95 backdrop-blur-sm z-10">
-              Characteristic
-            </th>
-            {filteredSentinels.map((sentinel) => (
-              <th
-                key={sentinel.id}
-                className="text-center p-4 min-w-[200px]"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-4xl">{sentinel.symbolEmoji}</div>
-                  <div className="font-bold text-lg">{sentinel.name}</div>
-                  <div className="text-sm text-slate-400">{sentinel.archetype}</div>
-                </div>
+        <table className="w-full border-collapse min-w-[1200px]">
+          <thead>
+            <tr className="border-b border-slate-700">
+              <th className="text-left p-4 text-slate-400 font-semibold sticky left-0 bg-slate-900/95 backdrop-blur-sm z-10">
+                Characteristic
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Primary Function Row */}
-          <tr className="border-b border-slate-800">
-            <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
-              Primary Function
-            </td>
-            {filteredSentinels.map((sentinel) => (
-              <td key={sentinel.id} className="p-4 text-sm text-slate-300 text-center">
-                {sentinel.primaryFunction}
-              </td>
-            ))}
-          </tr>
+              {filteredSentinels.map((sentinel) => {
+                const locked = isLocked(sentinel);
+                return (
+                  <th
+                    key={sentinel.id}
+                    className={`text-center p-4 min-w-[200px] transition-opacity ${
+                      locked ? "opacity-50" : ""
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      {/* Emoji with optional grayscale */}
+                      <div
+                        className={`text-4xl transition-all ${
+                          locked ? "grayscale" : ""
+                        }`}
+                      >
+                        {sentinel.symbolEmoji}
+                      </div>
 
-          {/* Personality Traits Row */}
-          <tr className="border-b border-slate-800">
-            <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
-              Personality Traits
-            </td>
-            {filteredSentinels.map((sentinel) => (
-              <td key={sentinel.id} className="p-4">
-                <div className="flex flex-col gap-1.5">
-                  {sentinel.personalityTraits.map((trait, idx) => (
-                    <Badge
-                      key={idx}
-                      variant="secondary"
-                      className="text-xs bg-white/10 text-white border-white/20 justify-center"
+                      <div className="font-bold text-lg">{sentinel.name}</div>
+                      <div className="text-sm text-slate-400">{sentinel.archetype}</div>
+
+                      {/* Pro lock badge */}
+                      {locked && (
+                        <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 text-yellow-400 text-xs font-semibold">
+                          <Lock className="w-3 h-3" />
+                          Pro Only
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Primary Function Row */}
+            <tr className="border-b border-slate-800">
+              <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
+                Primary Function
+              </td>
+              {filteredSentinels.map((sentinel) => {
+                const locked = isLocked(sentinel);
+                return (
+                  <td
+                    key={sentinel.id}
+                    className={`p-4 text-sm text-center transition-opacity ${
+                      locked ? "opacity-40 text-slate-500" : "text-slate-300"
+                    }`}
+                  >
+                    {sentinel.primaryFunction}
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Personality Traits Row */}
+            <tr className="border-b border-slate-800">
+              <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
+                Personality Traits
+              </td>
+              {filteredSentinels.map((sentinel) => {
+                const locked = isLocked(sentinel);
+                return (
+                  <td
+                    key={sentinel.id}
+                    className={`p-4 transition-opacity ${locked ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      {sentinel.personalityTraits.map((trait, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className={`text-xs justify-center ${
+                            locked
+                              ? "bg-white/5 text-slate-500 border-white/10 grayscale"
+                              : "bg-white/10 text-white border-white/20"
+                          }`}
+                        >
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            {/* Specialties Row */}
+            <tr className="border-b border-slate-800">
+              <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
+                Best For
+              </td>
+              {filteredSentinels.map((sentinel) => {
+                const locked = isLocked(sentinel);
+                return (
+                  <td
+                    key={sentinel.id}
+                    className={`p-4 transition-opacity ${locked ? "opacity-40" : ""}`}
+                  >
+                    <ul
+                      className={`text-sm space-y-1.5 ${
+                        locked ? "text-slate-500" : "text-slate-300"
+                      }`}
                     >
-                      {trait}
-                    </Badge>
-                  ))}
-                </div>
-              </td>
-            ))}
-          </tr>
+                      {sentinel.specialties.map((specialty, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span
+                            className={`mt-0.5 ${locked ? "text-slate-600" : "text-blue-400"}`}
+                          >
+                            •
+                          </span>
+                          <span>{specialty}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                );
+              })}
+            </tr>
 
-          {/* Specialties Row */}
-          <tr className="border-b border-slate-800">
-            <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
-              Best For
-            </td>
-            {filteredSentinels.map((sentinel) => (
-              <td key={sentinel.id} className="p-4">
-                <ul className="text-sm text-slate-300 space-y-1.5">
-                  {sentinel.specialties.map((specialty, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-blue-400 mt-0.5">•</span>
-                      <span>{specialty}</span>
-                    </li>
-                  ))}
-                </ul>
-              </td>
-            ))}
-          </tr>
-
-          {/* Action Row */}
-          <tr>
-            <td className="p-4 sticky left-0 bg-slate-900/95 backdrop-blur-sm"></td>
-            {filteredSentinels.map((sentinel) => (
-              <td key={sentinel.id} className="p-4 text-center">
-                <Button
-                  onClick={() => handleStartChat(sentinel.id)}
-                  className="w-full"
-                  variant="default"
-                >
-                  Start Chat
-                </Button>
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+            {/* Action Row */}
+            <tr>
+              <td className="p-4 sticky left-0 bg-slate-900/95 backdrop-blur-sm" />
+              {filteredSentinels.map((sentinel) => {
+                const locked = isLocked(sentinel);
+                return (
+                  <td key={sentinel.id} className="p-4 text-center">
+                    {locked ? (
+                      <Button
+                        onClick={onUpgrade}
+                        className="w-full font-semibold text-white"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #f59e0b, #ea580c)",
+                          boxShadow: "0 4px 12px rgba(245,158,11,0.3)",
+                        }}
+                      >
+                        <Crown className="w-4 h-4 mr-2" />
+                        Unlock Pro
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleStartChat(sentinel.id)}
+                        className="w-full"
+                        variant="default"
+                      >
+                        Start Chat
+                      </Button>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
