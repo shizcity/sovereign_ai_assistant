@@ -1422,3 +1422,29 @@
 - [x] Dim other cards (opacity 0.4) while one card is creating
 - [x] Gradient background tint on hover using Sentinel primaryColor
 - [x] Save checkpoint with Sentinel card interaction details
+
+## Security Hardening
+- [x] Audit all tRPC procedures for missing authorization checks
+- [x] Audit all input schemas for missing length/type constraints
+- [x] Install helmet.js for HTTP security headers (CSP, HSTS, X-Frame-Options, etc.)
+- [x] Install express-rate-limit for DoS/brute-force protection
+- [x] Add general rate limiter (300 req/15min) on all /api routes
+- [x] Add auth rate limiter (20 req/15min) on /api/oauth routes
+- [x] Add LLM rate limiter (30 req/min) on messages.send endpoint
+- [x] Add voice rate limiter (10 req/min) on voice.transcribe and voice.synthesize
+- [x] Add checkout rate limiter (10 req/hr) on subscription.createCheckoutSession
+- [x] Reduce body parser limit from 50mb to 10mb (prevents DoS via large payloads)
+- [x] Add max(20000) to messages.send content and messages.edit content
+- [x] Add max(100) to model string fields in messages.send and messages.editAndRegenerate
+- [x] Add max(10000) to settings.update systemPrompt
+- [x] Add max(5000) to memories.create and memories.update content
+- [x] Add max(2000) to memories context fields
+- [x] Add max(20) tags array and max(50) per tag to memories.create and memories.update
+- [x] Fix messages.edit: add ownership check (verify conversation belongs to calling user)
+- [x] Fix memories.update: add ownership check (verify memory.userId === ctx.user.id)
+- [x] Fix memories.delete: add ownership check (verify memory.userId === ctx.user.id)
+- [x] Add getMemoryById helper to memory-db.ts for ownership verification
+- [x] Change getConversationSentinels from publicProcedure to protectedProcedure with ownership check
+- [x] Replace z.any() in conversations.import with a fully typed schema (roles, content limits, max 1000 messages)
+- [x] Write 34 security vitest tests covering all hardening changes (all pass)
+- [x] Save checkpoint with security hardening

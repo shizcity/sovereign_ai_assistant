@@ -185,7 +185,18 @@ export const appRouter = router({
     }),
 
     import: protectedProcedure
-      .input(z.object({ data: z.any() }))
+      .input(z.object({
+        data: z.object({
+          title: z.string().min(1).max(255),
+          defaultModel: z.string().max(100).optional(),
+          messages: z.array(z.object({
+            role: z.enum(["user", "assistant", "system"]),
+            content: z.string().min(1).max(20000),
+            sentinelId: z.number().optional(),
+            model: z.string().max(100).optional(),
+          })).max(1000),
+        }),
+      }))
       .mutation(async ({ ctx, input }) => {
         const { importConversation } = await import("./conversation-export-db");
         const conversationId = await importConversation(input.data, ctx.user.id);
@@ -249,8 +260,8 @@ export const appRouter = router({
     send: protectedProcedure
       .input(z.object({
         conversationId: z.number(),
-        content: z.string().min(1),
-        model: z.string().default("gpt-4"),
+        content: z.string().min(1).max(20000),
+        model: z.string().max(100).default("gpt-4"),
         targetSentinelId: z.number().optional(), // Optional: manually select which Sentinel responds
       }))
       .mutation(async ({ ctx, input }) => {
@@ -470,15 +481,19 @@ Reference these memories naturally when relevant. For example: "Remember when we
     edit: protectedProcedure
       .input(z.object({
         messageId: z.number(),
-        content: z.string().min(1),
+        content: z.string().min(1).max(20000),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { updateMessage, getMessageById } = await import("./db");
+        const { updateMessage, getMessageById, getConversationById } = await import("./db");
         
-        // Verify message exists
+        // Verify message exists and belongs to the calling user's conversation
         const message = await getMessageById(input.messageId);
         if (!message) {
-          throw new Error("Message not found");
+          throw new TRPCError({ code: "NOT_FOUND", message: "Message not found" });
+        }
+        const conversation = await getConversationById(message.conversationId, ctx.user.id);
+        if (!conversation) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
         }
         
         // Update the message content
@@ -490,8 +505,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
     editAndRegenerate: protectedProcedure
       .input(z.object({
         messageId: z.number(),
-        content: z.string().min(1),
-        model: z.string().default("gpt-4"),
+        content: z.string().min(1).max(20000),
+        model: z.string().max(100).default("gpt-4"),
       }))
       .mutation(async ({ ctx, input }) => {
         const { updateMessage, getMessageById, deleteMessagesAfter, getConversationMessages, createMessage, getUserSettings } = await import("./db");
@@ -623,7 +638,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
       .input(z.object({
         defaultModel: z.string().optional(),
         theme: z.string().optional(),
-        systemPrompt: z.string().optional(),
+        systemPrompt: z.string().max(10000).optional(),
         emailDigestFrequency: z.enum(["weekly", "monthly", "both", "off"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1463,9 +1478,15 @@ Reference these memories naturally when relevant. For example: "Remember when we
         return addSentinelToConversation(input.conversationId, input.sentinelId, input.role);
       }),
 
-    getConversationSentinels: publicProcedure
+    getConversationSentinels: protectedProcedure
       .input(z.object({ conversationId: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Verify the conversation belongs to the calling user
+        const { getConversationById } = await import("./db");
+        const conversation = await getConversationById(input.conversationId, ctx.user.id);
+        if (!conversation) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+        }
         const { getConversationSentinels } = await import("./sentinels-db");
         return getConversationSentinels(input.conversationId);
       }),
@@ -1545,10 +1566,10 @@ Reference these memories naturally when relevant. For example: "Remember when we
           sentinelId: z.number(),
           conversationId: z.number().optional(),
           category: z.enum(["insight", "decision", "milestone", "preference", "goal", "achievement", "challenge", "pattern"]),
-          content: z.string(),
-          context: z.string().optional(),
+          content: z.string().min(1).max(5000),
+          context: z.string().max(2000).optional(),
           importance: z.number().min(0).max(100).optional(),
-          tags: z.array(z.string()).optional(),
+          tags: z.array(z.string().max(50)).max(20).optional(),
         }))
         .mutation(async ({ ctx, input }) => {
           const { createMemory } = await import("./memory-db");
@@ -1567,13 +1588,18 @@ Reference these memories naturally when relevant. For example: "Remember when we
       update: protectedProcedure
         .input(z.object({
           memoryId: z.number(),
-          content: z.string().optional(),
-          context: z.string().optional(),
+          content: z.string().min(1).max(5000).optional(),
+          context: z.string().max(2000).optional(),
           importance: z.number().min(0).max(100).optional(),
-          tags: z.array(z.string()).optional(),
+          tags: z.array(z.string().max(50)).max(20).optional(),
         }))
-        .mutation(async ({ input }) => {
-          const { updateMemory } = await import("./memory-db");
+        .mutation(async ({ ctx, input }) => {
+          // Verify memory belongs to the calling user
+          const { updateMemory, getMemoryById } = await import("./memory-db");
+          const memory = await getMemoryById(input.memoryId);
+          if (!memory || memory.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+          }
           return updateMemory(input.memoryId, {
             content: input.content,
             context: input.context,
@@ -1584,8 +1610,13 @@ Reference these memories naturally when relevant. For example: "Remember when we
 
       delete: protectedProcedure
         .input(z.object({ memoryId: z.number() }))
-        .mutation(async ({ input }) => {
-          const { deleteMemory } = await import("./memory-db");
+        .mutation(async ({ ctx, input }) => {
+          // Verify memory belongs to the calling user
+          const { deleteMemory, getMemoryById } = await import("./memory-db");
+          const memory = await getMemoryById(input.memoryId);
+          if (!memory || memory.userId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+          }
           return deleteMemory(input.memoryId);
         }),
 

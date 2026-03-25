@@ -231,3 +231,19 @@ export async function getMemoryStats(userId: number, sentinelId: number) {
 
   return stats;
 }
+
+/**
+ * Get a single memory entry by ID (used for ownership verification before update/delete)
+ */
+export async function getMemoryById(memoryId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db
+    .select()
+    .from(sentinelMemoryEntries)
+    .where(eq(sentinelMemoryEntries.id, memoryId))
+    .limit(1);
+
+  return result[0] || null;
+}
