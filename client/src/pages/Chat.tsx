@@ -149,9 +149,10 @@ export default function Chat() {
   // Derive active sentinel from selectedSentinel
   const activeSentinel = allSentinels.find((s: any) => s.id === selectedSentinel);
 
-  // Background wake phrase listening
+  // Background wake phrase listening — disabled when voice dialog is open or voice mode is active
+  // to prevent two SpeechRecognition instances competing for the mic (causes buzzing)
   const { isListening: isBackgroundListening } = useBackgroundWakePhrase({
-    enabled: backgroundListeningEnabled,
+    enabled: backgroundListeningEnabled && !voiceDialogOpen && voiceMode === "off",
     onWakePhrase: () => {
       // Focus the message input when wake phrase is detected
       messageInputRef.current?.focus();

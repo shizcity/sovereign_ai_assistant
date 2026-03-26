@@ -133,6 +133,8 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const recognitionRef = useRef<any>(null);
+  const restartTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isRestartingRef = useRef(false);
 
   const transcribeMutation = trpc.voice.transcribe.useMutation({
     onSuccess: (data) => {
@@ -335,10 +337,21 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
     };
 
     recognition.onend = () => {
-      // Restart if continuous mode is still enabled
-      if (continuousMode) {
-        recognition.start();
-      } else {
+      // Guard: only restart if continuous mode is still on and we're not already restarting
+      if (continuousMode && !isRestartingRef.current) {
+        isRestartingRef.current = true;
+        // Debounce restart by 300ms to prevent rapid mic on/off cycling (buzzing)
+        restartTimerRef.current = setTimeout(() => {
+          isRestartingRef.current = false;
+          if (recognitionRef.current === recognition) {
+            try {
+              recognition.start();
+            } catch (e) {
+              // Recognition may have already been stopped — ignore
+            }
+          }
+        }, 300);
+      } else if (!continuousMode) {
         setIsListening(false);
       }
     };
@@ -348,6 +361,12 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
   };
 
   const stopContinuousListening = () => {
+    // Clear any pending restart timer first to prevent restart after stop
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+    isRestartingRef.current = false;
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
@@ -415,8 +434,12 @@ export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: Unified
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
+      if (restartTimerRef.current) {
+        clearTimeout(restartTimerRef.current);
+      }
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+        recognitionRef.current = null;
       }
     };
   }, [isRecording]);
