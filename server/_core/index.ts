@@ -80,6 +80,8 @@ async function startServer() {
   const server = createServer(app);
 
   // Security headers via helmet
+  // X-Frame-Options and frame-ancestors are set to allow the Manus Management UI
+  // preview iframe (*.manusvm.computer) while blocking all other framing.
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -92,8 +94,13 @@ async function startServer() {
         frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
+        // Allow Manus Management UI preview iframes from *.manusvm.computer and *.manus.space
+        frameAncestors: ["'self'", "https://*.manusvm.computer", "https://*.manus.space", "https://*.manus.im"],
       },
     },
+    // Disable X-Frame-Options so CSP frame-ancestors takes full control
+    // (X-Frame-Options only supports DENY/SAMEORIGIN, not wildcard domains)
+    frameguard: false,
     crossOriginEmbedderPolicy: false, // Required for Vite HMR in dev
   }));
 
