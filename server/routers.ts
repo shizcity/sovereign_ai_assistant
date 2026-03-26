@@ -218,7 +218,8 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         // Pro-tier gating: Free users can only have 1 Sentinel per conversation
-        if (ctx.user.subscriptionTier !== "pro") {
+        const { isProOrAbove: isProOrAbove_addSentinel } = await import("./products");
+        if (!isProOrAbove_addSentinel(ctx.user.subscriptionTier ?? "free")) {
           const { getConversationSentinels } = await import("./sentinels-db");
           const existingSentinels = await getConversationSentinels(input.conversationId);
           
@@ -1234,7 +1235,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }
 
       // Free-tier users only see the 3 included Sentinels
-      if (tier !== "pro") {
+      const { isProOrAbove: isProOrAbove_list } = await import("./products");
+      if (!isProOrAbove_list(tier)) {
         return allSentinels.filter((s) =>
           (FREE_TIER_SENTINEL_SLUGS as readonly string[]).includes(s.slug)
         );
@@ -1464,7 +1466,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
       .mutation(async ({ ctx, input }) => {
         // Pro-tier gating: free users can only have 1 Sentinel per conversation
         const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
-        if (tier !== "pro" && input.role === "collaborator") {
+        const { isProOrAbove: isProOrAbove_collab } = await import("./products");
+        if (!isProOrAbove_collab(tier) && input.role === "collaborator") {
           const { getConversationSentinels } = await import("./sentinels-db");
           const existing = await getConversationSentinels(input.conversationId);
           if (existing.length >= 1) {
@@ -1815,10 +1818,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }))
       .mutation(async ({ input, ctx }) => {
         // Check Pro tier requirement
-        if (ctx.user.subscriptionTier !== "pro") {
+        const { isProOrAbove: isProOrAbove_transcribe } = await import("./products");
+        if (!isProOrAbove_transcribe(ctx.user.subscriptionTier ?? "free")) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Voice features are only available for Pro users. Upgrade to Pro for $19/month.",
+            message: "Voice features are only available for Pro and Creator users. Upgrade to unlock voice mode.",
           });
         }
 
@@ -1864,10 +1868,11 @@ Reference these memories naturally when relevant. For example: "Remember when we
       }))
       .mutation(async ({ input, ctx }) => {
         // Check Pro tier requirement
-        if (ctx.user.subscriptionTier !== "pro") {
+        const { isProOrAbove: isProOrAbove_synthesize } = await import("./products");
+        if (!isProOrAbove_synthesize(ctx.user.subscriptionTier ?? "free")) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Voice features are only available for Pro users. Upgrade to Pro for $19/month.",
+            message: "Voice features are only available for Pro and Creator users. Upgrade to unlock voice mode.",
           });
         }
 

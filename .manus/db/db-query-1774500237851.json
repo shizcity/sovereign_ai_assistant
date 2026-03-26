@@ -1,0 +1,19 @@
+{
+  "query": "SELECT id, name, email, role, subscriptionTier, subscriptionStatus, createdAt FROM users WHERE email = 'djsubmischief@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, name, email, role, subscriptionTier, subscriptionStatus, createdAt FROM users WHERE email = 'djsubmischief@gmail.com';",
+  "rows": [
+    {
+      "id": "5190001",
+      "name": "Aurelia Vespera",
+      "email": "djsubmischief@gmail.com",
+      "role": "user",
+      "subscriptionTier": "free",
+      "subscriptionStatus": "active",
+      "createdAt": "2026-03-25 22:15:02"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\tsubscriptionTier\tsubscriptionStatus\tcreatedAt\n5190001\tAurelia Vespera\tdjsubmischief@gmail.com\tuser\tfree\tactive\t2026-03-25 22:15:02\n",
+  "stderr": "",
+  "execution_time_ms": 145
+}
