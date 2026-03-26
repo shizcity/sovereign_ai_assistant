@@ -17,7 +17,7 @@ export function VoiceModeToggle({ voiceMode, onToggle }: VoiceModeToggleProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { data: subscriptionStatus } = trpc.subscription.getStatus.useQuery();
 
-  const isPro = subscriptionStatus?.tier === "pro";
+  const isPro = subscriptionStatus?.tier === "pro" || subscriptionStatus?.tier === "creator";
   const isActive = voiceMode !== "off";
 
   const handleToggle = () => {

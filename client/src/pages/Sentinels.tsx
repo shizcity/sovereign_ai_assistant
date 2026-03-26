@@ -16,7 +16,7 @@ const PRO_ONLY_SENTINEL_SLUGS = ["aetheris-flow", "rift-exe", "nyx"];
 
 export default function Sentinels() {
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro";
+  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
 

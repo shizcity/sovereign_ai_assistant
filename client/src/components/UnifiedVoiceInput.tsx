@@ -110,7 +110,7 @@ function VoiceProUpgradeCard() {
 
 export function UnifiedVoiceInput({ onTranscriptionComplete, disabled }: UnifiedVoiceInputProps) {
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro";
+  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   // Mode state
   const [continuousMode, setContinuousMode] = useState(false);

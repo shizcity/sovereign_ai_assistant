@@ -21,7 +21,7 @@ interface AddSentinelDialogProps {
 export function AddSentinelDialog({ conversationId, onSentinelAdded }: AddSentinelDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro";
+  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   const { data: allSentinels, isLoading: sentinelsLoading } = trpc.sentinels.list.useQuery();
   const { data: conversationSentinels } = trpc.conversations.listSentinels.useQuery(

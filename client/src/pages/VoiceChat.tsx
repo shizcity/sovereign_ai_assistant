@@ -90,7 +90,7 @@ export default function VoiceChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const isPro = user?.subscriptionTier === "pro";
+  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950">

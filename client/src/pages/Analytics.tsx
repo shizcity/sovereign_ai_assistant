@@ -8,7 +8,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 
 export default function Analytics() {
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro";
+  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   // Fetch analytics data
   const { data: overview, isLoading: overviewLoading } = trpc.analytics.getOverview.useQuery(undefined, {
