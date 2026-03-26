@@ -79,6 +79,11 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // Trust the reverse proxy (Manus tunnel, nginx, etc.) so that
+  // express-rate-limit can read the real client IP from X-Forwarded-For
+  // without throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+  app.set('trust proxy', 1);
+
   // Security headers via helmet
   // X-Frame-Options and frame-ancestors are set to allow the Manus Management UI
   // preview iframe (*.manusvm.computer) while blocking all other framing.
@@ -93,7 +98,10 @@ async function startServer() {
         connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
         frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
         objectSrc: ["'none'"],
-        upgradeInsecureRequests: [],
+        // upgradeInsecureRequests must be null (not []) to prevent Helmet from
+        // emitting the directive. The Manus tunnel serves HTTP internally, so
+        // upgrade-insecure-requests would silently break the preview panel.
+        upgradeInsecureRequests: null,
         // Allow Manus Management UI preview iframes from *.manusvm.computer and *.manus.space
         frameAncestors: ["'self'", "https://*.manusvm.computer", "https://*.manus.space", "https://*.manus.im"],
       },
