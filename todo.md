@@ -1448,3 +1448,15 @@
 - [x] Replace z.any() in conversations.import with a fully typed schema (roles, content limits, max 1000 messages)
 - [x] Write 34 security vitest tests covering all hardening changes (all pass)
 - [x] Save checkpoint with security hardening
+
+## Bug Fixes - April 2026
+- [x] Bug 1: Strip markdown formatting from TTS text before synthesis (asterisks/symbols being read aloud)
+- [x] Bug 2: Save buttons inaccessible when text is long — anchor buttons at bottom of scrollable modals (MySentinels, Memories)
+- [x] Bug 3: Investigated desktop data persistence — root cause is Bug 2 (save button off-screen); no separate desktop code path exists
+
+## Features - April 2026
+- [ ] TTS global toggle (persist in user settings) + per-message playback with speaker icon
+- [ ] Intelligent Sentinel auto-routing based on query type
+- [ ] Frontend isProOrAbove() shared utility to prevent tier-check regressions
+- [ ] Creator tier badge in settings and profile
+- [ ] Gamification system (XP, streaks, achievements)

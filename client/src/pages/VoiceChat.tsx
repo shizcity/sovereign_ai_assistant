@@ -44,8 +44,26 @@ export default function VoiceChat() {
       // If voice mode is active, synthesize speech
       if (voiceMode !== "off") {
         setIsProcessing(true);
+        // Strip markdown so TTS doesn't read symbols aloud
+        const cleanText = data.content
+          .replace(/#{1,6}\s+/g, "")
+          .replace(/\*\*(.+?)\*\*/g, "$1")
+          .replace(/\*(.+?)\*/g, "$1")
+          .replace(/_(.+?)_/g, "$1")
+          .replace(/~~(.+?)~~/g, "$1")
+          .replace(/`{1,3}[^`]*`{1,3}/g, "")
+          .replace(/```[\s\S]*?```/g, "")
+          .replace(/!?\[([^\]]+)\]\([^)]+\)/g, "$1")
+          .replace(/^[-*+]\s+/gm, "")
+          .replace(/^\d+\.\s+/gm, "")
+          .replace(/^>\s+/gm, "")
+          .replace(/[-_*]{3,}/g, "")
+          .replace(/\|/g, " ")
+          .replace(/\n{2,}/g, ". ")
+          .replace(/\n/g, " ")
+          .trim();
         synthesizeMutation.mutate({
-          text: data.content,
+          text: cleanText,
           voice: "alloy",
         });
       } else {

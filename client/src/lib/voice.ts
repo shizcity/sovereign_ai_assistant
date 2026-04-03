@@ -224,6 +224,30 @@ class VoiceService {
     }
   }
 
+  /**
+   * Strip markdown formatting from text before TTS synthesis
+   * so symbols like ** and _ are not read aloud.
+   */
+  private stripMarkdown(text: string): string {
+    return text
+      .replace(/#{1,6}\s+/g, "")           // headings
+      .replace(/\*\*(.+?)\*\*/g, "$1")     // bold
+      .replace(/\*(.+?)\*/g, "$1")         // italic *
+      .replace(/_(.+?)_/g, "$1")           // italic _
+      .replace(/~~(.+?)~~/g, "$1")         // strikethrough
+      .replace(/`{1,3}[^`]*`{1,3}/g, "")  // inline code / code blocks
+      .replace(/```[\s\S]*?```/g, "")      // fenced code blocks
+      .replace(/!?\[([^\]]+)\]\([^)]+\)/g, "$1") // links and images
+      .replace(/^[-*+]\s+/gm, "")         // unordered list markers
+      .replace(/^\d+\.\s+/gm, "")         // ordered list markers
+      .replace(/^>\s+/gm, "")             // blockquotes
+      .replace(/[-_*]{3,}/g, "")          // horizontal rules
+      .replace(/\|/g, " ")               // table pipes
+      .replace(/\n{2,}/g, ". ")           // multiple newlines to pause
+      .replace(/\n/g, " ")               // single newlines to space
+      .trim();
+  }
+
   public speak(text: string, config?: Partial<VoiceConfig>) {
     const finalConfig: VoiceConfig = {
       sentinelName: config?.sentinelName || this.currentConfig?.sentinelName || "Default",
@@ -236,7 +260,9 @@ class VoiceService {
     // Cancel any ongoing speech
     this.synthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Strip markdown formatting so symbols are not read aloud
+    const cleanText = this.stripMarkdown(text);
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.pitch = finalConfig.pitch;
     utterance.rate = finalConfig.rate;
     utterance.volume = finalConfig.volume;

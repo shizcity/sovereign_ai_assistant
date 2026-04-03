@@ -628,8 +628,8 @@ export default function MySentinels() {
       <div className="max-w-5xl mx-auto px-6 py-8">
         {/* Create Dialog */}
         <Dialog open={showCreate} onOpenChange={setShowCreate}>
-          <DialogContent className="bg-[#0f0f1a] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="bg-[#0f0f1a] border-white/10 text-white max-w-2xl flex flex-col" style={{maxHeight: '90vh'}}>
+            <DialogHeader className="shrink-0">
               <DialogTitle className="flex items-center gap-2">
                 <Wand2 className="w-5 h-5 text-amber-400" />
                 Create a New Sentinel
@@ -638,31 +638,35 @@ export default function MySentinels() {
                 Define your Sentinel's identity, personality, and expertise.
               </DialogDescription>
             </DialogHeader>
-            <SentinelForm
-              initial={EMPTY_FORM}
-              onSubmit={(data) => createMutation.mutate(data)}
-              onCancel={() => setShowCreate(false)}
-              isLoading={createMutation.isPending}
-            />
+            <div className="overflow-y-auto flex-1 pr-1">
+              <SentinelForm
+                initial={EMPTY_FORM}
+                onSubmit={(data) => createMutation.mutate(data)}
+                onCancel={() => setShowCreate(false)}
+                isLoading={createMutation.isPending}
+              />
+            </div>
           </DialogContent>
         </Dialog>
 
         {/* Edit Dialog */}
         {editTarget && (
           <Dialog open={!!editTarget} onOpenChange={() => setEditTarget(null)}>
-            <DialogContent className="bg-[#0f0f1a] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
+            <DialogContent className="bg-[#0f0f1a] border-white/10 text-white max-w-2xl flex flex-col" style={{maxHeight: '90vh'}}>
+              <DialogHeader className="shrink-0">
                 <DialogTitle className="flex items-center gap-2">
                   <Pencil className="w-5 h-5 text-amber-400" />
                   Edit {editTarget.name}
                 </DialogTitle>
               </DialogHeader>
-              <SentinelForm
-                initial={toFormData(editTarget)}
-                onSubmit={(data) => updateMutation.mutate({ id: editTarget.id, ...data })}
-                onCancel={() => setEditTarget(null)}
-                isLoading={updateMutation.isPending}
-              />
+              <div className="overflow-y-auto flex-1 pr-1">
+                <SentinelForm
+                  initial={toFormData(editTarget)}
+                  onSubmit={(data) => updateMutation.mutate({ id: editTarget.id, ...data })}
+                  onCancel={() => setEditTarget(null)}
+                  isLoading={updateMutation.isPending}
+                />
+              </div>
             </DialogContent>
           </Dialog>
         )}

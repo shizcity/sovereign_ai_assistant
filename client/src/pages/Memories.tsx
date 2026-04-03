@@ -397,8 +397,9 @@ export default function Memories() {
         {/* Edit Memory Dialog */}
         {editingMemory && (
           <Dialog open={!!editingMemory} onOpenChange={() => setEditingMemory(null)}>
-            <DialogContent className="bg-slate-800 border-slate-700 text-white">
+            <DialogContent className="bg-slate-800 border-slate-700 text-white flex flex-col" style={{maxHeight: '90vh'}}>
               <form
+                className="flex flex-col flex-1 overflow-hidden"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -410,10 +411,10 @@ export default function Memories() {
                   });
                 }}
               >
-                <DialogHeader>
+                <DialogHeader className="shrink-0">
                   <DialogTitle>Edit Memory</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-4 py-4 overflow-y-auto flex-1">
                   <div>
                     <Label>Content</Label>
                     <Textarea
@@ -451,7 +452,7 @@ export default function Memories() {
                     />
                   </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="shrink-0 pt-2">
                   <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
                     Save Changes
                   </Button>
