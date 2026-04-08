@@ -624,6 +624,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
           systemPrompt: DEFAULT_SYSTEM_PROMPT,
           emailDigestFrequency: "weekly" as const,
           lastDigestSent: null,
+          ttsEnabled: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -641,6 +642,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
         theme: z.string().optional(),
         systemPrompt: z.string().max(10000).optional(),
         emailDigestFrequency: z.enum(["weekly", "monthly", "both", "off"]).optional(),
+        ttsEnabled: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { upsertUserSettings } = await import("./db");

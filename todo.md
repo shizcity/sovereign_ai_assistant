@@ -1460,3 +1460,11 @@
 - [ ] Frontend isProOrAbove() shared utility to prevent tier-check regressions
 - [ ] Creator tier badge in settings and profile
 - [ ] Gamification system (XP, streaks, achievements)
+
+## Features - TTS Global Toggle + Per-Message Playback
+- [x] Add ttsEnabled field to user settings in DB schema
+- [x] Add getTtsSettings and setTtsEnabled server procedures
+- [x] Add global TTS toggle in Settings page
+- [x] Add per-message speaker icon on AI messages in Chat
+- [x] Wire speaker icon to voice.ts speak() with stripMarkdown
+- [x] Respect global ttsEnabled setting for auto-play after AI response

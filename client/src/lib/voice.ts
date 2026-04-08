@@ -9,6 +9,7 @@ export interface VoiceConfig {
   rate: number; // 0.1 to 10
   volume: number; // 0.0 to 1.0
   voiceName?: string; // Preferred voice name
+  onEnd?: () => void; // Callback when speech finishes
 }
 
 export interface SpeechRecognitionResult {
@@ -287,6 +288,7 @@ class VoiceService {
     utterance.onend = () => {
       this.isSpeaking = false;
       this.currentUtterance = null;
+      if (finalConfig.onEnd) finalConfig.onEnd();
       if (!this.isListening) {
         this.emit({ type: "idle" });
       }

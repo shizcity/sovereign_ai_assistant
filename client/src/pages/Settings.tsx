@@ -10,13 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Save, RotateCcw } from "lucide-react";
+import { ArrowLeft, Loader2, Save, RotateCcw, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { APP_TITLE } from "@/const";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { EmailPreferences } from "@/components/EmailPreferences";
+import { Switch } from "@/components/ui/switch";
 
 const AI_MODELS = [
   { value: "gpt-4", label: "GPT-4" },
@@ -31,6 +32,7 @@ export default function Settings() {
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [defaultModel, setDefaultModel] = useState("gpt-4");
+  const [ttsEnabled, setTtsEnabled] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -66,11 +68,12 @@ export default function Settings() {
   useEffect(() => {
     if (settings) {
       setDefaultModel(settings.defaultModel || "gpt-4");
+      setTtsEnabled(settings.ttsEnabled ?? false);
     }
   }, [settings]);
 
   const handleSave = () => {
-    updateSettings.mutate({ defaultModel });
+    updateSettings.mutate({ defaultModel, ttsEnabled });
   };
 
   if (authLoading || settingsLoading) {
@@ -187,6 +190,37 @@ export default function Settings() {
                   </>
                 )}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Voice & TTS Settings Card */}
+          <Card className="bg-card text-card-foreground border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-primary" />
+                Voice & Audio
+              </CardTitle>
+              <CardDescription>
+                Control how Glow reads AI responses aloud
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="tts-toggle" className="text-base font-medium">Auto-read responses</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically speak AI responses aloud after each reply. You can also tap the speaker icon on any message to play it on demand.
+                  </p>
+                </div>
+                <Switch
+                  id="tts-toggle"
+                  checked={ttsEnabled}
+                  onCheckedChange={(checked) => {
+                    setTtsEnabled(checked);
+                    updateSettings.mutate({ ttsEnabled: checked });
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 

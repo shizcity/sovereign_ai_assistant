@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2 } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -71,6 +71,7 @@ export default function Chat() {
   const [editingConvTitle, setEditingConvTitle] = useState("");
   const [voiceMode, setVoiceMode] = useState<"off" | "manual" | "continuous">("off");
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
 
   // Welcome screen Sentinel card interaction state
   const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
@@ -115,6 +116,10 @@ export default function Chat() {
   }, [inputMessage]);
 
   const utils = trpc.useUtils();
+
+  // Fetch user settings (for TTS preference)
+  const { data: userSettings } = trpc.settings.get.useQuery(undefined, { enabled: !!user });
+  const ttsEnabled = userSettings?.ttsEnabled ?? false;
 
   // Fetch available models
   const { data: modelsData } = trpc.models.available.useQuery();
@@ -405,8 +410,8 @@ export default function Chat() {
       onSuccess: (data) => {
         // Reset target Sentinel selection after sending
         setTargetSentinelId(undefined);
-        // Automatically speak the AI response if a Sentinel is active
-        if (activeSentinel && data.content) {
+        // Automatically speak the AI response if TTS is enabled globally
+        if (ttsEnabled && activeSentinel && data.content) {
           voiceService.speak(data.content, {
             sentinelName: activeSentinel.name,
           });
@@ -1320,16 +1325,41 @@ export default function Chat() {
                             {message.totalTokens && <span>{message.totalTokens} tokens</span>}
                             {message.costUsd && <span>${message.costUsd}</span>}
                           </div>
-                          {index === messages.length - 1 && (
+                          <div className="flex items-center gap-2">
+                            {/* Per-message TTS speaker button */}
                             <button
-                              onClick={handleRegenerateMessage}
-                              disabled={regenerateMessage.isPending}
-                              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                              onClick={() => {
+                                if (playingMessageId === message.id) {
+                                  voiceService.stopSpeaking();
+                                  setPlayingMessageId(null);
+                                } else {
+                                  setPlayingMessageId(message.id);
+                                  voiceService.speak(message.content, {
+                                    sentinelName: activeSentinel?.name,
+                                    onEnd: () => setPlayingMessageId(null),
+                                  });
+                                }
+                              }}
+                              className="flex items-center gap-1 text-gray-400 hover:text-cyan-400 transition-colors"
+                              title={playingMessageId === message.id ? "Stop reading" : "Read aloud"}
                             >
-                              <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? "animate-spin" : ""}`} />
-                              Regenerate
+                              {playingMessageId === message.id ? (
+                                <VolumeX className="w-3.5 h-3.5" />
+                              ) : (
+                                <Volume2 className="w-3.5 h-3.5" />
+                              )}
                             </button>
-                          )}
+                            {index === messages.length - 1 && (
+                              <button
+                                onClick={handleRegenerateMessage}
+                                disabled={regenerateMessage.isPending}
+                                className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                              >
+                                <RefreshCw className={`w-3 h-3 ${regenerateMessage.isPending ? "animate-spin" : ""}`} />
+                                Regenerate
+                              </button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

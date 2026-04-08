@@ -82,6 +82,7 @@ export const userSettings = mysqlTable("userSettings", {
   systemPrompt: text("systemPrompt"),
   emailDigestFrequency: varchar("emailDigestFrequency", { length: 20 }).default("weekly"), // 'weekly' | 'monthly' | 'both' | 'off'
   lastDigestSent: timestamp("lastDigestSent"),
+  ttsEnabled: boolean("ttsEnabled").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
