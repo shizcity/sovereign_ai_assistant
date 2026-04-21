@@ -90,6 +90,55 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1).max(200) }))
+      .query(async ({ ctx, input }) => {
+        const db = await (await import("./db")).getDb();
+        if (!db) return [];
+        const { conversations, messages } = await import("../drizzle/schema");
+        const { eq, like, and, desc } = await import("drizzle-orm");
+        const term = `%${input.query}%`;
+        // Find messages matching the query, joined to their conversation
+        const rows = await db
+          .select({
+            conversationId: conversations.id,
+            conversationTitle: conversations.title,
+            messageContent: messages.content,
+            messageRole: messages.role,
+            messageCreatedAt: messages.createdAt,
+            conversationUpdatedAt: conversations.updatedAt,
+          })
+          .from(messages)
+          .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+          .where(
+            and(
+              eq(conversations.userId, ctx.user.id),
+              like(messages.content, term)
+            )
+          )
+          .orderBy(desc(messages.createdAt))
+          .limit(30);
+        // Deduplicate by conversationId, keeping the most recent matching message as snippet
+        const seen = new Map<number, { conversationId: number; conversationTitle: string; snippet: string; updatedAt: Date }>();
+        for (const row of rows) {
+          if (!seen.has(row.conversationId)) {
+            // Truncate snippet to ~120 chars around the match
+            const content = row.messageContent;
+            const idx = content.toLowerCase().indexOf(input.query.toLowerCase());
+            const start = Math.max(0, idx - 40);
+            const end = Math.min(content.length, idx + 80);
+            const snippet = (start > 0 ? "…" : "") + content.slice(start, end) + (end < content.length ? "…" : "");
+            seen.set(row.conversationId, {
+              conversationId: row.conversationId,
+              conversationTitle: row.conversationTitle,
+              snippet,
+              updatedAt: row.conversationUpdatedAt,
+            });
+          }
+        }
+        return Array.from(seen.values());
+      }),
+
     cleanupEmpty: protectedProcedure.mutation(async ({ ctx }) => {
       const { deleteEmptyConversations } = await import("./db");
       const deletedCount = await deleteEmptyConversations(ctx.user.id);

@@ -1464,6 +1464,13 @@
   - [x] Per-message speaker icon on all assistant messages (pulsing indicator when playing)
   - [x] Speaker icon uses message-specific Sentinel voice, stops previous playback
   - [x] ttsEnabled read from DB via settings.get query (not localStorage)
+## Session Replay + Full-Text Search
+- [x] Round Table: wire getSession tRPC procedure to load full session data
+- [x] Round Table: clicking History item loads and displays ResultsView with past session
+- [x] Conversation full-text search: add conversations.search tRPC procedure (LIKE query on content)
+- [x] Chat sidebar: upgrade search to query message content, not just conversation titles
+- [x] Chat sidebar: show matching message snippet under conversation title in results (debounced 400ms)
+
 ## Phase 2 - Round Table Intelligence
 - [x] Contradiction flagging: detect when Sentinels disagree on facts/conclusions and surface as structured flags
 - [x] Dissent display: show per-Sentinel dissent score and which Sentinels are outliers

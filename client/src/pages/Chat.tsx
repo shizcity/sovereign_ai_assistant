@@ -78,6 +78,7 @@ export default function Chat() {
   const [targetSentinelId, setTargetSentinelId] = useState<number | undefined>(); // Manual Sentinel selection for next message
   const [inputMessage, setInputMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [selectedTags, setSelectedTags] = useState<Set<number>>(new Set());
@@ -123,6 +124,18 @@ export default function Chat() {
     const steps = loadOnboardingSteps();
     return !isOnboardingComplete(steps);
   });
+
+  // Debounce search query by 400ms to avoid hammering the server
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Full-text search across message content (only fires when query >= 2 chars)
+  const { data: messageSearchResults } = trpc.conversations.search.useQuery(
+    { query: debouncedSearch },
+    { enabled: debouncedSearch.length >= 2 }
+  );
 
   const markOnboardingStep = (step: Parameters<typeof saveOnboardingStep>[0]) => {
     saveOnboardingStep(step);
@@ -957,12 +970,41 @@ export default function Chat() {
         {/* Conversations List — date grouped */}
         <div className="flex-1 overflow-y-auto min-h-0">
           <div className="p-2">
+            {/* Full-text message search results — shown when query >= 2 chars */}
+            {debouncedSearch.length >= 2 && messageSearchResults !== undefined && (
+              <div className="mb-2">
+                <div className="flex items-center gap-2 px-2 pt-3 pb-1">
+                  <span className="text-[10px] font-semibold tracking-widest text-cyan-400/60 uppercase">Message results</span>
+                  <div className="flex-1 h-px bg-white/8" />
+                  <span className="text-[10px] text-white/25">{messageSearchResults.length}</span>
+                </div>
+                {messageSearchResults.length === 0 ? (
+                  <p className="text-xs text-white/30 px-3 py-2">No messages matched "{debouncedSearch}"</p>
+                ) : (
+                  messageSearchResults.map((r) => (
+                    <div
+                      key={r.conversationId}
+                      onClick={() => setSelectedConversation(r.conversationId)}
+                      className={`px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
+                        selectedConversation === r.conversationId ? "nav-item-active" : "hover:bg-white/6"
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-white/85 truncate">{r.conversationTitle}</p>
+                      <p className="text-xs text-white/40 mt-0.5 line-clamp-2 leading-relaxed italic">
+                        {r.snippet}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
             {filteredConversations.length === 0 ? (
               searchQuery ? (
-                /* Search returned no results */
-                <div className="flex flex-col items-center justify-center h-32 text-gray-500">
-                  <Search className="w-7 h-7 mb-2 opacity-40" />
-                  <p className="text-sm text-white/40">No conversations found</p>
+                /* Search returned no results for title — but message results may be shown above */
+                <div className="flex flex-col items-center justify-center h-24 text-gray-500">
+                  <Search className="w-6 h-6 mb-2 opacity-30" />
+                  <p className="text-sm text-white/30">No title matches</p>
                   <button
                     onClick={() => setSearchQuery("")}
                     className="text-xs text-cyan-400 hover:text-cyan-300 mt-2 transition-colors"

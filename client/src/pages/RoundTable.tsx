@@ -542,6 +542,7 @@ export default function RoundTable() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [result, setResult] = useState<RoundTableResult | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [loadingSessionId, setLoadingSessionId] = useState<number | null>(null);
 
   const { data: sentinelList } = trpc.sentinels.list.useQuery();
   const { data: history, refetch: refetchHistory } = trpc.roundTable.history.useQuery();
@@ -580,8 +581,22 @@ export default function RoundTable() {
     startMutation.reset();
   };
 
-  const loadHistorySession = async (_sessionId: number) => {
+  const { data: sessionData, isFetching: sessionLoading } = trpc.roundTable.getSession.useQuery(
+    { sessionId: loadingSessionId ?? 0 },
+    { enabled: loadingSessionId !== null }
+  );
+
+  // When session data arrives, display it in ResultsView
+  const prevSessionData = useState<typeof sessionData>(undefined);
+  if (sessionData && sessionData !== prevSessionData[0]) {
+    prevSessionData[1](sessionData);
+    setResult(sessionData as RoundTableResult);
+    setLoadingSessionId(null);
     setShowHistory(false);
+  }
+
+  const loadHistorySession = (sessionId: number) => {
+    setLoadingSessionId(sessionId);
   };
 
   // ── Gate: Pro/Creator only ──

@@ -673,7 +673,7 @@ export async function getRoundTableHistory(userId: number, limit = 20) {
     .limit(limit);
 }
 
-export async function getRoundTableSession(sessionId: number, userId: number) {
+export async function getRoundTableSession(sessionId: number, userId: number): Promise<RoundTableResult | null> {
   const db = await getDb();
   if (!db) return null;
 
@@ -687,11 +687,72 @@ export async function getRoundTableSession(sessionId: number, userId: number) {
 
   if (!session) return null;
 
-  const reasoning = await db
+  const reasoningRows = await db
     .select()
     .from(roundTableReasoning)
     .where(eq(roundTableReasoning.sessionId, sessionId))
     .orderBy(roundTableReasoning.round, roundTableReasoning.sentinelId);
 
-  return { session, reasoning };
+  // Parse sentinel list from session
+  const sentinelIds: number[] = JSON.parse(session.sentinelIds || "[]");
+  const sentinelNames: string[] = JSON.parse(session.sentinelNames || "[]");
+
+  // Build sentinel list from reasoning rows (deduplicated by id)
+  const sentinelMap = new Map<number, { id: number; name: string; slug: string; emoji: string; systemPrompt: string }>();
+  for (const r of reasoningRows) {
+    if (!sentinelMap.has(r.sentinelId)) {
+      sentinelMap.set(r.sentinelId, {
+        id: r.sentinelId,
+        name: r.sentinelName,
+        slug: r.sentinelName.toLowerCase().replace(/\s+/g, "-"),
+        emoji: r.sentinelEmoji ?? "🤖",
+        systemPrompt: "",
+      });
+    }
+  }
+  // Fallback: build from sentinelIds/sentinelNames if reasoning is empty
+  if (sentinelMap.size === 0) {
+    sentinelIds.forEach((id, i) => {
+      sentinelMap.set(id, { id, name: sentinelNames[i] ?? `Sentinel ${id}`, slug: "", emoji: "🤖", systemPrompt: "" });
+    });
+  }
+
+  // Transform reasoning rows
+  const reasoningChains: SentinelReasoning[] = reasoningRows.map((r) => ({
+    sentinelId: r.sentinelId,
+    sentinelName: r.sentinelName,
+    sentinelEmoji: r.sentinelEmoji ?? "🤖",
+    round: r.round,
+    thinkingChain: r.thinkingChain,
+    conclusion: r.conclusion,
+    confidence: parseFloat(r.confidence ?? "0.7"),
+    concerns: JSON.parse(r.concerns ?? "[]") as string[],
+    dissent: r.dissent ?? null,
+    memoriesUsed: JSON.parse(r.memoriesUsed ?? "[]") as string[],
+    dissentScore: parseFloat(r.dissentScore ?? "0"),
+    isOutlier: r.isOutlier === 1,
+  }));
+
+  // Parse structured contradictions
+  let contradictions: ContradictionFlag[] = [];
+  try {
+    contradictions = JSON.parse(session.contradictions ?? "[]") as ContradictionFlag[];
+  } catch {
+    contradictions = [];
+  }
+
+  return {
+    sessionId: session.id,
+    question: session.question,
+    sentinels: Array.from(sentinelMap.values()),
+    reasoningChains,
+    consensusScore: parseFloat(session.consensusScore ?? "0.5"),
+    hasContradiction: session.hasContradiction === 1,
+    contradictionSummary: session.contradictionSummary ?? null,
+    contradictions,
+    finalAnswer: session.finalAnswer ?? "",
+    finalSentinelName: session.finalSentinelName ?? "",
+    finalSentinelEmoji: reasoningRows.find((r) => r.sentinelName === session.finalSentinelName)?.sentinelEmoji ?? "🤖",
+    routingReason: session.routingReason ?? "",
+  };
 }
