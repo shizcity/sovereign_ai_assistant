@@ -1464,6 +1464,22 @@
   - [x] Per-message speaker icon on all assistant messages (pulsing indicator when playing)
   - [x] Speaker icon uses message-specific Sentinel voice, stops previous playback
   - [x] ttsEnabled read from DB via settings.get query (not localStorage)
+## Phase 2 - Round Table Intelligence
+- [x] Contradiction flagging: detect when Sentinels disagree on facts/conclusions and surface as structured flags
+- [x] Dissent display: show per-Sentinel dissent score and which Sentinels are outliers
+- [x] Output routing: score each Sentinel's final answer for relevance/confidence and highlight best-fit responder
+- [x] Expandable/collapsible reasoning chains in Round Table UI (collapsed by default, expand on click)
+- [x] Schema: add contradictions JSON column to round_table_sessions
+- [x] Schema: add dissentScore + isOutlier columns to round_table_reasoning
+- [x] Schema: add routingReason to round_table_sessions
+- [x] Engine: structured contradiction detection pass (parallel with consensus judge)
+- [x] Engine: dissent scoring (confidence deviation from group mean + dissent text bonus)
+- [x] Engine: output routing judge (LLM selects best-fit Sentinel with explicit reason)
+- [x] UI: collapsible reasoning chain cards with expand/collapse toggle
+- [x] UI: contradiction flag badges on conflicting Sentinel cards + CollapsibleContradictionPanel
+- [x] UI: dissent meter bar + Outlier badge per Sentinel
+- [x] UI: best-fit Sentinel highlighted with cyan glow + routing reason pill
+
 - [x] Referral / invite system
   - [x] Add referrals DB table (code, referrerId, refereeId, xpAwarded, claimedAt)
   - [x] Add referralCode column to users table

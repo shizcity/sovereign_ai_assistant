@@ -29,6 +29,19 @@ export interface SentinelReasoning {
   concerns: string[];
   dissent: string | null;
   memoriesUsed: string[];
+  // Phase 2 additions
+  dissentScore: number; // 0–1: how far this Sentinel diverges from group median
+  isOutlier: boolean;   // true if dissentScore > 0.5
+}
+
+/** A single structured contradiction between two specific Sentinels */
+export interface ContradictionFlag {
+  sentinelA: string;
+  sentinelB: string;
+  claim: string;        // The specific claim they disagree on
+  positionA: string;    // What Sentinel A says
+  positionB: string;    // What Sentinel B says
+  severity: "minor" | "moderate" | "major";
 }
 
 export interface RoundTableResult {
@@ -39,17 +52,15 @@ export interface RoundTableResult {
   consensusScore: number;
   hasContradiction: boolean;
   contradictionSummary: string | null;
+  contradictions: ContradictionFlag[]; // Phase 2: structured flags
   finalAnswer: string;
   finalSentinelName: string;
   finalSentinelEmoji: string;
+  routingReason: string; // Phase 2: why this Sentinel was chosen
 }
 
 // ─── Memory Loading ───────────────────────────────────────────────────────────
 
-/**
- * Load the most relevant memories for a given user and question context.
- * Uses keyword matching on tags and content since we don't have vector embeddings.
- */
 async function loadRelevantMemories(
   userId: number,
   question: string,
@@ -60,7 +71,6 @@ async function loadRelevantMemories(
   if (!db) return [];
 
   try {
-    // Extract keywords from the question (simple approach: words > 4 chars)
     const keywords = question
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
@@ -68,7 +78,6 @@ async function loadRelevantMemories(
       .filter((w) => w.length > 4)
       .slice(0, 8);
 
-    // Fetch recent high-importance memories for this user + sentinel
     const memories = await db
       .select()
       .from(sentinelMemoryEntries)
@@ -84,14 +93,12 @@ async function loadRelevantMemories(
 
     if (memories.length === 0) return [];
 
-    // Score memories by keyword overlap with the question
     const scored = memories.map((m) => {
       const text = (m.content + " " + (m.context || "") + " " + (m.tags || "")).toLowerCase();
       const score = keywords.filter((kw) => text.includes(kw)).length;
       return { memory: m, score };
     });
 
-    // Sort by score descending, take top `limit`
     scored.sort((a, b) => b.score - a.score);
     const top = scored.slice(0, limit);
 
@@ -188,6 +195,8 @@ Respond with your full reasoning in this exact JSON structure:
       concerns: Array.isArray(parsed.concerns) ? parsed.concerns : [],
       dissent: parsed.dissent || null,
       memoriesUsed: memories,
+      dissentScore: 0,  // computed later by computeDissentScores
+      isOutlier: false,
     };
   } catch (err) {
     console.error(`[RoundTable] Error in ${sentinel.name} reasoning:`, err);
@@ -202,11 +211,149 @@ Respond with your full reasoning in this exact JSON structure:
       concerns: ["Technical error during reasoning"],
       dissent: null,
       memoriesUsed: [],
+      dissentScore: 0,
+      isOutlier: false,
     };
   }
 }
 
-// ─── Consensus Judge ──────────────────────────────────────────────────────────
+// ─── Dissent Scoring ──────────────────────────────────────────────────────────
+
+/**
+ * Compute a dissent score for each Sentinel based on how far their confidence
+ * and explicit dissent diverge from the group. Uses a simple heuristic:
+ * - Base score from confidence deviation from group mean
+ * - Bonus if the Sentinel has an explicit dissent text
+ * - Normalized to 0–1 range
+ */
+function computeDissentScores(chains: SentinelReasoning[]): SentinelReasoning[] {
+  // Only score the final round
+  const maxRound = Math.max(...chains.map((r) => r.round));
+  const finalRound = chains.filter((r) => r.round === maxRound);
+
+  if (finalRound.length < 2) {
+    return chains.map((r) => ({ ...r, dissentScore: 0, isOutlier: false }));
+  }
+
+  const meanConfidence =
+    finalRound.reduce((sum, r) => sum + r.confidence, 0) / finalRound.length;
+
+  const scored = new Map<number, number>();
+  for (const r of finalRound) {
+    const confidenceDelta = Math.abs(r.confidence - meanConfidence);
+    const dissentBonus = r.dissent ? 0.3 : 0;
+    const rawScore = Math.min(1, confidenceDelta * 2 + dissentBonus);
+    scored.set(r.sentinelId, rawScore);
+  }
+
+  return chains.map((r) => {
+    const dissentScore = scored.get(r.sentinelId) ?? 0;
+    return {
+      ...r,
+      dissentScore,
+      isOutlier: dissentScore > 0.4,
+    };
+  });
+}
+
+// ─── Structured Contradiction Detection ──────────────────────────────────────
+
+async function detectContradictions(
+  question: string,
+  reasoningChains: SentinelReasoning[]
+): Promise<ContradictionFlag[]> {
+  const maxRound = Math.max(...reasoningChains.map((r) => r.round));
+  const finalRound = reasoningChains.filter((r) => r.round === maxRound);
+
+  if (finalRound.length < 2) return [];
+
+  const conclusionsSummary = finalRound
+    .map((r) => `**${r.sentinelName}**: ${r.conclusion}`)
+    .join("\n\n");
+
+  const sentinelNames = finalRound.map((r) => r.sentinelName);
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a contradiction analyst. Your job is to identify specific factual or logical disagreements between multiple AI perspectives. Be precise and only flag genuine contradictions, not mere differences in emphasis.",
+        },
+        {
+          role: "user",
+          content: `Question: ${question}
+
+Final conclusions from each Sentinel:
+${conclusionsSummary}
+
+Identify any specific contradictions where two Sentinels take genuinely opposing positions on the same claim. For each contradiction, identify:
+1. Which two Sentinels contradict each other
+2. The specific claim they disagree on
+3. Each Sentinel's position on that claim
+4. Severity: "minor" (different emphasis), "moderate" (different conclusions), "major" (directly opposing facts)
+
+Available Sentinels: ${sentinelNames.join(", ")}
+
+Return a JSON array. If there are no meaningful contradictions, return an empty array [].
+
+{
+  "contradictions": [
+    {
+      "sentinelA": "Sentinel Name",
+      "sentinelB": "Other Sentinel Name",
+      "claim": "The specific point they disagree on",
+      "positionA": "What Sentinel A says about this claim",
+      "positionB": "What Sentinel B says about this claim",
+      "severity": "moderate"
+    }
+  ]
+}`,
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "contradiction_analysis",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              contradictions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    sentinelA: { type: "string" },
+                    sentinelB: { type: "string" },
+                    claim: { type: "string" },
+                    positionA: { type: "string" },
+                    positionB: { type: "string" },
+                    severity: { type: "string", enum: ["minor", "moderate", "major"] },
+                  },
+                  required: ["sentinelA", "sentinelB", "claim", "positionA", "positionB", "severity"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["contradictions"],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const content = response.choices[0].message.content;
+    const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+    return Array.isArray(parsed.contradictions) ? parsed.contradictions : [];
+  } catch (err) {
+    console.error("[RoundTable] Contradiction detection error:", err);
+    return [];
+  }
+}
+
+// ─── Consensus Judge + Output Routing ────────────────────────────────────────
 
 async function judgeConsensus(
   question: string,
@@ -243,7 +390,7 @@ ${conclusionsSummary}
 Evaluate:
 1. How much do these conclusions agree? (consensusScore: 0.0 = complete disagreement, 1.0 = perfect alignment)
 2. Is there a meaningful contradiction that the user should know about?
-3. Which Sentinel's perspective is best suited to deliver the final synthesized answer, and why?
+3. Which Sentinel's perspective is best suited to deliver the final synthesized answer, and why? Consider which Sentinel's domain expertise, reasoning style, and conclusion best serves this specific question.
 
 Available Sentinels: ${sentinelNames.join(", ")}
 
@@ -253,7 +400,7 @@ Respond in JSON:
   "hasContradiction": false,
   "contradictionSummary": null,
   "bestSentinelForAnswer": "Sentinel Name",
-  "bestSentinelReason": "Why this Sentinel is best suited to deliver the final answer"
+  "bestSentinelReason": "Why this Sentinel is best suited to deliver the final answer — be specific about their domain fit and reasoning quality"
 }`,
         },
       ],
@@ -399,7 +546,7 @@ export async function runRoundTable(
 
   const sessionId = (sessionResult as any).insertId as number;
 
-  const allReasoning: SentinelReasoning[] = [];
+  let allReasoning: SentinelReasoning[] = [];
 
   try {
     // Load memories for each Sentinel
@@ -411,7 +558,6 @@ export async function runRoundTable(
     // Run deliberation rounds
     for (let round = 1; round <= maxRounds; round++) {
       for (const sentinel of selectedSentinels) {
-        // Each Sentinel sees all previous reasoning (from all Sentinels, all rounds)
         const previousReasoning = allReasoning.filter(
           (r) => !(r.sentinelId === sentinel.id && r.round === round)
         );
@@ -425,26 +571,36 @@ export async function runRoundTable(
         );
 
         allReasoning.push(reasoning);
-
-        // Save reasoning to DB
-        await db.insert(roundTableReasoning).values({
-          sessionId,
-          sentinelId: sentinel.id,
-          sentinelName: sentinel.name,
-          sentinelEmoji: sentinel.emoji,
-          round,
-          thinkingChain: reasoning.thinkingChain,
-          conclusion: reasoning.conclusion,
-          confidence: reasoning.confidence.toFixed(2),
-          concerns: JSON.stringify(reasoning.concerns),
-          dissent: reasoning.dissent,
-          memoriesUsed: JSON.stringify(reasoning.memoriesUsed),
-        });
       }
     }
 
-    // Judge consensus
-    const judgment = await judgeConsensus(question, allReasoning);
+    // Phase 2: Compute dissent scores across all reasoning chains
+    allReasoning = computeDissentScores(allReasoning);
+
+    // Phase 2: Detect structured contradictions (runs in parallel with consensus judge)
+    const [judgment, contradictions] = await Promise.all([
+      judgeConsensus(question, allReasoning),
+      detectContradictions(question, allReasoning),
+    ]);
+
+    // Save all reasoning to DB (with dissent scores)
+    for (const reasoning of allReasoning) {
+      await db.insert(roundTableReasoning).values({
+        sessionId,
+        sentinelId: reasoning.sentinelId,
+        sentinelName: reasoning.sentinelName,
+        sentinelEmoji: reasoning.sentinelEmoji,
+        round: reasoning.round,
+        thinkingChain: reasoning.thinkingChain,
+        conclusion: reasoning.conclusion,
+        confidence: reasoning.confidence.toFixed(2),
+        concerns: JSON.stringify(reasoning.concerns),
+        dissent: reasoning.dissent,
+        dissentScore: reasoning.dissentScore.toFixed(2),
+        isOutlier: reasoning.isOutlier ? 1 : 0,
+        memoriesUsed: JSON.stringify(reasoning.memoriesUsed),
+      });
+    }
 
     // Find the delivering Sentinel
     const deliveringSentinel =
@@ -461,7 +617,7 @@ export async function runRoundTable(
       judgment.contradictionSummary
     );
 
-    // Update session as completed
+    // Update session as completed — including new Phase 2 fields
     await db
       .update(roundTableSessions)
       .set({
@@ -470,9 +626,11 @@ export async function runRoundTable(
         consensusScore: judgment.consensusScore.toFixed(2),
         hasContradiction: judgment.hasContradiction ? 1 : 0,
         contradictionSummary: judgment.contradictionSummary,
+        contradictions: JSON.stringify(contradictions),
         finalAnswer,
         finalSentinelId: deliveringSentinel.id,
         finalSentinelName: deliveringSentinel.name,
+        routingReason: judgment.bestSentinelReason,
         completedAt: new Date(),
       })
       .where(eq(roundTableSessions.id, sessionId));
@@ -485,9 +643,11 @@ export async function runRoundTable(
       consensusScore: judgment.consensusScore,
       hasContradiction: judgment.hasContradiction,
       contradictionSummary: judgment.contradictionSummary,
+      contradictions,
       finalAnswer,
       finalSentinelName: deliveringSentinel.name,
       finalSentinelEmoji: deliveringSentinel.emoji,
+      routingReason: judgment.bestSentinelReason,
     };
   } catch (err) {
     // Mark session as failed

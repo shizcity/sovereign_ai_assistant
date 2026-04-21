@@ -18,6 +18,10 @@ import {
   Brain,
   Clock,
   History,
+  Zap,
+  GitFork,
+  Route,
+  TrendingDown,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
@@ -35,6 +39,17 @@ interface SentinelReasoning {
   concerns: string[];
   dissent: string | null;
   memoriesUsed: string[];
+  dissentScore: number;
+  isOutlier: boolean;
+}
+
+interface ContradictionFlag {
+  sentinelA: string;
+  sentinelB: string;
+  claim: string;
+  positionA: string;
+  positionB: string;
+  severity: "minor" | "moderate" | "major";
 }
 
 interface RoundTableResult {
@@ -45,12 +60,14 @@ interface RoundTableResult {
   consensusScore: number;
   hasContradiction: boolean;
   contradictionSummary: string | null;
+  contradictions: ContradictionFlag[];
   finalAnswer: string;
   finalSentinelName: string;
   finalSentinelEmoji: string;
+  routingReason: string;
 }
 
-// ─── Sentinel Card ────────────────────────────────────────────────────────────
+// ─── Sentinel Select Card ─────────────────────────────────────────────────────
 
 function SentinelSelectCard({
   sentinel,
@@ -89,17 +106,43 @@ function SentinelSelectCard({
   );
 }
 
-// ─── Reasoning Card ───────────────────────────────────────────────────────────
+// ─── Reasoning Card (Phase 2: dissent meter, outlier badge, improved expand) ──
 
-function ReasoningCard({ reasoning }: { reasoning: SentinelReasoning }) {
+function ReasoningCard({
+  reasoning,
+  contradictions,
+  isBestFit,
+}: {
+  reasoning: SentinelReasoning;
+  contradictions: ContradictionFlag[];
+  isBestFit: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const confidencePct = Math.round(reasoning.confidence * 100);
   const confidenceColor =
     confidencePct >= 80 ? "text-emerald-400" : confidencePct >= 60 ? "text-amber-400" : "text-red-400";
 
+  // Find contradictions involving this Sentinel
+  const myContradictions = contradictions.filter(
+    (c) => c.sentinelA === reasoning.sentinelName || c.sentinelB === reasoning.sentinelName
+  );
+
+  const dissentPct = Math.round((reasoning.dissentScore ?? 0) * 100);
+
+  const severityColor = (s: ContradictionFlag["severity"]) =>
+    s === "major" ? "text-red-400 border-red-500/40 bg-red-500/8" :
+    s === "moderate" ? "text-amber-400 border-amber-500/40 bg-amber-500/8" :
+    "text-yellow-400/80 border-yellow-500/30 bg-yellow-500/5";
+
   return (
-    <div className="border border-white/10 rounded-xl bg-white/3 overflow-hidden">
+    <div className={`border rounded-xl overflow-hidden transition-all duration-200 ${
+      isBestFit
+        ? "border-cyan-500/40 bg-gradient-to-br from-cyan-950/30 to-indigo-950/20 shadow-[0_0_16px_rgba(6,182,212,0.1)]"
+        : reasoning.isOutlier
+        ? "border-amber-500/25 bg-white/3"
+        : "border-white/10 bg-white/3"
+    }`}>
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -112,9 +155,24 @@ function ReasoningCard({ reasoning }: { reasoning: SentinelReasoning }) {
             <Badge variant="outline" className="text-xs border-white/15 text-white/50 py-0">
               Round {reasoning.round}
             </Badge>
+            {isBestFit && (
+              <Badge className="text-xs bg-cyan-500/20 text-cyan-300 border-cyan-500/40 py-0 gap-1">
+                <Route className="w-2.5 h-2.5" /> Best Fit
+              </Badge>
+            )}
+            {reasoning.isOutlier && (
+              <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-400 py-0 gap-1">
+                <TrendingDown className="w-2.5 h-2.5" /> Outlier
+              </Badge>
+            )}
             {reasoning.dissent && (
-              <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-400 py-0">
+              <Badge variant="outline" className="text-xs border-orange-500/40 text-orange-400 py-0">
                 Dissent
+              </Badge>
+            )}
+            {myContradictions.length > 0 && (
+              <Badge variant="outline" className="text-xs border-red-500/40 text-red-400 py-0 gap-1">
+                <GitFork className="w-2.5 h-2.5" /> {myContradictions.length} conflict{myContradictions.length > 1 ? "s" : ""}
               </Badge>
             )}
           </div>
@@ -129,6 +187,22 @@ function ReasoningCard({ reasoning }: { reasoning: SentinelReasoning }) {
           )}
         </div>
       </button>
+
+      {/* Dissent meter — always visible when score > 0 */}
+      {dissentPct > 0 && (
+        <div className="px-4 pb-2 flex items-center gap-2">
+          <span className="text-xs text-white/30 w-16 shrink-0">Divergence</span>
+          <div className="flex-1 bg-white/8 rounded-full h-1">
+            <div
+              className={`h-1 rounded-full transition-all duration-500 ${
+                dissentPct > 50 ? "bg-amber-500" : dissentPct > 25 ? "bg-yellow-500/70" : "bg-white/25"
+              }`}
+              style={{ width: `${dissentPct}%` }}
+            />
+          </div>
+          <span className="text-xs text-white/30 w-8 text-right">{dissentPct}%</span>
+        </div>
+      )}
 
       {/* Expanded content */}
       {expanded && (
@@ -164,9 +238,28 @@ function ReasoningCard({ reasoning }: { reasoning: SentinelReasoning }) {
           )}
 
           {reasoning.dissent && (
-            <div className="bg-amber-500/8 border border-amber-500/20 rounded-lg p-3">
-              <div className="text-xs font-semibold text-amber-400 mb-1">Dissent</div>
-              <p className="text-xs text-amber-200/70">{reasoning.dissent}</p>
+            <div className="bg-orange-500/8 border border-orange-500/20 rounded-lg p-3">
+              <div className="text-xs font-semibold text-orange-400 mb-1">Dissent</div>
+              <p className="text-xs text-orange-200/70">{reasoning.dissent}</p>
+            </div>
+          )}
+
+          {/* Contradiction details for this Sentinel */}
+          {myContradictions.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-red-400/80 uppercase tracking-wider flex items-center gap-1">
+                <GitFork className="w-3 h-3" /> Conflicts Detected
+              </div>
+              {myContradictions.map((c, i) => (
+                <div key={i} className={`border rounded-lg p-3 text-xs ${severityColor(c.severity)}`}>
+                  <div className="font-semibold mb-1">{c.claim}</div>
+                  <div className="text-white/50 space-y-1">
+                    <div><span className="font-medium text-white/70">{c.sentinelA}:</span> {c.positionA}</div>
+                    <div><span className="font-medium text-white/70">{c.sentinelB}:</span> {c.positionB}</div>
+                  </div>
+                  <div className="mt-1.5 text-right capitalize opacity-70">{c.severity} conflict</div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -190,6 +283,70 @@ function ReasoningCard({ reasoning }: { reasoning: SentinelReasoning }) {
   );
 }
 
+// ─── Contradiction Panel ──────────────────────────────────────────────────────
+
+function ContradictionPanel({ contradictions }: { contradictions: ContradictionFlag[] }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!contradictions || contradictions.length === 0) return null;
+
+  const majorCount = contradictions.filter((c) => c.severity === "major").length;
+  const moderateCount = contradictions.filter((c) => c.severity === "moderate").length;
+
+  return (
+    <div className="bg-red-950/20 border border-red-500/25 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 p-4 hover:bg-red-500/5 transition-colors text-left"
+      >
+        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-red-300">
+            {contradictions.length} Contradiction{contradictions.length > 1 ? "s" : ""} Detected
+          </div>
+          <div className="text-xs text-red-400/60 mt-0.5">
+            {majorCount > 0 && `${majorCount} major`}
+            {majorCount > 0 && moderateCount > 0 && " · "}
+            {moderateCount > 0 && `${moderateCount} moderate`}
+            {majorCount === 0 && moderateCount === 0 && "Minor differences in emphasis"}
+          </div>
+        </div>
+        {expanded ? <ChevronUp className="w-4 h-4 text-red-400/50" /> : <ChevronDown className="w-4 h-4 text-red-400/50" />}
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-red-500/15 pt-3">
+          {contradictions.map((c, i) => (
+            <div key={i} className={`rounded-lg p-3 border text-xs ${
+              c.severity === "major" ? "bg-red-500/8 border-red-500/30" :
+              c.severity === "moderate" ? "bg-amber-500/8 border-amber-500/25" :
+              "bg-yellow-500/5 border-yellow-500/20"
+            }`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span className="font-semibold text-white/85">{c.claim}</span>
+                <span className={`shrink-0 capitalize text-xs px-1.5 py-0.5 rounded ${
+                  c.severity === "major" ? "bg-red-500/20 text-red-300" :
+                  c.severity === "moderate" ? "bg-amber-500/20 text-amber-300" :
+                  "bg-yellow-500/15 text-yellow-300"
+                }`}>{c.severity}</span>
+              </div>
+              <div className="space-y-1.5 text-white/55">
+                <div className="flex gap-2">
+                  <span className="font-medium text-white/70 shrink-0 w-24 truncate">{c.sentinelA}:</span>
+                  <span>{c.positionA}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-medium text-white/70 shrink-0 w-24 truncate">{c.sentinelB}:</span>
+                  <span>{c.positionB}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Results View ─────────────────────────────────────────────────────────────
 
 function ResultsView({
@@ -205,6 +362,12 @@ function ResultsView({
 
   // Group reasoning by round
   const rounds = Array.from(new Set(result.reasoningChains.map((r) => r.round))).sort();
+  const contradictions: ContradictionFlag[] = result.contradictions ?? [];
+
+  // Count outliers
+  const outlierCount = result.reasoningChains.filter(
+    (r) => r.round === Math.max(...result.reasoningChains.map((x) => x.round)) && r.isOutlier
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -214,9 +377,9 @@ function ResultsView({
         <p className="text-white/85 text-sm leading-relaxed">{result.question}</p>
       </div>
 
-      {/* Consensus bar */}
-      <div className="bg-white/4 border border-white/10 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
+      {/* Consensus + stats bar */}
+      <div className="bg-white/4 border border-white/10 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-semibold text-white">Council Consensus</span>
           <span className={`text-lg font-bold font-mono ${consensusColor}`}>{consensusPct}%</span>
         </div>
@@ -228,19 +391,42 @@ function ResultsView({
             style={{ width: `${consensusPct}%` }}
           />
         </div>
-        {result.hasContradiction && result.contradictionSummary && (
-          <div className="mt-3 flex items-start gap-2 bg-amber-500/8 border border-amber-500/20 rounded-lg p-3">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-200/75">{result.contradictionSummary}</p>
+        {/* Stats row */}
+        <div className="flex items-center gap-4 pt-1">
+          <div className="flex items-center gap-1.5 text-xs text-white/40">
+            <Users className="w-3 h-3" />
+            {result.sentinels.length} Sentinels
           </div>
-        )}
+          {contradictions.length > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-red-400/70">
+              <GitFork className="w-3 h-3" />
+              {contradictions.length} contradiction{contradictions.length > 1 ? "s" : ""}
+            </div>
+          )}
+          {outlierCount > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-400/70">
+              <TrendingDown className="w-3 h-3" />
+              {outlierCount} outlier{outlierCount > 1 ? "s" : ""}
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 text-xs text-white/40">
+            <Zap className="w-3 h-3" />
+            {rounds.length} round{rounds.length > 1 ? "s" : ""}
+          </div>
+        </div>
       </div>
+
+      {/* Structured contradictions panel */}
+      {contradictions.length > 0 && (
+        <ContradictionPanel contradictions={contradictions} />
+      )}
 
       {/* Reasoning chains by round */}
       <div>
         <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Brain className="w-4 h-4 text-cyan-400" />
           Deliberation Chains
+          <span className="text-white/25 font-normal text-xs">(click to expand)</span>
         </h3>
         <div className="space-y-4">
           {rounds.map((round) => (
@@ -252,7 +438,12 @@ function ResultsView({
                 {result.reasoningChains
                   .filter((r) => r.round === round)
                   .map((r, i) => (
-                    <ReasoningCard key={`${r.sentinelId}-${round}-${i}`} reasoning={r} />
+                    <ReasoningCard
+                      key={`${r.sentinelId}-${round}-${i}`}
+                      reasoning={r}
+                      contradictions={contradictions}
+                      isBestFit={r.sentinelName === result.finalSentinelName && round === Math.max(...rounds)}
+                    />
                   ))}
               </div>
             </div>
@@ -260,13 +451,19 @@ function ResultsView({
         </div>
       </div>
 
-      {/* Final answer */}
+      {/* Final answer — with routing reason */}
       <div className="bg-gradient-to-br from-indigo-950/60 to-cyan-950/40 border border-cyan-500/25 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xl">{result.finalSentinelEmoji}</span>
-          <div>
+        <div className="flex items-start gap-3 mb-3">
+          <span className="text-xl shrink-0 mt-0.5">{result.finalSentinelEmoji}</span>
+          <div className="flex-1 min-w-0">
             <div className="text-xs text-cyan-400/70 uppercase tracking-wider">Final Answer</div>
             <div className="text-sm font-semibold text-white">Delivered by {result.finalSentinelName}</div>
+            {result.routingReason && (
+              <div className="flex items-start gap-1.5 mt-1.5 bg-cyan-500/8 border border-cyan-500/15 rounded-lg px-2.5 py-1.5">
+                <Route className="w-3 h-3 text-cyan-400/70 shrink-0 mt-0.5" />
+                <p className="text-xs text-cyan-300/60 leading-relaxed">{result.routingReason}</p>
+              </div>
+            )}
           </div>
         </div>
         <div className="text-white/85 text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
@@ -357,11 +554,6 @@ export default function RoundTable() {
     },
   });
 
-  const getSessionQuery = trpc.roundTable.getSession.useQuery(
-    { sessionId: result?.sessionId ?? 0 },
-    { enabled: false }
-  );
-
   const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   const toggleSentinel = (id: number) => {
@@ -388,9 +580,7 @@ export default function RoundTable() {
     startMutation.reset();
   };
 
-  const loadHistorySession = async (sessionId: number) => {
-    // Navigate to a past session — for now, just show a toast
-    // Full session replay can be added in Phase 2
+  const loadHistorySession = async (_sessionId: number) => {
     setShowHistory(false);
   };
 

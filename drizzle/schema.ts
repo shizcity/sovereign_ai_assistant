@@ -353,6 +353,8 @@ export const roundTableSessions = mysqlTable("round_table_sessions", {
   finalSentinelName: varchar("finalSentinelName", { length: 100 }),
   memoryIds: text("memoryIds"), // JSON array of memory IDs loaded for context
   savedMemoryId: int("savedMemoryId"), // Memory ID if session was saved to memory layer
+  contradictions: text("contradictions"), // JSON array of structured contradiction objects
+  routingReason: text("routingReason"), // Why the best-fit Sentinel was chosen
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
 });
@@ -375,6 +377,8 @@ export const roundTableReasoning = mysqlTable("round_table_reasoning", {
   confidence: varchar("confidence", { length: 10 }).notNull(), // 0.00–1.00 as string
   concerns: text("concerns"), // JSON array of caveats
   dissent: text("dissent"), // If this Sentinel disagrees with consensus
+  dissentScore: varchar("dissentScore", { length: 10 }), // 0.00–1.00 how far this Sentinel diverges from group
+  isOutlier: int("isOutlier").default(0).notNull(), // 1 if dissentScore > 0.5
   memoriesUsed: text("memoriesUsed"), // JSON array of memory snippets used
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

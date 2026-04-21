@@ -92,6 +92,13 @@
       "when": 1776756160911,
       "tag": "0012_reflective_viper",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1776757877453,
+      "tag": "0013_lucky_the_fallen",
+      "breakpoints": true
     }
   ]
 }
