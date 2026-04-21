@@ -29,6 +29,8 @@ export const users = mysqlTable("users", {
   // Onboarding fields
   onboardingCompleted: boolean("onboardingCompleted").default(false).notNull(),
   onboardingStep: int("onboardingStep").default(0).notNull(),
+  // Referral system
+  referralCode: varchar("referralCode", { length: 16 }).unique(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -423,3 +425,23 @@ export const userAchievements = mysqlTable("user_achievements", {
 });
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserAchievement = typeof userAchievements.$inferInsert;
+
+/**
+ * Referrals - tracks invite relationships and XP rewards
+ */
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  /** The user who shared the invite link */
+  referrerId: int("referrerId").notNull(),
+  /** The new user who signed up via the link (null until claimed) */
+  refereeId: int("refereeId"),
+  /** The unique invite code used */
+  code: varchar("code", { length: 16 }).notNull(),
+  /** XP awarded to the referrer (0 until claimed) */
+  xpAwarded: int("xpAwarded").default(0).notNull(),
+  /** When the referee signed up and the referral was completed */
+  claimedAt: timestamp("claimedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;

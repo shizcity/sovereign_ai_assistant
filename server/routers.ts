@@ -2308,6 +2308,42 @@ Reference these memories naturally when relevant. For example: "Remember when we
       return profile.achievements;
     }),
   }),
+
+  // ─────────────────────────────────────────────
+  // REFERRAL SYSTEM
+  // ─────────────────────────────────────────────
+  referral: router({
+    /** Get or create the user's unique invite link */
+    getMyLink: protectedProcedure.query(async ({ ctx }) => {
+      const { getOrCreateReferralCode } = await import("./referral-db");
+      const { REFERRAL_XP_REFERRER, REFERRAL_XP_REFEREE } = await import("./referral-db");
+      const code = await getOrCreateReferralCode(ctx.user.id);
+      const baseUrl = process.env.VITE_APP_URL || "https://glow.manus.space";
+      return {
+        code,
+        link: `${baseUrl}/?ref=${code}`,
+        referrerXp: REFERRAL_XP_REFERRER,
+        refereeXp: REFERRAL_XP_REFEREE,
+      };
+    }),
+
+    /** Get referral stats for the current user */
+    getStats: protectedProcedure.query(async ({ ctx }) => {
+      const { getReferralStats } = await import("./referral-db");
+      return getReferralStats(ctx.user.id);
+    }),
+
+    /** Claim a referral code — called after signup when a ?ref= param is detected */
+    claim: protectedProcedure
+      .input(z.object({ code: z.string().min(4).max(16) }))
+      .mutation(async ({ ctx, input }) => {
+        const { getUserByReferralCode, claimReferral } = await import("./referral-db");
+        const referrer = await getUserByReferralCode(input.code);
+        if (!referrer) return { success: false, reason: "invalid_code" };
+        const result = await claimReferral(referrer.id, ctx.user.id, input.code.toUpperCase());
+        return result;
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

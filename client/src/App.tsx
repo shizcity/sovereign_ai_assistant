@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { UsageWarningBanner } from "@/components/UsageWarningBanner";
@@ -25,6 +26,7 @@ import Landing from "@/pages/Landing";
 import MySentinels from "@/pages/MySentinels";
 import RoundTable from "@/pages/RoundTable";
 import Achievements from "@/pages/Achievements";
+import Referrals from "@/pages/Referrals";
 
 
 function Router() {
@@ -45,6 +47,7 @@ function Router() {
       <Route path="/my-sentinels" component={MySentinels} />
       <Route path="/round-table" component={RoundTable} />
       <Route path="/achievements" component={Achievements} />
+      <Route path="/referrals" component={Referrals} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
@@ -63,6 +66,31 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [location] = useLocation();
+
+  // Referral claim logic — store ?ref= code on landing, claim once user is authenticated
+  const claimReferral = trpc.referral.claim.useMutation();
+  useEffect(() => {
+    // Capture ?ref= from URL and persist to localStorage
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get("ref");
+    if (refCode) {
+      localStorage.setItem("pendingReferralCode", refCode.toUpperCase());
+    }
+  }, []);
+  useEffect(() => {
+    // Once the user is logged in, claim any pending referral code
+    if (!user) return;
+    const code = localStorage.getItem("pendingReferralCode");
+    if (!code) return;
+    localStorage.removeItem("pendingReferralCode");
+    claimReferral.mutate({ code }, {
+      onSuccess: (result) => {
+        if (result.success && 'refereeXp' in result) {
+          toast.success(`🎁 Welcome bonus! +${result.refereeXp} XP added to your account.`);
+        }
+      },
+    });
+  }, [user]);
 
   useEffect(() => {
     // Only show onboarding on authenticated routes (not landing page)

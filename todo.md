@@ -1464,6 +1464,15 @@
   - [x] Per-message speaker icon on all assistant messages (pulsing indicator when playing)
   - [x] Speaker icon uses message-specific Sentinel voice, stops previous playback
   - [x] ttsEnabled read from DB via settings.get query (not localStorage)
+- [x] Referral / invite system
+  - [x] Add referrals DB table (code, referrerId, refereeId, xpAwarded, claimedAt)
+  - [x] Add referralCode column to users table
+  - [x] Build referral-db.ts helpers (generateCode, claimReferral, getReferralStats)
+  - [x] Wire referral claim via ?ref= param stored in localStorage, claimed after login
+  - [x] Add referral.getMyLink, referral.getStats, referral.claim tRPC procedures
+  - [x] Build /referrals page with invite link, copy/share buttons, stats (invited count, XP earned)
+  - [x] Add Invite & Earn entry to Chat sidebar nav
+  - [x] Award 250 XP to referrer + 100 XP welcome bonus to referee on claim
 - [x] Intelligent Sentinel auto-routing based on query type
   - [x] sentinels.suggestForQuery tRPC procedure (LLM classification)
   - [x] Auto-routing suggestion banner in Chat UI (accept/dismiss)
