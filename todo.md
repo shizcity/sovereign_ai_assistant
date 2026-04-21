@@ -1468,3 +1468,16 @@
 - [x] Add per-message speaker icon on AI messages in Chat
 - [x] Wire speaker icon to voice.ts speak() with stripMarkdown
 - [x] Respect global ttsEnabled setting for auto-play after AI response
+
+## Feature - Agentic Round Table Phase 1
+- [x] Add roundTableSessions and roundTableReasoning tables to schema
+- [x] Build server-side turn-based deliberation engine (roundtable.ts)
+- [x] Build consensus judge using LLM call
+- [x] Integrate memory loading into each Sentinel context
+- [x] Build tRPC procedure: roundTable.start
+- [x] Build Round Table UI page (/round-table)
+- [x] Input form: question + Sentinel selection + mode
+- [x] Reasoning chain display per Sentinel per round
+- [x] Consensus score + contradiction display
+- [x] Final answer display with source Sentinel
+- [x] Register route in App.tsx and add to sidebar navigation

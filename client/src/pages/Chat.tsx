@@ -1054,6 +1054,7 @@ export default function Chat() {
             { href: '/memories', icon: Brain, label: 'Memories' },
             { href: '/insights', icon: TrendingUp, label: 'Insights' },
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
+            { href: '/round-table', icon: Users, label: 'Round Table' },
           ] as const).map(({ href, icon: Icon, label }) => (
             <Link key={href} href={href} onClick={() => { if (href === '/memories') markOnboardingStep('explore_memory'); }}>
               <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">

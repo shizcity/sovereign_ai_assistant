@@ -2203,6 +2203,43 @@ Reference these memories naturally when relevant. For example: "Remember when we
       };
     }),
   }),
+
+  roundTable: router({
+    start: protectedProcedure
+      .input(
+        z.object({
+          question: z.string().min(10).max(2000),
+          sentinelIds: z.array(z.number()).min(2).max(6),
+          maxRounds: z.number().min(1).max(3).default(2),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { runRoundTable } = await import("./roundtable");
+        const { isProOrAbove } = await import("./products");
+        if (!isProOrAbove(ctx.user.subscriptionTier ?? "free")) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Round Table is available for Pro and Creator subscribers.",
+          });
+        }
+        return runRoundTable(ctx.user.id, input.question, input.sentinelIds, input.maxRounds);
+      }),
+
+    history: protectedProcedure.query(async ({ ctx }) => {
+      const { getRoundTableHistory } = await import("./roundtable");
+      return getRoundTableHistory(ctx.user.id);
+    }),
+
+    getSession: protectedProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getRoundTableSession } = await import("./roundtable");
+        const result = await getRoundTableSession(input.sessionId, ctx.user.id);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+        return result;
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
+

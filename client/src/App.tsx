@@ -23,6 +23,7 @@ import Insights from "@/pages/Insights";
 import VoiceChat from "@/pages/VoiceChat";
 import Landing from "@/pages/Landing";
 import MySentinels from "@/pages/MySentinels";
+import RoundTable from "@/pages/RoundTable";
 
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/insights" component={Insights} />
       <Route path="/voice" component={VoiceChat} />
       <Route path="/my-sentinels" component={MySentinels} />
+      <Route path="/round-table" component={RoundTable} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

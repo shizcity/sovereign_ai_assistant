@@ -331,3 +331,51 @@ export const customSentinels = mysqlTable("custom_sentinels", {
 
 export type CustomSentinel = typeof customSentinels.$inferSelect;
 export type InsertCustomSentinel = typeof customSentinels.$inferInsert;
+
+/**
+ * Round Table Sessions - Multi-Sentinel deliberation sessions
+ */
+export const roundTableSessions = mysqlTable("round_table_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  question: text("question").notNull(),
+  sentinelIds: text("sentinelIds").notNull(), // JSON array of sentinel IDs used
+  sentinelNames: text("sentinelNames").notNull(), // JSON array of sentinel names
+  status: mysqlEnum("status", ["running", "completed", "failed"]).default("running").notNull(),
+  rounds: int("rounds").default(2).notNull(), // Number of deliberation rounds completed
+  consensusScore: varchar("consensusScore", { length: 10 }), // 0.00–1.00 as string
+  hasContradiction: int("hasContradiction").default(0).notNull(), // 0 or 1
+  contradictionSummary: text("contradictionSummary"),
+  finalAnswer: text("finalAnswer"),
+  finalSentinelId: int("finalSentinelId"), // Which Sentinel delivered the final answer
+  finalSentinelName: varchar("finalSentinelName", { length: 100 }),
+  memoryIds: text("memoryIds"), // JSON array of memory IDs loaded for context
+  savedMemoryId: int("savedMemoryId"), // Memory ID if session was saved to memory layer
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type RoundTableSession = typeof roundTableSessions.$inferSelect;
+export type InsertRoundTableSession = typeof roundTableSessions.$inferInsert;
+
+/**
+ * Round Table Reasoning - Individual Sentinel reasoning steps per round
+ */
+export const roundTableReasoning = mysqlTable("round_table_reasoning", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  sentinelName: varchar("sentinelName", { length: 100 }).notNull(),
+  sentinelEmoji: varchar("sentinelEmoji", { length: 10 }).default("🤖"),
+  round: int("round").notNull(), // 1-based round number
+  thinkingChain: text("thinkingChain").notNull(), // Full step-by-step reasoning
+  conclusion: text("conclusion").notNull(),
+  confidence: varchar("confidence", { length: 10 }).notNull(), // 0.00–1.00 as string
+  concerns: text("concerns"), // JSON array of caveats
+  dissent: text("dissent"), // If this Sentinel disagrees with consensus
+  memoriesUsed: text("memoriesUsed"), // JSON array of memory snippets used
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RoundTableReasoning = typeof roundTableReasoning.$inferSelect;
+export type InsertRoundTableReasoning = typeof roundTableReasoning.$inferInsert;
