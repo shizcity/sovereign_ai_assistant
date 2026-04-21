@@ -1458,7 +1458,7 @@
 - [ ] TTS global toggle (persist in user settings) + per-message playback with speaker icon
 - [ ] Intelligent Sentinel auto-routing based on query type
 - [ ] Frontend isProOrAbove() shared utility to prevent tier-check regressions
-- [ ] Creator tier badge in settings and profile
+- [x] Creator tier badge in Settings (tier pill + feature table + upgrade CTAs for Free/Pro) and profile
 - [x] Gamification system (XP, streaks, achievements)
 
 ## Features - TTS Global Toggle + Per-Message Playback
