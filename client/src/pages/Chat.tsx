@@ -219,6 +219,11 @@ export default function Chat() {
     setRoutingDismissed(false);
   }, [conversationSentinels]);
 
+  // TTS quick-toggle mutation (persists to DB)
+  const updateTtsEnabled = trpc.settings.update.useMutation({
+    onSuccess: () => utils.settings.get.invalidate(),
+  });
+
   // Auto-routing mutation
   const suggestSentinel = trpc.sentinels.suggestForQuery.useMutation({
     onSuccess: (result) => {
@@ -475,10 +480,13 @@ export default function Chat() {
       onSuccess: (data) => {
         // Reset target Sentinel selection after sending
         setTargetSentinelId(undefined);
-        // Automatically speak the AI response if TTS is enabled globally
+        // Auto-speak the latest response only when the global TTS toggle is ON
+        // This respects the user's persisted preference from Settings
         if (ttsEnabled && activeSentinel && data.content) {
+          setPlayingMessageId(null); // clear any previous playing state
           voiceService.speak(data.content, {
             sentinelName: activeSentinel.name,
+            onEnd: () => setPlayingMessageId(null),
           });
         }
       },
@@ -1133,6 +1141,34 @@ export default function Chat() {
             </Link>
           ))}
           <div className="border-t border-white/8 pt-1 mt-1">
+            {/* TTS quick-toggle row */}
+            <div className="flex items-center justify-between px-3 py-1.5">
+              <span className="text-xs text-white/45 flex items-center gap-1.5">
+                {ttsEnabled ? <Volume2 className="w-3.5 h-3.5 text-cyan-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+                Auto-read
+              </span>
+              <button
+                onClick={() => {
+                  const next = !ttsEnabled;
+                  // Optimistically update the query cache so ttsEnabled flips immediately
+                  utils.settings.get.setData(undefined, (prev) =>
+                    prev ? { ...prev, ttsEnabled: next } : prev
+                  );
+                  updateTtsEnabled.mutate({ ttsEnabled: next });
+                  if (!next) voiceService.stopSpeaking();
+                }}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  ttsEnabled ? "bg-cyan-600" : "bg-white/15"
+                }`}
+                title={ttsEnabled ? "Auto-read ON — click to turn off" : "Auto-read OFF — click to turn on"}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                    ttsEnabled ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
             <div className="flex items-center justify-between px-1 py-0.5">
               <Link href="/settings" className="flex-1">
                 <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">
@@ -1396,25 +1432,36 @@ export default function Chat() {
                             {message.costUsd && <span>${message.costUsd}</span>}
                           </div>
                           <div className="flex items-center gap-2">
-                            {/* Per-message TTS speaker button */}
+                            {/* Per-message TTS speaker button — always visible, works independently of global toggle */}
                             <button
                               onClick={() => {
                                 if (playingMessageId === message.id) {
                                   voiceService.stopSpeaking();
                                   setPlayingMessageId(null);
                                 } else {
+                                  // Stop any currently playing message first
+                                  if (playingMessageId !== null) {
+                                    voiceService.stopSpeaking();
+                                  }
                                   setPlayingMessageId(message.id);
                                   voiceService.speak(message.content, {
-                                    sentinelName: activeSentinel?.name,
+                                    sentinelName: (allSentinels.find((s: any) => s.id === (message as any).sentinelId) ?? activeSentinel)?.name,
                                     onEnd: () => setPlayingMessageId(null),
                                   });
                                 }
                               }}
-                              className="flex items-center gap-1 text-gray-400 hover:text-cyan-400 transition-colors"
+                              className={`flex items-center gap-1 transition-colors ${
+                                playingMessageId === message.id
+                                  ? "text-cyan-400"
+                                  : "text-gray-500 hover:text-cyan-400"
+                              }`}
                               title={playingMessageId === message.id ? "Stop reading" : "Read aloud"}
                             >
                               {playingMessageId === message.id ? (
-                                <VolumeX className="w-3.5 h-3.5" />
+                                <span className="relative flex items-center">
+                                  <VolumeX className="w-3.5 h-3.5" />
+                                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                </span>
                               ) : (
                                 <Volume2 className="w-3.5 h-3.5" />
                               )}

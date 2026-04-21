@@ -1455,7 +1455,15 @@
 - [x] Bug 3: Investigated desktop data persistence — root cause is Bug 2 (save button off-screen); no separate desktop code path exists
 
 ## Features - April 2026
-- [ ] TTS global toggle (persist in user settings) + per-message playback with speaker icon
+- [x] TTS global toggle (persist in user settings) + per-message playback with speaker icon
+  - [x] Add ttsEnabled column to userSettings table in DB schema
+  - [x] Add settings.getTtsEnabled + settings.setTtsEnabled tRPC procedures (via settings.update)
+  - [x] Auto-speak on sendMessage now correctly gated by ttsEnabled from DB
+  - [x] TTS toggle switch in Settings page (persisted to DB)
+  - [x] TTS quick-toggle in Chat sidebar (optimistic update + DB persist)
+  - [x] Per-message speaker icon on all assistant messages (pulsing indicator when playing)
+  - [x] Speaker icon uses message-specific Sentinel voice, stops previous playback
+  - [x] ttsEnabled read from DB via settings.get query (not localStorage)
 - [x] Intelligent Sentinel auto-routing based on query type
   - [x] sentinels.suggestForQuery tRPC procedure (LLM classification)
   - [x] Auto-routing suggestion banner in Chat UI (accept/dismiss)
