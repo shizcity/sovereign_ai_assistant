@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX } from "lucide-react";
+import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -34,6 +34,38 @@ import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+
+function XpLevelIndicator() {
+  const { data: progress } = trpc.gamification.getProgress.useQuery();
+  if (!progress) return null;
+  return (
+    <Link href="/achievements">
+      <div className="mx-4 mb-2 px-3 py-2 rounded-xl border border-white/8 bg-white/4 hover:bg-white/8 transition-all cursor-pointer group">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+            <span className="text-xs font-semibold text-white/80">Lv.{progress.level} {progress.levelTitle}</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-cyan-400 font-medium">
+            <Zap className="w-3 h-3" />
+            {progress.xp.toLocaleString()} XP
+          </div>
+        </div>
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
+            style={{ width: `${Math.min(progress.progressPct, 100)}%` }}
+          />
+        </div>
+        {progress.streak > 0 && (
+          <div className="text-[10px] text-orange-400 mt-1 flex items-center gap-1">
+            🔥 {progress.streak}-day streak
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
 
 export default function Chat() {
   const { user } = useAuth();
@@ -1019,6 +1051,9 @@ export default function Chat() {
           </div>
         </div>
 
+        {/* XP Level Indicator */}
+        <XpLevelIndicator />
+
         {/* Usage Widget */}
         <UsageWidget />
 
@@ -1055,6 +1090,7 @@ export default function Chat() {
             { href: '/insights', icon: TrendingUp, label: 'Insights' },
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
             { href: '/round-table', icon: Users, label: 'Round Table' },
+            { href: '/achievements', icon: Trophy, label: 'Achievements' },
           ] as const).map(({ href, icon: Icon, label }) => (
             <Link key={href} href={href} onClick={() => { if (href === '/memories') markOnboardingStep('explore_memory'); }}>
               <Button variant="ghost" className="w-full justify-start text-white/55 hover:text-white/90 hover:bg-white/6 transition-all duration-150 text-sm font-normal h-9">

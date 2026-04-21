@@ -1459,7 +1459,7 @@
 - [ ] Intelligent Sentinel auto-routing based on query type
 - [ ] Frontend isProOrAbove() shared utility to prevent tier-check regressions
 - [ ] Creator tier badge in settings and profile
-- [ ] Gamification system (XP, streaks, achievements)
+- [x] Gamification system (XP, streaks, achievements)
 
 ## Features - TTS Global Toggle + Per-Message Playback
 - [x] Add ttsEnabled field to user settings in DB schema
@@ -1487,3 +1487,15 @@
 - [x] Include "Don't ask one AI. Convene a council." headline
 - [x] Show deliberation UI mockup/visual with Sentinel cards
 - [x] Add Pro/Creator conversion CTA
+
+## Feature - Gamification System (XP, Streaks, Achievements)
+- [x] Add xpLedger, userStreaks, userAchievements DB tables to schema
+- [x] Build gamification engine (gamification.ts) — awardXP, checkStreak, checkAchievements
+- [x] Define all achievement definitions (20+ badges across tiers)
+- [x] Wire XP awards into: chat message sent, voice message, memory saved, Round Table completed, custom Sentinel created, template used
+- [x] Add gamification.getProgress + getAchievements tRPC procedures
+- [ ] Add gamification.getLeaderboard tRPC procedure (optional)
+- [x] Build Achievements page (/achievements) with XP bar, level, streak, badge grid
+- [x] Add XP level indicator + streak counter to Chat sidebar
+- [ ] Add achievement unlock toast notification (future enhancement)
+- [x] Register /achievements route in App.tsx and sidebar nav

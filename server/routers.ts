@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { awardXp } from "./gamification";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router, TRPCError } from "./_core/trpc";
 import { z } from "zod";
@@ -465,6 +466,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
           })();
         }
         
+        // Award XP for sending a message (fire-and-forget)
+        awardXp(ctx.user.id, "message_sent").catch(() => {});
+
         return {
           id: messageId,
           content: response.content,
@@ -592,6 +596,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
           costUsd: costBreakdown.totalCost.toString(),
         });
         
+        // Award XP for sending a message (fire-and-forget)
+        awardXp(ctx.user.id, "message_sent").catch(() => {});
+
         return {
           id: messageId,
           content: response.content,
@@ -873,12 +880,15 @@ Reference these memories naturally when relevant. For example: "Remember when we
       )
       .mutation(async ({ input, ctx }) => {
         const { createTemplate } = await import("./templates-db");
-        return createTemplate({
+        const templateResult = await createTemplate({
           ...input,
           userId: ctx.user.id,
           isDefault: 0,
           isPublic: 0,
         }, ctx.user.name || "Anonymous");
+        // Award XP for creating a template (fire-and-forget)
+        awardXp(ctx.user.id, "template_created").catch(() => {});
+        return templateResult;
       }),
     update: protectedProcedure
       .input(
@@ -1310,6 +1320,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
             systemPrompt: input.systemPrompt,
           }).$returningId();
 
+          // Award XP for creating a custom Sentinel (fire-and-forget)
+          awardXp(ctx.user.id, "custom_sentinel_created").catch(() => {});
           return { id: result.id, slug: baseSlug };
         }),
 
@@ -1578,7 +1590,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
         }))
         .mutation(async ({ ctx, input }) => {
           const { createMemory } = await import("./memory-db");
-          return createMemory({
+          const memoryResult = await createMemory({
             userId: ctx.user.id,
             sentinelId: input.sentinelId,
             conversationId: input.conversationId,
@@ -1588,6 +1600,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
             importance: input.importance,
             tags: input.tags,
           });
+          // Award XP for saving a memory (fire-and-forget)
+          awardXp(ctx.user.id, "memory_saved").catch(() => {});
+          return memoryResult;
         }),
 
       update: protectedProcedure
@@ -2222,7 +2237,10 @@ Reference these memories naturally when relevant. For example: "Remember when we
             message: "Round Table is available for Pro and Creator subscribers.",
           });
         }
-        return runRoundTable(ctx.user.id, input.question, input.sentinelIds, input.maxRounds);
+        const roundTableResult = await runRoundTable(ctx.user.id, input.question, input.sentinelIds, input.maxRounds);
+        // Award XP for completing a Round Table (fire-and-forget)
+        awardXp(ctx.user.id, "round_table_completed").catch(() => {});
+        return roundTableResult;
       }),
 
     history: protectedProcedure.query(async ({ ctx }) => {
@@ -2238,6 +2256,32 @@ Reference these memories naturally when relevant. For example: "Remember when we
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
         return result;
       }),
+  }),
+
+  // ─── Gamification ─────────────────────────────────────────────────────────
+  gamification: router({
+    getProgress: protectedProcedure.query(async ({ ctx }) => {
+      const { getGamificationProfile } = await import("./gamification");
+      const profile = await getGamificationProfile(ctx.user.id);
+      const { stats, level } = profile;
+      return {
+        level: level.level,
+        levelTitle: level.title,
+        xp: stats.totalXp,
+        nextLevelXp: level.nextLevel?.minXp ?? stats.totalXp,
+        currentLevelXp: level.minXp,
+        progressPct: level.progressPct,
+        streak: stats.currentStreak,
+        longestStreak: stats.longestStreak,
+        stats,
+      };
+    }),
+
+    getAchievements: protectedProcedure.query(async ({ ctx }) => {
+      const { getGamificationProfile } = await import("./gamification");
+      const profile = await getGamificationProfile(ctx.user.id);
+      return profile.achievements;
+    }),
   }),
 });
 

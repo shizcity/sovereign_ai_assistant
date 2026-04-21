@@ -379,3 +379,47 @@ export const roundTableReasoning = mysqlTable("round_table_reasoning", {
 
 export type RoundTableReasoning = typeof roundTableReasoning.$inferSelect;
 export type InsertRoundTableReasoning = typeof roundTableReasoning.$inferInsert;
+
+// ─────────────────────────────────────────────
+// GAMIFICATION
+// ─────────────────────────────────────────────
+
+/**
+ * XP Ledger - every XP award event is recorded here
+ */
+export const xpLedger = mysqlTable("xp_ledger", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  xpAwarded: int("xpAwarded").notNull(),
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type XpLedger = typeof xpLedger.$inferSelect;
+export type InsertXpLedger = typeof xpLedger.$inferInsert;
+
+/**
+ * User Streaks - tracks daily activity streaks
+ */
+export const userStreaks = mysqlTable("user_streaks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  currentStreak: int("currentStreak").default(0).notNull(),
+  longestStreak: int("longestStreak").default(0).notNull(),
+  lastActiveDate: varchar("lastActiveDate", { length: 10 }),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type UserStreak = typeof userStreaks.$inferSelect;
+export type InsertUserStreak = typeof userStreaks.$inferInsert;
+
+/**
+ * User Achievements - unlocked badges per user
+ */
+export const userAchievements = mysqlTable("user_achievements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  achievementId: varchar("achievementId", { length: 100 }).notNull(),
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+});
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = typeof userAchievements.$inferInsert;
