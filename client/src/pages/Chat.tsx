@@ -110,6 +110,12 @@ export default function Chat() {
   const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
   const [creatingForSentinelId, setCreatingForSentinelId] = useState<number | null>(null);
 
+  // Intelligent auto-routing state
+  const [routingSuggestion, setRoutingSuggestion] = useState<{
+    slug: string; name: string; emoji: string; reason: string; sentinelId: number;
+  } | null>(null);
+  const [routingDismissed, setRoutingDismissed] = useState(false);
+
   // Onboarding checklist state
   const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStepState>(() => loadOnboardingSteps());
   const [onboardingVisible, setOnboardingVisible] = useState<boolean>(() => {
@@ -208,7 +214,27 @@ export default function Chat() {
     } else {
       setSelectedSentinel(undefined);
     }
+    // Reset routing suggestion when switching conversations
+    setRoutingSuggestion(null);
+    setRoutingDismissed(false);
   }, [conversationSentinels]);
+
+  // Auto-routing mutation
+  const suggestSentinel = trpc.sentinels.suggestForQuery.useMutation({
+    onSuccess: (result) => {
+      if (!result) return;
+      // Find the sentinel ID from the slug
+      const sentinel = allSentinels.find((s: any) => s.slug === result.slug);
+      if (!sentinel) return;
+      setRoutingSuggestion({
+        slug: result.slug,
+        name: result.name,
+        emoji: result.emoji,
+        reason: result.reason,
+        sentinelId: sentinel.id,
+      });
+    },
+  });
 
   // Fetch templates
   const { data: templates = [] } = trpc.templates.list.useQuery();
@@ -434,6 +460,12 @@ export default function Chat() {
     if (!inputMessage.trim() || !selectedConversation) return;
     // Mark onboarding step on first message send
     markOnboardingStep("send_message");
+
+    // Trigger auto-routing on first message of a new conversation with no Sentinel selected
+    if (!selectedSentinel && messages.length === 0 && !routingSuggestion && !routingDismissed && user) {
+      suggestSentinel.mutate({ query: inputMessage.trim() });
+    }
+
     sendMessage.mutate({
       conversationId: selectedConversation,
       content: inputMessage,
@@ -1425,6 +1457,46 @@ export default function Chat() {
             {/* Input Area */}
             <div className="border-t border-white/10 backdrop-blur-xl bg-black/20 p-4">
               <div className="max-w-4xl mx-auto space-y-4">
+
+                {/* Intelligent Sentinel Routing Suggestion Banner */}
+                {routingSuggestion && !routingDismissed && (
+                  <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-cyan-500/25 bg-gradient-to-r from-cyan-950/60 to-indigo-950/60 backdrop-blur-sm animate-fade-in">
+                    <span className="text-2xl leading-none mt-0.5 flex-shrink-0">{routingSuggestion.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-cyan-300">
+                        Suggested: {routingSuggestion.name}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">{routingSuggestion.reason}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          // Accept: switch to suggested Sentinel
+                          setSelectedSentinel(routingSuggestion.sentinelId);
+                          addSentinelToConversation.mutate({
+                            conversationId: selectedConversation!,
+                            sentinelId: routingSuggestion.sentinelId,
+                            role: "primary",
+                          });
+                          setRoutingDismissed(true);
+                          toast.success(`Switched to ${routingSuggestion.name}`);
+                        }}
+                        className="h-7 px-3 text-xs bg-cyan-600 hover:bg-cyan-500 text-white"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Use {routingSuggestion.name}
+                      </Button>
+                      <button
+                        onClick={() => setRoutingDismissed(true)}
+                        className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+                        title="Dismiss suggestion"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Message Input */}
                 <div className="flex gap-3">

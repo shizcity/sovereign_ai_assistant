@@ -1448,6 +1448,29 @@ Reference these memories naturally when relevant. For example: "Remember when we
         return getSentinelBySlug(input.slug);
       }),
 
+    /**
+     * Intelligent auto-routing: given a user query, return the best-fit Sentinel
+     * from the set the user can actually access (tier-gated).
+     * Returns null when confidence is low or classification fails.
+     */
+    suggestForQuery: protectedProcedure
+      .input(z.object({ query: z.string().min(1).max(2000) }))
+      .mutation(async ({ ctx, input }) => {
+        const { suggestSentinel, ROUTING_PROFILES } = await import("./sentinel-routing");
+        const { FREE_TIER_SENTINEL_SLUGS, isProOrAbove } = await import("./products");
+
+        const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();
+        const allSlugs = ROUTING_PROFILES.map((p) => p.slug) as string[];
+
+        // Tier gating: Free users only see 3 Sentinels
+        const allowedSlugs = isProOrAbove(tier)
+          ? allSlugs
+          : allSlugs.filter((s) => (FREE_TIER_SENTINEL_SLUGS as readonly string[]).includes(s));
+
+        const result = await suggestSentinel(input.query, allowedSlugs);
+        return result; // null = no confident suggestion
+      }),
+
     getMemory: protectedProcedure
       .input(z.object({ sentinelId: z.number() }))
       .query(async ({ ctx, input }) => {

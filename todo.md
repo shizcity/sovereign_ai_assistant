@@ -1456,7 +1456,11 @@
 
 ## Features - April 2026
 - [ ] TTS global toggle (persist in user settings) + per-message playback with speaker icon
-- [ ] Intelligent Sentinel auto-routing based on query type
+- [x] Intelligent Sentinel auto-routing based on query type
+  - [x] sentinels.suggestForQuery tRPC procedure (LLM classification)
+  - [x] Auto-routing suggestion banner in Chat UI (accept/dismiss)
+  - [x] Only trigger on new conversations with no Sentinel selected
+  - [x] Respect tier gating (Free users only see their 3 Sentinels)
 - [ ] Frontend isProOrAbove() shared utility to prevent tier-check regressions
 - [x] Creator tier badge in Settings (tier pill + feature table + upgrade CTAs for Free/Pro) and profile
 - [x] Gamification system (XP, streaks, achievements)
