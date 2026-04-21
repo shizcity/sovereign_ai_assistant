@@ -20,6 +20,7 @@ import {
   History,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -352,6 +353,7 @@ export default function RoundTable() {
     onSuccess: (data) => {
       setResult(data as RoundTableResult);
       refetchHistory();
+      showAchievementToasts((data as any)?.newAchievements);
     },
   });
 

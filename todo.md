@@ -1497,5 +1497,5 @@
 - [ ] Add gamification.getLeaderboard tRPC procedure (optional)
 - [x] Build Achievements page (/achievements) with XP bar, level, streak, badge grid
 - [x] Add XP level indicator + streak counter to Chat sidebar
-- [ ] Add achievement unlock toast notification (future enhancement)
+- [x] Add achievement unlock toast notification (showAchievementToasts hook, wired into all 5 XP actions)
 - [x] Register /achievements route in App.tsx and sidebar nav

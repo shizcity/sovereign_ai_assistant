@@ -12,6 +12,7 @@ import { ArrowLeft, FileText, Plus, Trash2, Edit, Sparkles, Globe, Lock, FolderP
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 
 export default function Templates() {
   const { user } = useAuth();
@@ -40,11 +41,12 @@ export default function Templates() {
   const { data: categories = [] } = trpc.templates.listCategories.useQuery();
 
   const createTemplate = trpc.templates.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.templates.list.invalidate();
       setCreateDialogOpen(false);
       setNewTemplate({ name: "", description: "", prompt: "", categoryId: null });
       toast.success("Template created");
+      showAchievementToasts((data as any)?.newAchievements);
     },
   });
 

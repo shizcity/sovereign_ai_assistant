@@ -466,8 +466,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
           })();
         }
         
-        // Award XP for sending a message (fire-and-forget)
-        awardXp(ctx.user.id, "message_sent").catch(() => {});
+        // Award XP for sending a message — await so we can surface new achievements
+        const xpResult = await awardXp(ctx.user.id, "message_sent").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
 
         return {
           id: messageId,
@@ -480,6 +480,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
             formatted: formatCost(costBreakdown.totalCost),
             breakdown: costBreakdown,
           },
+          newAchievements: xpResult.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })),
         };
       }),
 
@@ -596,8 +597,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
           costUsd: costBreakdown.totalCost.toString(),
         });
         
-        // Award XP for sending a message (fire-and-forget)
-        awardXp(ctx.user.id, "message_sent").catch(() => {});
+        // Award XP for sending a message — await so we can surface new achievements
+        const xpResult2 = await awardXp(ctx.user.id, "message_sent").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
 
         return {
           id: messageId,
@@ -610,6 +611,7 @@ Reference these memories naturally when relevant. For example: "Remember when we
             formatted: formatCost(costBreakdown.totalCost),
             breakdown: costBreakdown,
           },
+          newAchievements: xpResult2.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })),
         };
       }),
   }),
@@ -886,9 +888,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
           isDefault: 0,
           isPublic: 0,
         }, ctx.user.name || "Anonymous");
-        // Award XP for creating a template (fire-and-forget)
-        awardXp(ctx.user.id, "template_created").catch(() => {});
-        return templateResult;
+        // Award XP for creating a template — await to surface new achievements
+        const tmplXp = await awardXp(ctx.user.id, "template_created").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
+        return { ...templateResult, newAchievements: tmplXp.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })) };
       }),
     update: protectedProcedure
       .input(
@@ -1320,9 +1322,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
             systemPrompt: input.systemPrompt,
           }).$returningId();
 
-          // Award XP for creating a custom Sentinel (fire-and-forget)
-          awardXp(ctx.user.id, "custom_sentinel_created").catch(() => {});
-          return { id: result.id, slug: baseSlug };
+          // Award XP for creating a custom Sentinel — await to surface new achievements
+          const sentXp = await awardXp(ctx.user.id, "custom_sentinel_created").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
+          return { id: result.id, slug: baseSlug, newAchievements: sentXp.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })) };
         }),
 
       update: protectedProcedure
@@ -1600,9 +1602,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
             importance: input.importance,
             tags: input.tags,
           });
-          // Award XP for saving a memory (fire-and-forget)
-          awardXp(ctx.user.id, "memory_saved").catch(() => {});
-          return memoryResult;
+          // Award XP for saving a memory — await to surface new achievements
+          const memXp = await awardXp(ctx.user.id, "memory_saved").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
+          return { success: memoryResult, newAchievements: memXp.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })) };
         }),
 
       update: protectedProcedure
@@ -2238,9 +2240,9 @@ Reference these memories naturally when relevant. For example: "Remember when we
           });
         }
         const roundTableResult = await runRoundTable(ctx.user.id, input.question, input.sentinelIds, input.maxRounds);
-        // Award XP for completing a Round Table (fire-and-forget)
-        awardXp(ctx.user.id, "round_table_completed").catch(() => {});
-        return roundTableResult;
+        // Award XP for completing a Round Table — await to surface new achievements
+        const rtXp = await awardXp(ctx.user.id, "round_table_completed").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
+        return { ...roundTableResult, newAchievements: rtXp.newAchievements.map((a: { id: string; title: string; emoji: string; tier: string }) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })) };
       }),
 
     history: protectedProcedure.query(async ({ ctx }) => {

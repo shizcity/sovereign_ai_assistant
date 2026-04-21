@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -544,11 +545,12 @@ export default function MySentinels() {
   });
 
   const createMutation = trpc.sentinels.custom.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Sentinel created!");
       utils.sentinels.custom.list.invalidate();
       utils.sentinels.list.invalidate();
       setShowCreate(false);
+      showAchievementToasts(data?.newAchievements);
     },
     onError: (e) => toast.error(e.message),
   });

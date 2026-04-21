@@ -32,6 +32,7 @@ import { voiceService } from "@/lib/voice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -303,10 +304,10 @@ export default function Chat() {
 
   // Send message mutation
   const sendMessage = trpc.messages.send.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.messages.list.invalidate({ conversationId: selectedConversation! });
       setInputMessage("");
-      toast.success("Message sent");
+      showAchievementToasts(data?.newAchievements);
     },
     onError: (error) => {
       toast.error(`Failed to send message: ${error.message}`);

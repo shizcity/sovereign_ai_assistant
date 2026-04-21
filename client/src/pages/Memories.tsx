@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Edit, Plus, Search, Brain, Sparkles } from "lucide-react";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import {
   Dialog,
   DialogContent,
@@ -60,9 +61,10 @@ export default function Memories() {
   });
 
   const createMemoryMutation = trpc.sentinels.memories.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetch();
       setIsCreateDialogOpen(false);
+      showAchievementToasts(data?.newAchievements);
     },
   });
 
