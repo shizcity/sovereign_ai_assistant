@@ -51,6 +51,7 @@ export default function Landing() {
   const featureCard4Ref = useScrollAnimation({ threshold: 0.2 });
   const featureCard5Ref = useScrollAnimation({ threshold: 0.2 });
   const featureCard6Ref = useScrollAnimation({ threshold: 0.2 });
+  const roundTableRef = useScrollAnimation({ threshold: 0.15 });
   const sentinelsHeaderRef = useScrollAnimation();
   const sentinelCard1Ref = useScrollAnimation({ threshold: 0.2 });
   const sentinelCard2Ref = useScrollAnimation({ threshold: 0.2 });
@@ -560,6 +561,128 @@ export default function Landing() {
                 </Card>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Round Table Flagship Section */}
+      <section className="relative z-10 py-32 px-6 border-t border-white/10 overflow-hidden" style={{ background: 'oklch(0.06 0.02 260 / 0.6)' }}>
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-indigo-600/8 blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-cyan-500/6 blur-[80px]" />
+        </div>
+
+        <div
+          ref={roundTableRef.ref}
+          className={`container max-w-6xl mx-auto transition-all duration-700 ${
+            roundTableRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}
+        >
+          {/* Badge */}
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 text-xs font-semibold uppercase tracking-widest">
+              <Users className="w-3 h-3" /> Pro &amp; Creator Feature
+            </div>
+          </div>
+
+          {/* Headline */}
+          <div className="text-center mb-14">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight">
+              Don't ask one AI.<br />
+              <span className="bg-gradient-to-r from-indigo-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+                Convene a council.
+              </span>
+            </h2>
+            <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              The Round Table assembles multiple Sentinels to deliberate on your question. Each reasons independently,
+              challenges the others, and the council reaches a consensus — surfacing insights no single AI can match.
+            </p>
+          </div>
+
+          {/* Deliberation mockup */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            {/* Left: Reasoning chain mockup */}
+            <div className="space-y-3">
+              {/* Question */}
+              <div className="bg-white/4 border border-white/10 rounded-xl px-4 py-3">
+                <div className="text-xs text-white/35 uppercase tracking-wider mb-1">Question</div>
+                <p className="text-sm text-white/80">Should I pivot my startup's core offering or double down on the current market?</p>
+              </div>
+
+              {/* Sentinel reasoning cards */}
+              {[
+                { emoji: '🦊', name: "Vixen's Den", round: 1, conclusion: "Double down. You haven't exhausted distribution channels. Pivoting now burns trust capital.", confidence: 82, color: 'border-orange-500/30 bg-orange-500/5' },
+                { emoji: '🎭', name: 'Mischief.EXE', round: 1, conclusion: "Pivot — but not away from the problem. Reframe the solution. The market is right, the product is wrong.", confidence: 74, color: 'border-teal-500/30 bg-teal-500/5', dissent: true },
+                { emoji: '🌙', name: 'Lunaris.Vault', round: 2, conclusion: "Data suggests 60% of pivots at this stage fail. However, Mischief raises a valid reframing angle worth testing with a 30-day sprint.", confidence: 88, color: 'border-blue-500/30 bg-blue-500/5' },
+              ].map((item, i) => (
+                <div key={i} className={`border rounded-xl p-4 ${item.color}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{item.emoji}</span>
+                      <span className="text-sm font-semibold text-white">{item.name}</span>
+                      <span className="text-xs text-white/30 border border-white/10 rounded px-1.5 py-0.5">Round {item.round}</span>
+                      {item.dissent && <span className="text-xs text-amber-400 border border-amber-500/30 rounded px-1.5 py-0.5">Dissent</span>}
+                    </div>
+                    <span className="text-xs font-mono font-bold text-emerald-400">{item.confidence}%</span>
+                  </div>
+                  <p className="text-xs text-white/60 leading-relaxed">{item.conclusion}</p>
+                </div>
+              ))}
+
+              {/* Consensus bar */}
+              <div className="bg-white/4 border border-white/10 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-white">Council Consensus</span>
+                  <span className="text-base font-bold font-mono text-emerald-400">81%</span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div className="h-2 rounded-full bg-emerald-500" style={{ width: '81%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Feature highlights + CTA */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                {[
+                  { icon: '🧠', title: 'Independent Reasoning', desc: 'Each Sentinel reasons without groupthink — then reads the others and refines in subsequent rounds.' },
+                  { icon: '⚡', title: 'Contradiction Detection', desc: 'Conflicting conclusions are flagged automatically so you can see exactly where perspectives diverge.' },
+                  { icon: '💾', title: 'Memory-Aware', desc: 'Each Sentinel draws on your saved memories to give contextually grounded, personally relevant answers.' },
+                  { icon: '🎯', title: 'Best-Fit Final Answer', desc: 'The council\'s synthesis is delivered by the Sentinel whose expertise best matches your question.' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg shrink-0">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-white text-sm mb-1">{item.title}</div>
+                      <p className="text-xs text-gray-400 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div className="bg-gradient-to-br from-indigo-950/60 to-cyan-950/40 border border-indigo-500/25 rounded-2xl p-6 space-y-4">
+                <div className="text-sm font-semibold text-white">Available on Pro &amp; Creator</div>
+                <p className="text-xs text-white/50 leading-relaxed">
+                  Unlock the Round Table, voice mode, custom Sentinel builder, and unlimited conversations.
+                </p>
+                <div className="flex gap-3">
+                  <Link href="/chat">
+                    <Button className="bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-semibold text-sm px-5">
+                      Start Free <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                  </Link>
+                  <Link href="/chat">
+                    <Button variant="outline" className="border-white/15 text-white/60 hover:text-white hover:border-white/30 text-sm">
+                      See Pricing
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

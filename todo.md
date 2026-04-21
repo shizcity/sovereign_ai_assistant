@@ -1481,3 +1481,9 @@
 - [x] Consensus score + contradiction display
 - [x] Final answer display with source Sentinel
 - [x] Register route in App.tsx and add to sidebar navigation
+
+## Feature - Round Table Landing Page Section
+- [x] Add flagship Round Table section to Landing.tsx Features area
+- [x] Include "Don't ask one AI. Convene a council." headline
+- [x] Show deliberation UI mockup/visual with Sentinel cards
+- [x] Add Pro/Creator conversion CTA
