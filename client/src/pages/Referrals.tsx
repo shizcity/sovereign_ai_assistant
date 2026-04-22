@@ -15,6 +15,8 @@ import {
   Trophy,
   ChevronRight,
   Share2,
+  Medal,
+  Crown,
 } from "lucide-react";
 
 export default function Referrals() {
@@ -26,6 +28,10 @@ export default function Referrals() {
     { enabled: !!user }
   );
   const { data: stats, isLoading: statsLoading } = trpc.referral.getStats.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
+  const { data: leaderboard, isLoading: lbLoading } = trpc.referral.getLeaderboard.useQuery(
     undefined,
     { enabled: !!user }
   );
@@ -219,6 +225,114 @@ export default function Referrals() {
                 </div>
               )}
             </>
+          )}
+        </div>
+
+        {/* Leaderboard */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm font-semibold text-white/80">Top Inviters</span>
+            <span className="text-xs text-white/30 ml-auto">Global leaderboard</span>
+          </div>
+
+          {lbLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-lg bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : !leaderboard || leaderboard.entries.length === 0 ? (
+            <div className="text-center py-8 text-white/30 text-sm">
+              <Trophy className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              No referrals yet — be the first on the board!
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {leaderboard.entries.map((entry) => {
+                const rankColors = [
+                  "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
+                  "text-slate-300 bg-slate-500/10 border-slate-500/20",
+                  "text-amber-600 bg-amber-700/10 border-amber-700/20",
+                ];
+                const rankStyle = rankColors[entry.rank - 1] ?? "text-white/40 bg-white/5 border-white/8";
+                const isMe = entry.isCurrentUser;
+                return (
+                  <div
+                    key={entry.userId}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+                      isMe
+                        ? "bg-cyan-950/40 border-cyan-500/30 ring-1 ring-cyan-500/20"
+                        : "bg-white/3 border-white/6 hover:bg-white/5"
+                    }`}
+                  >
+                    {/* Rank badge */}
+                    <div className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankStyle}`}>
+                      {entry.rank <= 3 ? (
+                        entry.rank === 1 ? <Crown className="w-3.5 h-3.5" /> :
+                        entry.rank === 2 ? <Medal className="w-3.5 h-3.5" /> :
+                        <Star className="w-3.5 h-3.5" />
+                      ) : (
+                        entry.rank
+                      )}
+                    </div>
+                    {/* Avatar */}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                      isMe ? "bg-cyan-500/30 text-cyan-300" : "bg-white/10 text-white/60"
+                    }`}>
+                      {entry.name.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Name */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate ${
+                        isMe ? "text-cyan-300" : "text-white/80"
+                      }`}>
+                        {isMe ? `${entry.name} (you)` : entry.name}
+                      </p>
+                    </div>
+                    {/* Stats */}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-semibold text-white">{entry.referralCount}</p>
+                      <p className="text-xs text-white/35">{entry.referralCount === 1 ? "invite" : "invites"}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 min-w-[56px]">
+                      <p className="text-xs font-medium text-cyan-400">+{entry.totalXp}</p>
+                      <p className="text-xs text-white/25">XP</p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Current user rank if outside top 10 */}
+              {leaderboard.currentUserRank && (
+                <>
+                  <div className="flex items-center gap-2 py-1">
+                    <div className="flex-1 h-px bg-white/8" />
+                    <span className="text-xs text-white/25">your position</span>
+                    <div className="flex-1 h-px bg-white/8" />
+                  </div>
+                  <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border bg-cyan-950/40 border-cyan-500/30 ring-1 ring-cyan-500/20">
+                    <div className="w-7 h-7 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-xs font-bold text-white/40 flex-shrink-0">
+                      #{leaderboard.currentUserRank.rank}
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-cyan-500/30 flex items-center justify-center text-sm font-bold text-cyan-300 flex-shrink-0">
+                      {user?.name?.charAt(0).toUpperCase() ?? "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-cyan-300 truncate">{user?.name} (you)</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-semibold text-white">{leaderboard.currentUserRank.referralCount}</p>
+                      <p className="text-xs text-white/35">invites</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 min-w-[56px]">
+                      <p className="text-xs font-medium text-cyan-400">+{leaderboard.currentUserRank.totalXp}</p>
+                      <p className="text-xs text-white/25">XP</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
 

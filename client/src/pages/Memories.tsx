@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Edit, Plus, Search, Brain, Sparkles } from "lucide-react";
+import { Trash2, Edit, Plus, Search, Brain, Sparkles, List, Network } from "lucide-react";
+import MemoryGraph from "@/components/MemoryGraph";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import {
   Dialog,
@@ -43,6 +44,12 @@ export default function Memories() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingMemory, setEditingMemory] = useState<any>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "graph">("list");
+  const [selectedGraphNode, setSelectedGraphNode] = useState<any>(null);
+
+  const { data: graphData } = trpc.sentinels.memories.getGraph.useQuery(undefined, {
+    enabled: viewMode === "graph",
+  });
 
   const { data: sentinels } = trpc.sentinels.list.useQuery();
   const { data: allMemories, refetch } = trpc.sentinels.memories.listAll.useQuery();
@@ -118,9 +125,36 @@ export default function Memories() {
       <div className="container mx-auto py-12 px-4">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Brain className="w-10 h-10 text-purple-400" />
-            <h1 className="text-4xl font-bold">Sentinel Memories</h1>
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <Brain className="w-10 h-10 text-purple-400" />
+              <h1 className="text-4xl font-bold">Sentinel Memories</h1>
+            </div>
+            {/* View mode toggle */}
+            <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-xl p-1">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  viewMode === "list"
+                    ? "bg-purple-600 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <List className="w-3.5 h-3.5" />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode("graph")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  viewMode === "graph"
+                    ? "bg-purple-600 text-white"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Network className="w-3.5 h-3.5" />
+                Graph
+              </button>
+            </div>
           </div>
           <p className="text-gray-300 text-lg">
             View and manage memories that your Sentinels have formed through your conversations.
@@ -312,8 +346,51 @@ export default function Memories() {
           </Card>
         </div>
 
+        {/* Graph View */}
+        {viewMode === "graph" && (
+          <div className="mb-8">
+            <Card className="bg-slate-800/50 border-slate-700 p-2 overflow-hidden" style={{ height: 560 }}>
+              {graphData && graphData.nodes.length > 0 ? (
+                <MemoryGraph
+                  data={graphData}
+                  onNodeClick={(node) => setSelectedGraphNode(node)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <Network className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="text-sm">No memories yet — start chatting to build your memory graph.</p>
+                </div>
+              )}
+            </Card>
+            {/* Selected node detail */}
+            {selectedGraphNode && (
+              <Card className="mt-4 bg-slate-800/70 border-purple-500/30 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        {selectedGraphNode.category}
+                      </Badge>
+                      <span className="text-xs text-slate-400">Importance: {selectedGraphNode.importance}</span>
+                    </div>
+                    <p className="text-white mb-2">{selectedGraphNode.content}</p>
+                    {selectedGraphNode.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedGraphNode.tags.map((t: string) => (
+                          <span key={t} className="text-xs px-2 py-0.5 rounded bg-white/8 text-white/50">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => setSelectedGraphNode(null)} className="text-slate-500 hover:text-white text-lg leading-none">✕</button>
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Memories List */}
-        {memoriesBySentinel && Object.keys(memoriesBySentinel).length > 0 ? (
+        {viewMode === "list" && memoriesBySentinel && Object.keys(memoriesBySentinel).length > 0 ? (
           Object.entries(memoriesBySentinel).map(([sentinelId, memories]) => {
             const sentinel = sentinels?.find((s) => s.id === Number(sentinelId));
             if (!sentinel) return null;

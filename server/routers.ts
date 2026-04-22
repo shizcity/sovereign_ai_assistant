@@ -4,6 +4,7 @@ import { awardXp } from "./gamification";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router, TRPCError } from "./_core/trpc";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -1846,6 +1847,51 @@ Reference these memories naturally when relevant. For example: "Remember when we
             return getSuggestionStats(ctx.user.id);
           }),
       }),
+
+      /** Build a graph of all user memories with keyword-similarity edges for D3 visualisation */
+      getGraph: protectedProcedure.query(async ({ ctx }) => {
+        const { getAllUserMemories } = await import("./memory-db");
+        const memories = await getAllUserMemories(ctx.user.id);
+
+        // Build nodes
+        const nodes = memories.map((m: any) => ({
+          id: m.id,
+          content: m.content,
+          category: m.category,
+          importance: m.importance ?? 50,
+          tags: (typeof m.tags === "string" ? JSON.parse(m.tags || "[]") : m.tags) as string[],
+          sentinelId: m.sentinelId,
+          createdAt: m.createdAt,
+        }));
+
+        // Compute similarity edges using tag/keyword overlap (Jaccard similarity)
+        const edges: { source: number; target: number; weight: number }[] = [];
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i];
+            const b = nodes[j];
+            // Tag overlap
+            const tagsA = new Set(Array.from([...(a.tags || []), a.category]));
+            const tagsB = new Set(Array.from([...(b.tags || []), b.category]));
+            const intersection = Array.from(tagsA).filter(t => tagsB.has(t)).length;
+            const union = new Set(Array.from(tagsA).concat(Array.from(tagsB))).size;
+            const tagSimilarity = union > 0 ? intersection / union : 0;
+            // Keyword overlap from content (top 8 words, 4+ chars)
+            const wordsA = new Set(a.content.toLowerCase().match(/\b[a-z]{4,}\b/g)?.slice(0, 8) ?? []);
+            const wordsB = new Set(b.content.toLowerCase().match(/\b[a-z]{4,}\b/g)?.slice(0, 8) ?? []);
+            const wordIntersection = Array.from(wordsA).filter(w => wordsB.has(w)).length;
+            const wordUnion = new Set(Array.from(wordsA).concat(Array.from(wordsB))).size;
+            const wordSimilarity = wordUnion > 0 ? wordIntersection / wordUnion : 0;
+            // Combined score
+            const score = tagSimilarity * 0.6 + wordSimilarity * 0.4;
+            if (score >= 0.15) {
+              edges.push({ source: a.id, target: b.id, weight: Math.round(score * 100) / 100 });
+            }
+          }
+        }
+
+        return { nodes, edges };
+      }),
     }),
   }),
 
@@ -2454,6 +2500,69 @@ Reference these memories naturally when relevant. For example: "Remember when we
         const result = await claimReferral(referrer.id, ctx.user.id, input.code.toUpperCase());
         return result;
       }),
+
+    /** Top-10 leaderboard by referral count */
+    getLeaderboard: protectedProcedure.query(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const { referrals, users } = await import("../drizzle/schema");
+      const { eq, isNotNull, count, sum, desc } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return { entries: [], currentUserRank: null };
+
+      // Aggregate referrals per referrer
+      const rows = await db
+        .select({
+          referrerId: referrals.referrerId,
+          referralCount: count(referrals.id),
+          totalXp: sum(referrals.xpAwarded),
+          referrerName: users.name,
+        })
+        .from(referrals)
+        .innerJoin(users, eq(users.id, referrals.referrerId))
+        .where(isNotNull(referrals.claimedAt))
+        .groupBy(referrals.referrerId, users.name)
+        .orderBy(desc(count(referrals.id)))
+        .limit(10);
+
+      const entries = rows.map((r, i) => ({
+        rank: i + 1,
+        userId: r.referrerId,
+        name: r.referrerName ?? "Anonymous",
+        referralCount: Number(r.referralCount),
+        totalXp: Number(r.totalXp ?? 0),
+        isCurrentUser: r.referrerId === ctx.user.id,
+      }));
+
+      // Find current user rank if not in top 10
+      const currentUserInTop = entries.find(e => e.isCurrentUser);
+      let currentUserRank: { rank: number; referralCount: number; totalXp: number } | null = null;
+      if (!currentUserInTop) {
+        const [myStats] = await db
+          .select({ referralCount: count(referrals.id), totalXp: sum(referrals.xpAwarded) })
+          .from(referrals)
+          .where(eq(referrals.referrerId, ctx.user.id));
+        if (myStats && Number(myStats.referralCount) > 0) {
+          // Count how many users have more referrals
+          const [{ aboveCount }] = await db
+            .select({ aboveCount: count(referrals.referrerId) })
+            .from(
+              db.select({ referrerId: referrals.referrerId, cnt: count(referrals.id).as("cnt") })
+                .from(referrals)
+                .where(isNotNull(referrals.claimedAt))
+                .groupBy(referrals.referrerId)
+                .as("sub")
+            )
+            .where(sql`cnt > ${Number(myStats.referralCount)}`);
+          currentUserRank = {
+            rank: Number(aboveCount) + 1,
+            referralCount: Number(myStats.referralCount),
+            totalXp: Number(myStats.totalXp ?? 0),
+          };
+        }
+      }
+
+      return { entries, currentUserRank };
+    }),
   }),
 });
 

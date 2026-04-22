@@ -1471,6 +1471,16 @@
 - [x] Chat sidebar: upgrade search to query message content, not just conversation titles
 - [x] Chat sidebar: show matching message snippet under conversation title in results (debounced 400ms)
 
+## Referral Leaderboard + Memory Graph
+- [x] Add referral.getLeaderboard tRPC procedure (top 10 by referral count)
+- [x] Add leaderboard table to /referrals page with rank, avatar initial, name, count, XP earned
+- [x] Highlight current user's row if they appear in top 10
+- [x] Install d3 + @types/d3 packages
+- [x] Add memories.getGraph tRPC procedure (Jaccard tag+keyword similarity edges, threshold 0.15)
+- [x] Build MemoryGraph D3 force-directed component (zoom/pan, glow filter, drag nodes, tooltip)
+- [x] Add List/Graph toggle on Memories page header
+- [x] Node click opens memory detail panel below graph
+
 ## Interruption Log + PDF Export
 - [x] ResultsView: collapsible interruption log timeline (timestamp, message, afterRound, amber-themed)
 - [x] Conversation export: PDF export already implemented via jsPDF (manus-md-to-pdf is sandbox-only CLI)
