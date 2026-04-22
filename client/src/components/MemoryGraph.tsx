@@ -15,6 +15,7 @@ type MemoryEdge = {
   source: number;
   target: number;
   weight: number;
+  sharedTags?: string[];
 };
 
 type GraphData = {
@@ -41,11 +42,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const DEFAULT_COLOR = "#94a3b8";
 
+type NodeTooltip = { x: number; y: number; node: MemoryNode };
+type EdgeTooltip = { x: number; y: number; sharedTags: string[]; weight: number };
+
 export default function MemoryGraph({ data, onNodeClick }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; node: MemoryNode } | null>(null);
+  const [nodeTooltip, setNodeTooltip] = useState<NodeTooltip | null>(null);
+  const [edgeTooltip, setEdgeTooltip] = useState<EdgeTooltip | null>(null);
 
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || data.nodes.length === 0) return;
@@ -71,7 +76,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
 
     // Build simulation-ready node/link objects (D3 mutates these)
     type SimNode = MemoryNode & d3.SimulationNodeDatum;
-    type SimLink = d3.SimulationLinkDatum<SimNode> & { weight: number };
+    type SimLink = d3.SimulationLinkDatum<SimNode> & { weight: number; sharedTags: string[] };
 
     const nodeById = new Map<number, SimNode>();
     const simNodes: SimNode[] = data.nodes.map((n) => {
@@ -85,7 +90,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
         const source = nodeById.get(e.source);
         const target = nodeById.get(e.target);
         if (!source || !target) return null;
-        return { source, target, weight: e.weight } as SimLink;
+        return { source, target, weight: e.weight, sharedTags: e.sharedTags ?? [] } as SimLink;
       })
       .filter((l): l is SimLink => l !== null);
 
@@ -100,15 +105,56 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide<SimNode>().radius((d) => nodeRadius(d) + 6));
 
-    // Draw edges
-    const link = g.append("g")
-      .attr("class", "links")
-      .selectAll("line")
+    // Draw edges — wider invisible hit-area on top for easier hover
+    const linkGroup = g.append("g").attr("class", "links");
+
+    const link = linkGroup
+      .selectAll("line.edge-visible")
       .data(simLinks)
       .join("line")
+      .attr("class", "edge-visible")
       .attr("stroke", "#ffffff12")
       .attr("stroke-width", (d) => Math.max(1, d.weight * 4))
-      .attr("stroke-linecap", "round");
+      .attr("stroke-linecap", "round")
+      .attr("pointer-events", "none"); // visual only; hit-area handles events
+
+    // Invisible wider hit-area lines for edge hover
+    const linkHit = linkGroup
+      .selectAll("line.edge-hit")
+      .data(simLinks)
+      .join("line")
+      .attr("class", "edge-hit")
+      .attr("stroke", "transparent")
+      .attr("stroke-width", 14)
+      .attr("stroke-linecap", "round")
+      .style("cursor", "crosshair")
+      .on("mouseenter", (event: MouseEvent, d: SimLink) => {
+        const rect = container.getBoundingClientRect();
+        // Highlight the visible edge
+        const idx = simLinks.indexOf(d);
+        link.filter((_: SimLink, i: number) => i === idx)
+          .attr("stroke", "#ffffff35")
+          .attr("stroke-width", Math.max(2, d.weight * 5 + 1));
+        setEdgeTooltip({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+          sharedTags: d.sharedTags,
+          weight: d.weight,
+        });
+      })
+      .on("mousemove", (event: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        setEdgeTooltip((prev) =>
+          prev ? { ...prev, x: event.clientX - rect.left, y: event.clientY - rect.top } : prev
+        );
+      })
+      .on("mouseleave", (_event: MouseEvent, d: SimLink) => {
+        const idx = simLinks.indexOf(d);
+        link.filter((_: SimLink, i: number) => i === idx)
+          .attr("stroke", "#ffffff12")
+          .attr("stroke-width", Math.max(1, d.weight * 4));
+        setEdgeTooltip(null);
+      });
 
     // Draw nodes
     const node = g.append("g")
@@ -168,22 +214,23 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
       onNodeClick?.(d);
     });
 
-    // Hover tooltip
+    // Node hover tooltip
     node
-      .on("mouseenter", (event, d) => {
+      .on("mouseenter", (event: MouseEvent, d: SimNode) => {
         const rect = container.getBoundingClientRect();
-        setTooltip({
+        setEdgeTooltip(null); // clear edge tooltip when hovering node
+        setNodeTooltip({
           x: event.clientX - rect.left,
           y: event.clientY - rect.top,
           node: d,
         });
-        d3.select(event.currentTarget).select("circle")
+        d3.select(event.currentTarget as Element).select("circle")
           .attr("fill-opacity", 0.35)
           .attr("stroke-width", 2.5);
       })
-      .on("mouseleave", (event) => {
-        setTooltip(null);
-        d3.select(event.currentTarget).select("circle")
+      .on("mouseleave", (event: MouseEvent) => {
+        setNodeTooltip(null);
+        d3.select(event.currentTarget as Element).select("circle")
           .attr("fill-opacity", 0.15)
           .attr("stroke-width", 1.5);
       });
@@ -191,6 +238,12 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
     // Tick
     simulation.on("tick", () => {
       link
+        .attr("x1", (d) => (d.source as SimNode).x ?? 0)
+        .attr("y1", (d) => (d.source as SimNode).y ?? 0)
+        .attr("x2", (d) => (d.target as SimNode).x ?? 0)
+        .attr("y2", (d) => (d.target as SimNode).y ?? 0);
+
+      linkHit
         .attr("x1", (d) => (d.source as SimNode).x ?? 0)
         .attr("y1", (d) => (d.source as SimNode).y ?? 0)
         .attr("x2", (d) => (d.target as SimNode).x ?? 0)
@@ -208,32 +261,63 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
     <div ref={containerRef} className="relative w-full h-full min-h-[500px]">
       <svg ref={svgRef} className="w-full h-full" />
 
-      {/* Tooltip */}
-      {tooltip && (
+      {/* Node tooltip */}
+      {nodeTooltip && (
         <div
           className="absolute z-20 pointer-events-none max-w-[220px] rounded-xl border border-white/10 bg-black/80 backdrop-blur-md p-3 shadow-xl"
-          style={{ left: tooltip.x + 12, top: tooltip.y - 8 }}
+          style={{ left: nodeTooltip.x + 12, top: nodeTooltip.y - 8 }}
         >
           <div className="flex items-center gap-2 mb-1.5">
             <span
               className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ background: CATEGORY_COLORS[tooltip.node.category] ?? DEFAULT_COLOR }}
+              style={{ background: CATEGORY_COLORS[nodeTooltip.node.category] ?? DEFAULT_COLOR }}
             />
             <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
-              {tooltip.node.category}
+              {nodeTooltip.node.category}
             </span>
           </div>
           <p className="text-xs text-white/85 leading-relaxed line-clamp-4">
-            {tooltip.node.content}
+            {nodeTooltip.node.content}
           </p>
-          {tooltip.node.tags?.length > 0 && (
+          {nodeTooltip.node.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {tooltip.node.tags.slice(0, 4).map((t) => (
+              {nodeTooltip.node.tags.slice(0, 4).map((t) => (
                 <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-white/8 text-white/45">
                   {t}
                 </span>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Edge tooltip — shows shared tags/keywords explaining the connection */}
+      {edgeTooltip && (
+        <div
+          className="absolute z-20 pointer-events-none max-w-[240px] rounded-xl border border-cyan-500/20 bg-black/85 backdrop-blur-md p-3 shadow-xl"
+          style={{ left: edgeTooltip.x + 12, top: edgeTooltip.y - 8 }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400/70">
+              Connected by
+            </span>
+            <span className="ml-auto text-[10px] text-white/30">
+              {Math.round(edgeTooltip.weight * 100)}% match
+            </span>
+          </div>
+          {edgeTooltip.sharedTags.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {edgeTooltip.sharedTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-cyan-300"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-white/40 italic">Semantic similarity</p>
           )}
         </div>
       )}

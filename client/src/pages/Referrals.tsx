@@ -17,11 +17,13 @@ import {
   Share2,
   Medal,
   Crown,
+  Twitter,
 } from "lucide-react";
 
 export default function Referrals() {
   const { user, loading } = useAuth({ redirectOnUnauthenticated: true });
   const [copied, setCopied] = useState(false);
+  const [rankCopied, setRankCopied] = useState(false);
 
   const { data: linkData, isLoading: linkLoading } = trpc.referral.getMyLink.useQuery(
     undefined,
@@ -35,6 +37,20 @@ export default function Referrals() {
     undefined,
     { enabled: !!user }
   );
+
+  // Derive the current user's rank & invite count from leaderboard data
+  const myEntry = leaderboard?.entries.find((e) => e.isCurrentUser)
+    ?? leaderboard?.currentUserRank
+    ?? null;
+
+  const buildShareText = () => {
+    if (!myEntry || !linkData) return "";
+    const rank = myEntry.rank;
+    const invites = myEntry.referralCount;
+    const code = linkData.code ?? "";
+    const url = code ? `glow.manus.space?ref=${code}` : "glow.manus.space";
+    return `I'm #${rank} on the Glow leaderboard with ${invites} ${invites === 1 ? "invite" : "invites"} 🏆 ${url}`;
+  };
 
   const handleCopy = async () => {
     if (!linkData?.link) return;
@@ -55,6 +71,22 @@ export default function Referrals() {
     } else {
       handleCopy();
     }
+  };
+
+  const handleShareRankCopy = async () => {
+    const text = buildShareText();
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setRankCopied(true);
+    toast.success("Share text copied to clipboard!");
+    setTimeout(() => setRankCopied(false), 2500);
+  };
+
+  const handleShareRankTweet = () => {
+    const text = buildShareText();
+    if (!text) return;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(tweetUrl, "_blank", "noopener,noreferrer");
   };
 
   if (loading) {
@@ -331,6 +363,45 @@ export default function Referrals() {
                     </div>
                   </div>
                 </>
+              )}
+
+              {/* Share my rank card — shown whenever the user has a rank (top 10 or outside) */}
+              {myEntry && linkData && (
+                <div className="mt-4 rounded-xl border border-yellow-500/20 bg-gradient-to-br from-yellow-950/30 to-amber-950/20 p-4 space-y-3">
+                  {/* Preview text */}
+                  <div className="flex items-start gap-2">
+                    <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-white/70 leading-relaxed font-mono break-all">
+                      {buildShareText()}
+                    </p>
+                  </div>
+                  {/* Action buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleShareRankCopy}
+                      variant="outline"
+                      size="sm"
+                      className={`flex-1 border-yellow-500/25 text-yellow-300/80 hover:text-yellow-200 hover:border-yellow-500/40 transition-all ${
+                        rankCopied ? "bg-green-900/30 border-green-500/30 text-green-300" : ""
+                      }`}
+                    >
+                      {rankCopied ? (
+                        <Check className="w-3.5 h-3.5 mr-1.5" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 mr-1.5" />
+                      )}
+                      {rankCopied ? "Copied!" : "Copy text"}
+                    </Button>
+                    <Button
+                      onClick={handleShareRankTweet}
+                      size="sm"
+                      className="flex-1 bg-[#1d9bf0]/20 hover:bg-[#1d9bf0]/30 border border-[#1d9bf0]/30 hover:border-[#1d9bf0]/50 text-[#1d9bf0] transition-all"
+                    >
+                      <Twitter className="w-3.5 h-3.5 mr-1.5" />
+                      Post on X
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           )}

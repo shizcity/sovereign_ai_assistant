@@ -1581,3 +1581,12 @@
 - [x] Add XP level indicator + streak counter to Chat sidebar
 - [x] Add achievement unlock toast notification (showAchievementToasts hook, wired into all 5 XP actions)
 - [x] Register /achievements route in App.tsx and sidebar nav
+
+## Memory Graph Edge Labels + Leaderboard Sharing Card
+- [x] Memory graph: edge hover tooltip showing shared tags/keywords ("Connected by") + similarity % match
+- [x] Memory graph: invisible wider hit-area lines on edges for easier hover targeting
+- [x] Memory graph: edge highlight (brighter stroke) on hover to visually confirm selection
+- [x] Leaderboard: "Share my rank" card shown when user has any rank (top-10 or outside)
+- [x] Leaderboard: share text format "I'm #N on the Glow leaderboard with N invites 🏆 glow.manus.space?ref=CODE"
+- [x] Leaderboard: Copy text button with green confirmation state + toast
+- [x] Leaderboard: Post on X button opening twitter.com/intent/tweet with pre-filled text
