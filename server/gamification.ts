@@ -80,6 +80,7 @@ export interface UserStats {
   currentStreak: number;
   longestStreak: number;
   totalXp: number;
+  totalReferrals: number;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
@@ -113,6 +114,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   // Template milestones
   { id: "template_creator",     title: "Template Artisan",     description: "Create your first template",             emoji: "🎨", tier: "bronze",   xpReward: 75,  check: s => s.totalTemplatesCreated >= 1 },
   { id: "templates_used_10",    title: "Workflow Master",      description: "Use templates 10 times",                 emoji: "⚙️", tier: "silver",   xpReward: 150, check: s => s.totalTemplatesUsed >= 10 },
+  // Referral milestones
+  { id: "referral_first",       title: "First Invite",         description: "Successfully invite your first friend",  emoji: "🤝", tier: "bronze",   xpReward: 100, check: s => s.totalReferrals >= 1 },
+  { id: "referral_5",           title: "Community Builder",    description: "Invite 5 friends to Glow",               emoji: "🌐", tier: "silver",   xpReward: 300, check: s => s.totalReferrals >= 5 },
+  { id: "referral_10",          title: "Growth Champion",      description: "Invite 10 friends to Glow",              emoji: "🚀", tier: "gold",     xpReward: 750, check: s => s.totalReferrals >= 10 },
 ];
 
 // ─────────────────────────────────────────────
@@ -284,6 +289,15 @@ export async function getUserStats(userId: number): Promise<UserStats> {
       .limit(1);
     const streak = streakResult[0];
 
+    // Referral count (claimed referrals where this user is the referrer)
+    const { referrals: referralsTable } = await import("../drizzle/schema");
+    const { isNotNull, and: drizzleAnd } = await import("drizzle-orm");
+    const [refResult] = await db
+      .select({ cnt: count() })
+      .from(referralsTable)
+      .where(drizzleAnd(eq(referralsTable.referrerId, userId), isNotNull(referralsTable.claimedAt)));
+    const totalReferrals = Number(refResult?.cnt ?? 0);
+
     return {
       totalMessages: countMap["message_sent"] ?? 0,
       totalVoiceMessages: countMap["voice_message"] ?? 0,
@@ -295,6 +309,7 @@ export async function getUserStats(userId: number): Promise<UserStats> {
       currentStreak: streak?.currentStreak ?? 0,
       longestStreak: streak?.longestStreak ?? 0,
       totalXp,
+      totalReferrals,
     };
   } catch (err) {
     console.error("[Gamification] getUserStats error:", err);
@@ -302,8 +317,18 @@ export async function getUserStats(userId: number): Promise<UserStats> {
       totalMessages: 0, totalVoiceMessages: 0, totalMemories: 0,
       totalRoundTables: 0, totalCustomSentinels: 0, totalTemplatesUsed: 0,
       totalTemplatesCreated: 0, currentStreak: 0, longestStreak: 0, totalXp: 0,
+      totalReferrals: 0,
     };
   }
+}
+
+/**
+ * Check and unlock referral-specific achievements for a user.
+ * Called after a successful referral claim to give the referrer their milestone badges.
+ * Returns newly unlocked achievements.
+ */
+export async function checkReferralAchievements(userId: number): Promise<AchievementDef[]> {
+  return checkAndUnlockAchievements(userId);
 }
 
 /**

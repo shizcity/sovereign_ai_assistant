@@ -2496,9 +2496,15 @@ Reference these memories naturally when relevant. For example: "Remember when we
       .mutation(async ({ ctx, input }) => {
         const { getUserByReferralCode, claimReferral } = await import("./referral-db");
         const referrer = await getUserByReferralCode(input.code);
-        if (!referrer) return { success: false, reason: "invalid_code" };
+        if (!referrer) return { success: false, reason: "invalid_code", newAchievements: [] };
         const result = await claimReferral(referrer.id, ctx.user.id, input.code.toUpperCase());
-        return result;
+        // After a successful claim, check if the REFERRER earned any new milestone badges
+        let newAchievements: import("./gamification").AchievementDef[] = [];
+        if (result.success) {
+          const { checkReferralAchievements } = await import("./gamification");
+          newAchievements = await checkReferralAchievements(referrer.id);
+        }
+        return { ...result, newAchievements };
       }),
 
     /** Top-10 leaderboard by referral count */

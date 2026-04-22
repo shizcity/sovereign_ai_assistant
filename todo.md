@@ -1590,3 +1590,14 @@
 - [x] Leaderboard: share text format "I'm #N on the Glow leaderboard with N invites 🏆 glow.manus.space?ref=CODE"
 - [x] Leaderboard: Copy text button with green confirmation state + toast
 - [x] Leaderboard: Post on X button opening twitter.com/intent/tweet with pre-filled text
+
+## Memory Graph Clustering + Referral Milestone Badges
+- [x] Memory graph: Free/Cluster layout toggle button (top-right corner of graph canvas)
+- [x] Memory graph: Cluster mode uses forceX/forceY to pull same-category nodes toward fixed centroids
+- [x] Memory graph: Cluster mode renders soft halo circles + uppercase category labels at each centroid
+- [x] Memory graph: Free mode restores organic force-directed layout (no cluster forces)
+- [x] Gamification: Added totalReferrals field to UserStats (queries referrals table)
+- [x] Gamification: Three new referral milestone achievements — First Invite (bronze, 100 XP), Community Builder 5 invites (silver, 300 XP), Growth Champion 10 invites (gold, 750 XP)
+- [x] Gamification: checkReferralAchievements() exported function for post-claim badge checks
+- [x] Referral claim procedure: runs checkReferralAchievements for referrer after successful claim, returns newAchievements
+- [x] App.tsx: showAchievementToasts wired into referral claim onSuccess — referral milestone badges appear as staggered toasts

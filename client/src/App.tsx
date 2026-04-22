@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { UsageWarningBanner } from "@/components/UsageWarningBanner";
@@ -87,6 +88,10 @@ function App() {
       onSuccess: (result) => {
         if (result.success && 'refereeXp' in result) {
           toast.success(`🎁 Welcome bonus! +${result.refereeXp} XP added to your account.`);
+        }
+        // Show achievement toasts for the referee (if they unlocked any)
+        if ('newAchievements' in result && result.newAchievements?.length) {
+          showAchievementToasts(result.newAchievements);
         }
       },
     });

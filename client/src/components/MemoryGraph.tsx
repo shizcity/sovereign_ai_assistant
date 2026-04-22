@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
+import { Layers, Shuffle } from "lucide-react";
 
 type MemoryNode = {
   id: number;
@@ -42,16 +43,34 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const DEFAULT_COLOR = "#94a3b8";
 
+// Cluster grid positions — maps each category to a (cx, cy) fraction of the canvas
+// arranged in a 3×3 grid so clusters don't overlap
+const CLUSTER_POSITIONS: Record<string, [number, number]> = {
+  insight:     [0.20, 0.20],
+  decision:    [0.50, 0.15],
+  milestone:   [0.80, 0.20],
+  preference:  [0.15, 0.50],
+  goal:        [0.50, 0.50],
+  achievement: [0.85, 0.50],
+  challenge:   [0.20, 0.80],
+  pattern:     [0.50, 0.82],
+};
+
 type NodeTooltip = { x: number; y: number; node: MemoryNode };
 type EdgeTooltip = { x: number; y: number; sharedTags: string[]; weight: number };
+
+export type LayoutMode = "free" | "cluster";
 
 export default function MemoryGraph({ data, onNodeClick }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const simulationRef = useRef<d3.Simulation<any, any> | null>(null);
   const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
   const [nodeTooltip, setNodeTooltip] = useState<NodeTooltip | null>(null);
   const [edgeTooltip, setEdgeTooltip] = useState<EdgeTooltip | null>(null);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("free");
 
+  // Rebuild the simulation whenever data or layout mode changes
   useEffect(() => {
     if (!svgRef.current || !containerRef.current || data.nodes.length === 0) return;
 
@@ -74,7 +93,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
         .on("zoom", (event) => g.attr("transform", event.transform))
     );
 
-    // Build simulation-ready node/link objects (D3 mutates these)
+    // ── Types ──
     type SimNode = MemoryNode & d3.SimulationNodeDatum;
     type SimLink = d3.SimulationLinkDatum<SimNode> & { weight: number; sharedTags: string[] };
 
@@ -94,18 +113,81 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
       })
       .filter((l): l is SimLink => l !== null);
 
-    // Force simulation
+    // ── Cluster label positions (shown only in cluster mode) ──
+    const usedCategories = Array.from(new Set(data.nodes.map(n => n.category)));
+
+    // ── Force simulation ──
     const simulation = d3.forceSimulation<SimNode>(simNodes)
       .force("link", d3.forceLink<SimNode, SimLink>(simLinks)
         .id((d) => d.id)
-        .distance((l) => 120 - l.weight * 60)
-        .strength((l) => l.weight * 0.6)
+        .distance((l) => layoutMode === "cluster" ? 60 - l.weight * 30 : 120 - l.weight * 60)
+        .strength((l) => layoutMode === "cluster" ? l.weight * 0.8 : l.weight * 0.6)
       )
-      .force("charge", d3.forceManyBody().strength(-180))
+      .force("charge", d3.forceManyBody().strength(layoutMode === "cluster" ? -120 : -180))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide<SimNode>().radius((d) => nodeRadius(d) + 6));
 
-    // Draw edges — wider invisible hit-area on top for easier hover
+    // Add forceX/forceY for cluster mode — pull nodes toward their category centroid
+    if (layoutMode === "cluster") {
+      simulation
+        .force("clusterX", d3.forceX<SimNode>((d) => {
+          const pos = CLUSTER_POSITIONS[d.category] ?? [0.5, 0.5];
+          return pos[0] * width;
+        }).strength(0.35))
+        .force("clusterY", d3.forceY<SimNode>((d) => {
+          const pos = CLUSTER_POSITIONS[d.category] ?? [0.5, 0.5];
+          return pos[1] * height;
+        }).strength(0.35));
+    }
+
+    simulationRef.current = simulation;
+
+    // ── Cluster label bubbles (background, shown in cluster mode only) ──
+    if (layoutMode === "cluster") {
+      const labelGroup = g.append("g").attr("class", "cluster-labels");
+      usedCategories.forEach((cat) => {
+        const pos = CLUSTER_POSITIONS[cat] ?? [0.5, 0.5];
+        const cx = pos[0] * width;
+        const cy = pos[1] * height;
+        const color = CATEGORY_COLORS[cat] ?? DEFAULT_COLOR;
+
+        // Soft halo circle
+        labelGroup.append("circle")
+          .attr("cx", cx)
+          .attr("cy", cy)
+          .attr("r", 52)
+          .attr("fill", color)
+          .attr("fill-opacity", 0.04)
+          .attr("stroke", color)
+          .attr("stroke-opacity", 0.12)
+          .attr("stroke-width", 1)
+          .attr("stroke-dasharray", "4 3");
+
+        // Category label
+        labelGroup.append("text")
+          .attr("x", cx)
+          .attr("y", cy - 58)
+          .attr("text-anchor", "middle")
+          .attr("fill", color)
+          .attr("fill-opacity", 0.55)
+          .attr("font-size", "11px")
+          .attr("font-weight", "600")
+          .attr("font-family", "Inter, sans-serif")
+          .attr("letter-spacing", "0.05em")
+          .attr("pointer-events", "none")
+          .text(cat.toUpperCase());
+      });
+    }
+
+    // ── Glow filter ──
+    const defs = svg.append("defs");
+    const filter = defs.append("filter").attr("id", "glow");
+    filter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
+    const feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+    // ── Draw edges ──
     const linkGroup = g.append("g").attr("class", "links");
 
     const link = linkGroup
@@ -116,9 +198,9 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
       .attr("stroke", "#ffffff12")
       .attr("stroke-width", (d) => Math.max(1, d.weight * 4))
       .attr("stroke-linecap", "round")
-      .attr("pointer-events", "none"); // visual only; hit-area handles events
+      .attr("pointer-events", "none");
 
-    // Invisible wider hit-area lines for edge hover
+    // Invisible wider hit-area for edge hover
     const linkHit = linkGroup
       .selectAll("line.edge-hit")
       .data(simLinks)
@@ -130,7 +212,6 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
       .style("cursor", "crosshair")
       .on("mouseenter", (event: MouseEvent, d: SimLink) => {
         const rect = container.getBoundingClientRect();
-        // Highlight the visible edge
         const idx = simLinks.indexOf(d);
         link.filter((_: SimLink, i: number) => i === idx)
           .attr("stroke", "#ffffff35")
@@ -156,7 +237,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
         setEdgeTooltip(null);
       });
 
-    // Draw nodes
+    // ── Draw nodes ──
     const node = g.append("g")
       .attr("class", "nodes")
       .selectAll("g")
@@ -180,14 +261,6 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
             d.fy = null;
           }) as unknown as (selection: d3.Selection<d3.BaseType | SVGGElement, SimNode, SVGGElement, unknown>) => void
       );
-
-    // Glow filter
-    const defs = svg.append("defs");
-    const filter = defs.append("filter").attr("id", "glow");
-    filter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
-    const feMerge = filter.append("feMerge");
-    feMerge.append("feMergeNode").attr("in", "coloredBlur");
-    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     // Node circles
     node.append("circle")
@@ -218,7 +291,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
     node
       .on("mouseenter", (event: MouseEvent, d: SimNode) => {
         const rect = container.getBoundingClientRect();
-        setEdgeTooltip(null); // clear edge tooltip when hovering node
+        setEdgeTooltip(null);
         setNodeTooltip({
           x: event.clientX - rect.left,
           y: event.clientY - rect.top,
@@ -235,7 +308,7 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
           .attr("stroke-width", 1.5);
       });
 
-    // Tick
+    // ── Tick ──
     simulation.on("tick", () => {
       link
         .attr("x1", (d) => (d.source as SimNode).x ?? 0)
@@ -255,11 +328,39 @@ export default function MemoryGraph({ data, onNodeClick }: Props) {
     return () => {
       simulation.stop();
     };
-  }, [data, onNodeClick]);
+  }, [data, onNodeClick, layoutMode]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full min-h-[500px]">
       <svg ref={svgRef} className="w-full h-full" />
+
+      {/* Layout toggle — top-right corner */}
+      <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-1">
+        <button
+          onClick={() => setLayoutMode("free")}
+          title="Free layout"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            layoutMode === "free"
+              ? "bg-purple-600 text-white"
+              : "text-white/40 hover:text-white/70"
+          }`}
+        >
+          <Shuffle className="w-3 h-3" />
+          Free
+        </button>
+        <button
+          onClick={() => setLayoutMode("cluster")}
+          title="Cluster by category"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            layoutMode === "cluster"
+              ? "bg-purple-600 text-white"
+              : "text-white/40 hover:text-white/70"
+          }`}
+        >
+          <Layers className="w-3 h-3" />
+          Cluster
+        </button>
+      </div>
 
       {/* Node tooltip */}
       {nodeTooltip && (
