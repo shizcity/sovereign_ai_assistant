@@ -1471,6 +1471,11 @@
 - [x] Chat sidebar: upgrade search to query message content, not just conversation titles
 - [x] Chat sidebar: show matching message snippet under conversation title in results (debounced 400ms)
 
+## Interruption Log + PDF Export
+- [x] ResultsView: collapsible interruption log timeline (timestamp, message, afterRound, amber-themed)
+- [x] Conversation export: PDF export already implemented via jsPDF (manus-md-to-pdf is sandbox-only CLI)
+- [x] Export UI: PDF button already present in Chat header alongside Markdown and JSON export
+
 ## Phase 3 - Architect Tier (Round Table Advanced)
 - [x] Shared context mode: Sentinels see each other's prior reasoning before responding
 - [x] Synchronous mode: sequential deliberation where each Sentinel builds on the previous

@@ -28,10 +28,88 @@ import {
   Link2,
   Layers,
   ArrowRight,
+  MessageSquarePlus,
+  ChevronRight,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { useRef } from "react";
+
+// ─── Interruption Log Panel ───────────────────────────────────────────────────
+
+function InterruptionLogPanel({
+  log,
+}: {
+  log: Array<{ message: string; timestamp: string; afterRound: number }>;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!log || log.length === 0) return null;
+
+  return (
+    <div className="bg-amber-950/20 border border-amber-500/20 rounded-xl overflow-hidden">
+      {/* Header toggle */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-500/5 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <MessageSquarePlus className="w-4 h-4 text-amber-400/80" />
+          <span className="text-sm font-semibold text-amber-300/80">
+            Human Interruptions
+          </span>
+          <span className="text-xs text-amber-400/50 bg-amber-500/10 rounded-full px-2 py-0.5">
+            {log.length}
+          </span>
+        </div>
+        {open ? (
+          <ChevronDown className="w-4 h-4 text-amber-400/50" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-amber-400/50" />
+        )}
+      </button>
+
+      {/* Timeline */}
+      {open && (
+        <div className="px-4 pb-4 space-y-0">
+          <div className="relative">
+            {/* Vertical line */}
+            <div className="absolute left-3.5 top-0 bottom-0 w-px bg-amber-500/20" />
+            <div className="space-y-4">
+              {log.map((entry, i) => (
+                <div key={i} className="relative flex gap-4 pl-8">
+                  {/* Dot */}
+                  <div className="absolute left-2 top-1.5 w-3 h-3 rounded-full bg-amber-500/40 border-2 border-amber-400/60 shrink-0" />
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-amber-400/60 font-mono">
+                        After Round {entry.afterRound}
+                      </span>
+                      <span className="text-xs text-white/25">
+                        {new Date(entry.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <div className="bg-amber-500/8 border border-amber-500/15 rounded-lg px-3 py-2">
+                      <p className="text-sm text-amber-100/80 leading-relaxed">{entry.message}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-white/25 mt-3 pl-1">
+            These injections were incorporated into subsequent Sentinel reasoning.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Deliberation Mode ───────────────────────────────────────────────────────
 
@@ -469,6 +547,11 @@ function ResultsView({
       {/* Structured contradictions panel */}
       {contradictions.length > 0 && (
         <ContradictionPanel contradictions={contradictions} />
+      )}
+
+      {/* Interruption log timeline */}
+      {result.interruptionLog && result.interruptionLog.length > 0 && (
+        <InterruptionLogPanel log={result.interruptionLog} />
       )}
 
       {/* Reasoning chains by round */}
