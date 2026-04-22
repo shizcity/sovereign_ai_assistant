@@ -2300,21 +2300,83 @@ Reference these memories naturally when relevant. For example: "Remember when we
           question: z.string().min(10).max(2000),
           sentinelIds: z.array(z.number()).min(2).max(6),
           maxRounds: z.number().min(1).max(3).default(2),
+          deliberationMode: z.enum(["parallel", "shared", "synchronous"]).default("parallel"),
         })
       )
       .mutation(async ({ ctx, input }) => {
         const { runRoundTable } = await import("./roundtable");
-        const { isProOrAbove } = await import("./products");
-        if (!isProOrAbove(ctx.user.subscriptionTier ?? "free")) {
+        const { isProOrAbove, isCreatorOrAbove } = await import("./products");
+        const tier = ctx.user.subscriptionTier ?? "free";
+        if (!isProOrAbove(tier)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Round Table is available for Pro and Creator subscribers.",
           });
         }
-        const roundTableResult = await runRoundTable(ctx.user.id, input.question, input.sentinelIds, input.maxRounds);
+        // Shared and Synchronous modes are Architect (Creator) tier only
+        if ((input.deliberationMode === "shared" || input.deliberationMode === "synchronous") && !isCreatorOrAbove(tier)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Shared Context and Synchronous modes require the Creator tier.",
+          });
+        }
+        const roundTableResult = await runRoundTable(
+          ctx.user.id,
+          input.question,
+          input.sentinelIds,
+          input.maxRounds,
+          input.deliberationMode
+        );
         // Award XP for completing a Round Table — await to surface new achievements
         const rtXp = await awardXp(ctx.user.id, "round_table_completed").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
         return { ...roundTableResult, newAchievements: rtXp.newAchievements.map((a: { id: string; title: string; emoji: string; tier: string }) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })) };
+      }),
+
+    /** Interrupt a running session — pause deliberation and inject a human message */
+    interrupt: protectedProcedure
+      .input(z.object({
+        sessionId: z.number(),
+        message: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { pauseFlags } = await import("./roundtable");
+        const { getDb } = await import("./db");
+        const { roundTableSessions } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        // Verify ownership
+        const [session] = await db.select().from(roundTableSessions)
+          .where(and(eq(roundTableSessions.id, input.sessionId), eq(roundTableSessions.userId, ctx.user.id)))
+          .limit(1);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+        if (session.status !== "running") throw new TRPCError({ code: "BAD_REQUEST", message: "Session is not running" });
+        // Set pause flag with injected message
+        pauseFlags.set(input.sessionId, { paused: true, injectedMessage: input.message });
+        // Mark session as paused in DB
+        await db.update(roundTableSessions).set({ isPaused: 1 }).where(eq(roundTableSessions.id, input.sessionId));
+        return { success: true, sessionId: input.sessionId };
+      }),
+
+    /** Resume a paused session */
+    resume: protectedProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { pauseFlags } = await import("./roundtable");
+        const { getDb } = await import("./db");
+        const { roundTableSessions } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const [session] = await db.select().from(roundTableSessions)
+          .where(and(eq(roundTableSessions.id, input.sessionId), eq(roundTableSessions.userId, ctx.user.id)))
+          .limit(1);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+        // Resume: clear pause flag but keep injected message (will be consumed by engine)
+        const current = pauseFlags.get(input.sessionId);
+        pauseFlags.set(input.sessionId, { paused: false, injectedMessage: current?.injectedMessage ?? null });
+        await db.update(roundTableSessions).set({ isPaused: 0 }).where(eq(roundTableSessions.id, input.sessionId));
+        return { success: true };
       }),
 
     history: protectedProcedure.query(async ({ ctx }) => {

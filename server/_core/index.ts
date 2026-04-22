@@ -161,6 +161,56 @@ async function startServer() {
     })
   );
 
+  // ─── Round Table SSE Streaming ─────────────────────────────────────────────
+  // GET /api/roundtable/stream/:streamId
+  // Streams reasoning events as Server-Sent Events while a session is running.
+  // The client connects using the streamId returned by roundTable.start.
+  app.get("/api/roundtable/stream/:streamId", (req, res) => {
+    const { streamId } = req.params;
+    if (!streamId) {
+      res.status(400).json({ error: "Missing streamId" });
+      return;
+    }
+
+    // SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
+    res.flushHeaders();
+
+    // Send a heartbeat immediately to confirm connection
+    res.write(`data: ${JSON.stringify({ event: "connected", data: { streamId } })}\n\n`);
+
+    // Import streamBus lazily to avoid circular deps
+    import("../roundtable").then(({ streamBus }) => {
+      const emitter = streamBus.get(streamId);
+      if (!emitter) {
+        res.write(`data: ${JSON.stringify({ event: "error", data: { message: "Stream not found or already completed" } })}\n\n`);
+        res.end();
+        return;
+      }
+
+      const onEvent = (payload: { event: string; data: Record<string, unknown> }) => {
+        res.write(`data: ${JSON.stringify(payload)}\n\n`);
+        // Close SSE connection when session completes or errors
+        if (payload.event === "complete" || payload.event === "error") {
+          res.end();
+        }
+      };
+
+      emitter.on("event", onEvent);
+
+      // Cleanup on client disconnect
+      req.on("close", () => {
+        emitter.off("event", onEvent);
+      });
+    }).catch((err) => {
+      console.error("[SSE] Failed to load streamBus:", err);
+      res.end();
+    });
+  });
+
   // Global error handler - ensures all errors return JSON for API routes
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Only handle errors for API routes

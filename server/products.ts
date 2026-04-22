@@ -110,3 +110,7 @@ export function isProOrAbove(tier: string): boolean {
   const t = tier.toLowerCase();
   return t === "pro" || t === "creator";
 }
+
+export function isCreatorOrAbove(tier: string): boolean {
+  return tier.toLowerCase() === "creator";
+}

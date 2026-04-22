@@ -22,9 +22,50 @@ import {
   GitFork,
   Route,
   TrendingDown,
+  Pause,
+  Play,
+  Share2,
+  Link2,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
+import { useRef } from "react";
+
+// ─── Deliberation Mode ───────────────────────────────────────────────────────
+
+type DeliberationMode = "parallel" | "shared" | "synchronous";
+
+const DELIBERATION_MODES: {
+  id: DeliberationMode;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  creatorOnly: boolean;
+}[] = [
+  {
+    id: "parallel",
+    label: "Parallel",
+    description: "All Sentinels reason independently at the same time",
+    icon: <Layers className="w-4 h-4" />,
+    creatorOnly: false,
+  },
+  {
+    id: "shared",
+    label: "Shared Context",
+    description: "Each Sentinel sees prior rounds before responding",
+    icon: <Share2 className="w-4 h-4" />,
+    creatorOnly: true,
+  },
+  {
+    id: "synchronous",
+    label: "Synchronous",
+    description: "Sequential chain — each Sentinel builds on the previous",
+    icon: <ArrowRight className="w-4 h-4" />,
+    creatorOnly: true,
+  },
+];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +106,15 @@ interface RoundTableResult {
   finalSentinelName: string;
   finalSentinelEmoji: string;
   routingReason: string;
+  deliberationMode?: string;
+  interruptionLog?: Array<{ message: string; timestamp: string; afterRound: number }>;
+}
+
+// ─── Streaming Event Types ────────────────────────────────────────────────────
+
+interface StreamEvent {
+  event: "connected" | "sentinel_start" | "sentinel_token" | "sentinel_complete" | "round_complete" | "paused" | "complete" | "error";
+  data: Record<string, unknown>;
 }
 
 // ─── Sentinel Select Card ─────────────────────────────────────────────────────
@@ -543,6 +593,15 @@ export default function RoundTable() {
   const [result, setResult] = useState<RoundTableResult | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [loadingSessionId, setLoadingSessionId] = useState<number | null>(null);
+  const [deliberationMode, setDeliberationMode] = useState<DeliberationMode>("parallel");
+  // Streaming state
+  const [streamingEvents, setStreamingEvents] = useState<StreamEvent[]>([]);
+  const [activeSentinelName, setActiveSentinelName] = useState<string | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [interruptMessage, setInterruptMessage] = useState("");
+  const [showInterruptPanel, setShowInterruptPanel] = useState(false);
+  const sseRef = useRef<EventSource | null>(null);
 
   const { data: sentinelList } = trpc.sentinels.list.useQuery();
   const { data: history, refetch: refetchHistory } = trpc.roundTable.history.useQuery();
@@ -550,10 +609,29 @@ export default function RoundTable() {
   const startMutation = trpc.roundTable.start.useMutation({
     onSuccess: (data) => {
       setResult(data as RoundTableResult);
+      setActiveSessionId(null);
+      setStreamingEvents([]);
+      setActiveSentinelName(null);
+      setIsPaused(false);
+      if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
       refetchHistory();
       showAchievementToasts((data as any)?.newAchievements);
     },
   });
+
+  const interruptMutation = trpc.roundTable.interrupt.useMutation({
+    onSuccess: () => {
+      setIsPaused(true);
+      setShowInterruptPanel(false);
+      setInterruptMessage("");
+    },
+  });
+
+  const resumeMutation = trpc.roundTable.resume.useMutation({
+    onSuccess: () => setIsPaused(false),
+  });
+
+  const isCreator = user?.subscriptionTier === "creator";
 
   const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
@@ -571,7 +649,24 @@ export default function RoundTable() {
 
   const handleStart = () => {
     if (!canStart) return;
-    startMutation.mutate({ question: question.trim(), sentinelIds: selectedIds, maxRounds: 2 });
+    setStreamingEvents([]);
+    setActiveSentinelName(null);
+    startMutation.mutate({
+      question: question.trim(),
+      sentinelIds: selectedIds,
+      maxRounds: 2,
+      deliberationMode,
+    });
+  };
+
+  const handleInterrupt = () => {
+    if (!activeSessionId || !interruptMessage.trim()) return;
+    interruptMutation.mutate({ sessionId: activeSessionId, message: interruptMessage.trim() });
+  };
+
+  const handleResume = () => {
+    if (!activeSessionId) return;
+    resumeMutation.mutate({ sessionId: activeSessionId });
   };
 
   const handleReset = () => {
@@ -692,6 +787,48 @@ export default function RoundTable() {
           <ResultsView result={result} onReset={handleReset} />
         ) : (
           <>
+            {/* Deliberation Mode Selector */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-white/70">Deliberation Mode</label>
+                {!isCreator && (
+                  <span className="text-xs text-amber-400/70 flex items-center gap-1">
+                    <Crown className="w-3 h-3" /> Creator unlocks 2 more modes
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {DELIBERATION_MODES.map((mode) => {
+                  const locked = mode.creatorOnly && !isCreator;
+                  const active = deliberationMode === mode.id;
+                  return (
+                    <button
+                      key={mode.id}
+                      onClick={() => !locked && setDeliberationMode(mode.id)}
+                      disabled={locked}
+                      className={`relative flex flex-col items-start gap-1.5 p-3 rounded-xl border text-left transition-all
+                        ${
+                          active
+                            ? "border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_10px_rgba(6,182,212,0.12)]"
+                            : locked
+                            ? "border-white/6 bg-white/2 opacity-40 cursor-not-allowed"
+                            : "border-white/10 bg-white/3 hover:border-white/20 hover:bg-white/5 cursor-pointer"
+                        }`}
+                    >
+                      <div className={`flex items-center gap-1.5 text-sm font-medium ${
+                        active ? "text-cyan-300" : locked ? "text-white/30" : "text-white/70"
+                      }`}>
+                        {mode.icon}
+                        {mode.label}
+                        {locked && <Crown className="w-3 h-3 text-amber-400/60 ml-auto" />}
+                      </div>
+                      <p className="text-xs text-white/35 leading-snug">{mode.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Question input */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-white/70">Your Question</label>
@@ -755,25 +892,102 @@ export default function RoundTable() {
             </Button>
 
             {startMutation.isPending && (
-              <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-4 text-center space-y-2">
-                <div className="flex justify-center gap-1">
-                  {selectedIds.map((id) => {
-                    const s = sentinelList?.find((x) => x.id === id);
-                    return s ? <span key={id} className="text-xl">{(s as any).symbolEmoji}</span> : null;
-                  })}
-                </div>
-                <p className="text-sm text-indigo-300/70">
-                  The council is deliberating. This takes 30–90 seconds depending on complexity.
-                </p>
-                <div className="flex justify-center gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-bounce"
-                      style={{ animationDelay: `${i * 0.15}s` }}
-                    />
+              <div className="space-y-3">
+                {/* Live progress panel */}
+                <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+                      <span className="text-sm text-indigo-300/80 font-medium">
+                        {isPaused ? "Session paused" : activeSentinelName ? `${activeSentinelName} is reasoning…` : "Council convening…"}
+                      </span>
+                    </div>
+                    {/* Mode badge */}
+                    <span className="text-xs text-white/30 capitalize">{deliberationMode}</span>
+                  </div>
+
+                  {/* Sentinel emoji row */}
+                  <div className="flex justify-center gap-1.5">
+                    {selectedIds.map((id) => {
+                      const s = sentinelList?.find((x) => x.id === id);
+                      const isActive = s && (s as any).name === activeSentinelName;
+                      return s ? (
+                        <span
+                          key={id}
+                          className={`text-xl transition-all duration-300 ${
+                            isActive ? "scale-125 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" : "opacity-40"
+                          }`}
+                        >
+                          {(s as any).symbolEmoji}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+
+                  {/* Streaming token preview */}
+                  {streamingEvents.filter(e => e.event === "sentinel_token").slice(-1).map((e, i) => (
+                    <div key={i} className="text-xs text-white/35 italic line-clamp-2 border-l-2 border-cyan-500/20 pl-2">
+                      {String(e.data.token ?? "")}
+                    </div>
                   ))}
+
+                  <div className="flex justify-center gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full bg-cyan-400/60 animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                      />
+                    ))}
+                  </div>
                 </div>
+
+                {/* Interrupt panel */}
+                {activeSessionId && (
+                  <div className="bg-white/3 border border-white/10 rounded-xl p-3 space-y-2">
+                    {!showInterruptPanel ? (
+                      <button
+                        onClick={() => setShowInterruptPanel(true)}
+                        className="flex items-center gap-2 text-xs text-white/40 hover:text-amber-400/80 transition-colors"
+                      >
+                        <Pause className="w-3.5 h-3.5" />
+                        Interrupt & inject a message
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-amber-400/80">
+                          <Pause className="w-3.5 h-3.5" />
+                          Inject a message into the deliberation
+                        </div>
+                        <textarea
+                          value={interruptMessage}
+                          onChange={(e) => setInterruptMessage(e.target.value)}
+                          placeholder="e.g. Focus on the ethical implications"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder:text-white/25 p-2 resize-none h-16 focus:outline-none focus:border-amber-500/40"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleInterrupt}
+                            disabled={!interruptMessage.trim() || interruptMutation.isPending}
+                            className="flex-1 h-7 text-xs bg-amber-600/80 hover:bg-amber-500 text-white"
+                          >
+                            {interruptMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pause className="w-3 h-3 mr-1" />}
+                            Pause & Inject
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowInterruptPanel(false)}
+                            className="h-7 text-xs text-white/40"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

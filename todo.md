@@ -1471,6 +1471,29 @@
 - [x] Chat sidebar: upgrade search to query message content, not just conversation titles
 - [x] Chat sidebar: show matching message snippet under conversation title in results (debounced 400ms)
 
+## Phase 3 - Architect Tier (Round Table Advanced)
+- [x] Shared context mode: Sentinels see each other's prior reasoning before responding
+- [x] Synchronous mode: sequential deliberation where each Sentinel builds on the previous
+- [x] Human interruption mid-session: pause deliberation, inject a message, resume
+- [x] Streaming reasoning output: real-time SSE stream showing each Sentinel thinking live
+- [x] Schema: add deliberationMode column to roundTableSessions (parallel/shared/synchronous)
+- [x] Schema: add interruptionLog JSON column to roundTableSessions
+- [x] Schema: add isPaused + streamId columns to roundTableSessions
+- [x] Engine: shared context pass (inject all prior reasoning into each Sentinel prompt)
+- [x] Engine: synchronous mode (sequential chain, each Sentinel reads all prior outputs)
+- [x] Engine: interruption mechanism (pauseFlags Map, inject human message, resume)
+- [x] Engine: streaming emitter (streamBus EventEmitter, emit tokens via SSE)
+- [x] SSE endpoint: GET /api/roundtable/stream/:streamId (Express route)
+- [x] tRPC: roundTable.start accepts deliberationMode param
+- [x] tRPC: roundTable.interrupt procedure (pause + inject human message)
+- [x] tRPC: roundTable.resume procedure (continue after interruption)
+- [x] products.ts: isCreatorOrAbove() helper added
+- [x] UI: 3-card deliberation mode selector (Parallel free, Shared/Synchronous Creator-gated)
+- [x] UI: live streaming progress panel with active Sentinel glow + token preview
+- [x] UI: interrupt panel with message injection textarea + Pause & Inject button
+- [x] UI: interruptionLog displayed in ResultsView session results
+- [x] Architect tier gate: Shared/Synchronous modes locked for non-Creator with upgrade hint
+
 ## Phase 2 - Round Table Intelligence
 - [x] Contradiction flagging: detect when Sentinels disagree on facts/conclusions and surface as structured flags
 - [x] Dissent display: show per-Sentinel dissent score and which Sentinels are outliers

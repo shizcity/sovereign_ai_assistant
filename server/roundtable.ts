@@ -7,8 +7,12 @@ import {
   sentinels,
 } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { EventEmitter } from "events";
+import crypto from "crypto";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export type DeliberationMode = "parallel" | "shared" | "synchronous";
 
 export interface RoundTableSentinel {
   id: number;
@@ -44,6 +48,13 @@ export interface ContradictionFlag {
   severity: "minor" | "moderate" | "major";
 }
 
+export interface InterruptionEvent {
+  timestamp: string;
+  message: string;
+  afterSentinel: string | null; // Which Sentinel had just spoken when interrupted
+  afterRound: number;
+}
+
 export interface RoundTableResult {
   sessionId: number;
   question: string;
@@ -57,6 +68,33 @@ export interface RoundTableResult {
   finalSentinelName: string;
   finalSentinelEmoji: string;
   routingReason: string; // Phase 2: why this Sentinel was chosen
+  deliberationMode: DeliberationMode; // Phase 3
+  interruptionLog: InterruptionEvent[]; // Phase 3
+  streamId: string | null; // Phase 3: SSE channel ID
+}
+
+// ─── SSE Streaming Bus ────────────────────────────────────────────────────────
+
+/**
+ * Global in-process event bus for streaming reasoning tokens.
+ * Key: streamId (uuid), Value: EventEmitter
+ * Cleaned up when session completes or fails.
+ */
+export const streamBus = new Map<string, EventEmitter>();
+
+/**
+ * Pause flags for human interruption.
+ * Key: sessionId, Value: { paused: boolean; injectedMessage: string | null }
+ */
+export const pauseFlags = new Map<number, { paused: boolean; injectedMessage: string | null }>();
+
+function emitStreamEvent(
+  streamId: string,
+  event: "token" | "sentinel_start" | "sentinel_done" | "complete" | "error",
+  data: Record<string, unknown>
+) {
+  const emitter = streamBus.get(streamId);
+  if (emitter) emitter.emit("event", { event, data });
 }
 
 // ─── Memory Loading ───────────────────────────────────────────────────────────
@@ -118,13 +156,19 @@ async function runSentinelReasoning(
   question: string,
   previousReasoning: SentinelReasoning[],
   round: number,
-  memories: string[]
+  memories: string[],
+  mode: DeliberationMode,
+  streamId: string | null,
+  injectedMessage: string | null = null
 ): Promise<SentinelReasoning> {
   const memoriesContext =
     memories.length > 0
       ? `\n\nRelevant memories from your history with this user:\n${memories.map((m) => `• ${m}`).join("\n")}`
       : "";
 
+  // In "parallel" mode: only see prior rounds' reasoning (original behaviour)
+  // In "shared" mode: see all prior reasoning including current round from other Sentinels
+  // In "synchronous" mode: see all reasoning from Sentinels that ran before you in this round
   const previousContext =
     previousReasoning.length > 0
       ? `\n\nPrevious reasoning from other Sentinels:\n${previousReasoning
@@ -135,6 +179,17 @@ async function runSentinelReasoning(
           .join("\n\n")}`
       : "";
 
+  const modeInstruction =
+    mode === "synchronous"
+      ? "\n\nIMPORTANT: You are responding AFTER the Sentinels listed above. Explicitly acknowledge their perspectives, then build upon, challenge, or synthesize their reasoning. Your response should show clear intellectual progression from what came before."
+      : mode === "shared"
+      ? "\n\nIMPORTANT: You have full visibility into all prior Sentinel reasoning. Use this shared context to avoid redundancy — focus on what you uniquely contribute that others have not covered."
+      : "";
+
+  const injectionContext = injectedMessage
+    ? `\n\n⚡ HUMAN INTERRUPTION: The user has injected this message mid-deliberation:\n"${injectedMessage}"\nAddress this directly in your reasoning.`
+    : "";
+
   const systemPrompt = `${sentinel.systemPrompt}
 
 You are participating in a Round Table deliberation — a structured multi-Sentinel reasoning process where multiple AI perspectives collaborate to reach the best possible answer.
@@ -143,7 +198,7 @@ Your role: Think deeply and honestly. Show your full reasoning chain. Do not jus
 
   const userPrompt = `Round ${round} of deliberation.
 
-Question: ${question}${previousContext}
+Question: ${question}${previousContext}${modeInstruction}${injectionContext}
 
 Respond with your full reasoning in this exact JSON structure:
 {
@@ -153,6 +208,16 @@ Respond with your full reasoning in this exact JSON structure:
   "concerns": ["Any caveats or limitations", "Things you're uncertain about"],
   "dissent": null or "If you strongly disagree with a previous Sentinel's conclusion, state why here"
 }`;
+
+  // Emit sentinel_start event for streaming
+  if (streamId) {
+    emitStreamEvent(streamId, "sentinel_start", {
+      sentinelId: sentinel.id,
+      sentinelName: sentinel.name,
+      sentinelEmoji: sentinel.emoji,
+      round,
+    });
+  }
 
   try {
     const response = await invokeLLM({
@@ -184,7 +249,7 @@ Respond with your full reasoning in this exact JSON structure:
     const content = response.choices[0].message.content;
     const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
 
-    return {
+    const result: SentinelReasoning = {
       sentinelId: sentinel.id,
       sentinelName: sentinel.name,
       sentinelEmoji: sentinel.emoji,
@@ -198,9 +263,26 @@ Respond with your full reasoning in this exact JSON structure:
       dissentScore: 0,  // computed later by computeDissentScores
       isOutlier: false,
     };
+
+    // Emit sentinel_done with full reasoning for streaming display
+    if (streamId) {
+      emitStreamEvent(streamId, "sentinel_done", {
+        sentinelId: sentinel.id,
+        sentinelName: sentinel.name,
+        sentinelEmoji: sentinel.emoji,
+        round,
+        thinkingChain: result.thinkingChain,
+        conclusion: result.conclusion,
+        confidence: result.confidence,
+        concerns: result.concerns,
+        dissent: result.dissent,
+      });
+    }
+
+    return result;
   } catch (err) {
     console.error(`[RoundTable] Error in ${sentinel.name} reasoning:`, err);
-    return {
+    const fallback: SentinelReasoning = {
       sentinelId: sentinel.id,
       sentinelName: sentinel.name,
       sentinelEmoji: sentinel.emoji,
@@ -214,20 +296,26 @@ Respond with your full reasoning in this exact JSON structure:
       dissentScore: 0,
       isOutlier: false,
     };
+    if (streamId) {
+      emitStreamEvent(streamId, "sentinel_done", {
+        sentinelId: sentinel.id,
+        sentinelName: sentinel.name,
+        sentinelEmoji: sentinel.emoji,
+        round,
+        thinkingChain: fallback.thinkingChain,
+        conclusion: fallback.conclusion,
+        confidence: 0,
+        concerns: fallback.concerns,
+        dissent: null,
+      });
+    }
+    return fallback;
   }
 }
 
 // ─── Dissent Scoring ──────────────────────────────────────────────────────────
 
-/**
- * Compute a dissent score for each Sentinel based on how far their confidence
- * and explicit dissent diverge from the group. Uses a simple heuristic:
- * - Base score from confidence deviation from group mean
- * - Bonus if the Sentinel has an explicit dissent text
- * - Normalized to 0–1 range
- */
 function computeDissentScores(chains: SentinelReasoning[]): SentinelReasoning[] {
-  // Only score the final round
   const maxRound = Math.max(...chains.map((r) => r.round));
   const finalRound = chains.filter((r) => r.round === maxRound);
 
@@ -304,8 +392,8 @@ Return a JSON array. If there are no meaningful contradictions, return an empty 
       "sentinelA": "Sentinel Name",
       "sentinelB": "Other Sentinel Name",
       "claim": "The specific point they disagree on",
-      "positionA": "What Sentinel A says about this claim",
-      "positionB": "What Sentinel B says about this claim",
+      "positionA": "What Sentinel A says",
+      "positionB": "What Sentinel B says",
       "severity": "moderate"
     }
   ]
@@ -461,7 +549,8 @@ async function synthesizeFinalAnswer(
   reasoningChains: SentinelReasoning[],
   consensusScore: number,
   hasContradiction: boolean,
-  contradictionSummary: string | null
+  contradictionSummary: string | null,
+  interruptionLog: InterruptionEvent[]
 ): Promise<string> {
   const allConclusions = reasoningChains
     .filter((r) => r.round === Math.max(...reasoningChains.map((x) => x.round)))
@@ -471,6 +560,11 @@ async function synthesizeFinalAnswer(
   const contradictionNote = hasContradiction
     ? `\n\nNote: There was meaningful disagreement in the deliberation: ${contradictionSummary}`
     : "";
+
+  const interruptionNote =
+    interruptionLog.length > 0
+      ? `\n\nThe user interrupted the deliberation with the following message(s):\n${interruptionLog.map((e) => `• "${e.message}"`).join("\n")}\nAddress these points in your final answer.`
+      : "";
 
   try {
     const response = await invokeLLM({
@@ -488,7 +582,7 @@ You have just participated in a Round Table deliberation with other Sentinels. Y
 The council reached consensus (score: ${(consensusScore * 100).toFixed(0)}%).
 
 All Sentinel conclusions:
-${allConclusions}${contradictionNote}
+${allConclusions}${contradictionNote}${interruptionNote}
 
 Deliver the final answer. Synthesize the collective reasoning into a clear, useful response. Be direct and speak in your authentic voice. You may acknowledge where the council had different perspectives if relevant.`,
         },
@@ -509,10 +603,16 @@ export async function runRoundTable(
   userId: number,
   question: string,
   selectedSentinelIds: number[],
-  maxRounds = 2
+  maxRounds = 2,
+  mode: DeliberationMode = "parallel"
 ): Promise<RoundTableResult> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+
+  // Generate a stream ID for SSE
+  const streamId = crypto.randomUUID();
+  const emitter = new EventEmitter();
+  streamBus.set(streamId, emitter);
 
   // Load Sentinel definitions
   const sentinelRows = await db
@@ -531,6 +631,7 @@ export async function runRoundTable(
     }));
 
   if (selectedSentinels.length < 2) {
+    streamBus.delete(streamId);
     throw new Error("At least 2 Sentinels are required for a Round Table");
   }
 
@@ -542,11 +643,19 @@ export async function runRoundTable(
     sentinelNames: JSON.stringify(selectedSentinels.map((s) => s.name)),
     status: "running",
     rounds: 0,
+    deliberationMode: mode,
+    streamId,
+    isPaused: 0,
+    interruptionLog: JSON.stringify([]),
   });
 
   const sessionId = (sessionResult as any).insertId as number;
 
+  // Initialize pause flag
+  pauseFlags.set(sessionId, { paused: false, injectedMessage: null });
+
   let allReasoning: SentinelReasoning[] = [];
+  const interruptionLog: InterruptionEvent[] = [];
 
   try {
     // Load memories for each Sentinel
@@ -557,20 +666,91 @@ export async function runRoundTable(
 
     // Run deliberation rounds
     for (let round = 1; round <= maxRounds; round++) {
-      for (const sentinel of selectedSentinels) {
-        const previousReasoning = allReasoning.filter(
-          (r) => !(r.sentinelId === sentinel.id && r.round === round)
-        );
+      if (mode === "synchronous") {
+        // SYNCHRONOUS MODE: each Sentinel runs in sequence and sees all prior output in this round
+        for (const sentinel of selectedSentinels) {
+          // Check for pause / interruption
+          const flag = pauseFlags.get(sessionId);
+          if (flag?.paused) {
+            // Wait for resume (poll every 500ms, max 5 minutes)
+            let waited = 0;
+            while (pauseFlags.get(sessionId)?.paused && waited < 300_000) {
+              await new Promise((r) => setTimeout(r, 500));
+              waited += 500;
+            }
+          }
 
-        const reasoning = await runSentinelReasoning(
-          sentinel,
-          question,
-          previousReasoning,
-          round,
-          memoriesBySentinel[sentinel.id] || []
-        );
+          const currentFlag = pauseFlags.get(sessionId);
+          const injectedMessage = currentFlag?.injectedMessage ?? null;
+          if (injectedMessage) {
+            interruptionLog.push({
+              timestamp: new Date().toISOString(),
+              message: injectedMessage,
+              afterSentinel: allReasoning.length > 0 ? allReasoning[allReasoning.length - 1].sentinelName : null,
+              afterRound: round,
+            });
+            // Clear the injection after recording
+            pauseFlags.set(sessionId, { paused: false, injectedMessage: null });
+          }
 
-        allReasoning.push(reasoning);
+          // In synchronous mode: each Sentinel sees ALL prior reasoning (all rounds + current round so far)
+          const previousReasoning = allReasoning.filter(
+            (r) => !(r.sentinelId === sentinel.id && r.round === round)
+          );
+
+          const reasoning = await runSentinelReasoning(
+            sentinel,
+            question,
+            previousReasoning,
+            round,
+            memoriesBySentinel[sentinel.id] || [],
+            mode,
+            streamId,
+            injectedMessage
+          );
+
+          allReasoning.push(reasoning);
+        }
+      } else if (mode === "shared") {
+        // SHARED CONTEXT MODE: all Sentinels run in parallel per round, but each sees
+        // the full reasoning from ALL prior rounds (not just their own prior rounds)
+        const previousReasoning = allReasoning; // all prior rounds
+        const roundResults = await Promise.all(
+          selectedSentinels.map((sentinel) => {
+            const sentinelPrior = previousReasoning.filter((r) => r.sentinelId !== sentinel.id);
+            return runSentinelReasoning(
+              sentinel,
+              question,
+              sentinelPrior,
+              round,
+              memoriesBySentinel[sentinel.id] || [],
+              mode,
+              streamId,
+              null
+            );
+          })
+        );
+        allReasoning.push(...roundResults);
+      } else {
+        // PARALLEL MODE (original): all Sentinels run in parallel, each sees only prior rounds
+        const roundResults = await Promise.all(
+          selectedSentinels.map((sentinel) => {
+            const previousReasoning = allReasoning.filter(
+              (r) => !(r.sentinelId === sentinel.id && r.round === round)
+            );
+            return runSentinelReasoning(
+              sentinel,
+              question,
+              previousReasoning,
+              round,
+              memoriesBySentinel[sentinel.id] || [],
+              mode,
+              streamId,
+              null
+            );
+          })
+        );
+        allReasoning.push(...roundResults);
       }
     }
 
@@ -607,17 +787,18 @@ export async function runRoundTable(
       selectedSentinels.find((s) => s.name === judgment.bestSentinelForAnswer) ||
       selectedSentinels[0];
 
-    // Synthesize final answer
+    // Synthesize final answer (now includes interruption context)
     const finalAnswer = await synthesizeFinalAnswer(
       deliveringSentinel,
       question,
       allReasoning,
       judgment.consensusScore,
       judgment.hasContradiction,
-      judgment.contradictionSummary
+      judgment.contradictionSummary,
+      interruptionLog
     );
 
-    // Update session as completed — including new Phase 2 fields
+    // Update session as completed
     await db
       .update(roundTableSessions)
       .set({
@@ -631,9 +812,23 @@ export async function runRoundTable(
         finalSentinelId: deliveringSentinel.id,
         finalSentinelName: deliveringSentinel.name,
         routingReason: judgment.bestSentinelReason,
+        interruptionLog: JSON.stringify(interruptionLog),
+        isPaused: 0,
         completedAt: new Date(),
       })
       .where(eq(roundTableSessions.id, sessionId));
+
+    // Emit completion event
+    emitStreamEvent(streamId, "complete", {
+      sessionId,
+      finalSentinelName: deliveringSentinel.name,
+      finalSentinelEmoji: deliveringSentinel.emoji,
+      consensusScore: judgment.consensusScore,
+    });
+
+    // Cleanup
+    setTimeout(() => streamBus.delete(streamId), 30_000);
+    pauseFlags.delete(sessionId);
 
     return {
       sessionId,
@@ -648,6 +843,9 @@ export async function runRoundTable(
       finalSentinelName: deliveringSentinel.name,
       finalSentinelEmoji: deliveringSentinel.emoji,
       routingReason: judgment.bestSentinelReason,
+      deliberationMode: mode,
+      interruptionLog,
+      streamId,
     };
   } catch (err) {
     // Mark session as failed
@@ -655,6 +853,10 @@ export async function runRoundTable(
       .update(roundTableSessions)
       .set({ status: "failed" })
       .where(eq(roundTableSessions.id, sessionId));
+
+    emitStreamEvent(streamId, "error", { message: String(err) });
+    setTimeout(() => streamBus.delete(streamId), 5_000);
+    pauseFlags.delete(sessionId);
     throw err;
   }
 }
@@ -741,6 +943,14 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     contradictions = [];
   }
 
+  // Parse interruption log
+  let interruptionLog: InterruptionEvent[] = [];
+  try {
+    interruptionLog = JSON.parse(session.interruptionLog ?? "[]") as InterruptionEvent[];
+  } catch {
+    interruptionLog = [];
+  }
+
   return {
     sessionId: session.id,
     question: session.question,
@@ -754,5 +964,8 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     finalSentinelName: session.finalSentinelName ?? "",
     finalSentinelEmoji: reasoningRows.find((r) => r.sentinelName === session.finalSentinelName)?.sentinelEmoji ?? "🤖",
     routingReason: session.routingReason ?? "",
+    deliberationMode: (session.deliberationMode as DeliberationMode) ?? "parallel",
+    interruptionLog,
+    streamId: session.streamId ?? null,
   };
 }

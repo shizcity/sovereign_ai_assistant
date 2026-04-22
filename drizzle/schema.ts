@@ -355,6 +355,11 @@ export const roundTableSessions = mysqlTable("round_table_sessions", {
   savedMemoryId: int("savedMemoryId"), // Memory ID if session was saved to memory layer
   contradictions: text("contradictions"), // JSON array of structured contradiction objects
   routingReason: text("routingReason"), // Why the best-fit Sentinel was chosen
+  // Phase 3 columns
+  deliberationMode: varchar("deliberationMode", { length: 20 }).default("parallel").notNull(), // parallel | shared | synchronous
+  interruptionLog: text("interruptionLog"), // JSON array of human interruption events
+  streamId: varchar("streamId", { length: 64 }), // SSE channel ID for streaming
+  isPaused: int("isPaused").default(0).notNull(), // 1 if session is paused for human input
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
 });
