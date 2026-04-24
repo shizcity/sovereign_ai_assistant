@@ -28,6 +28,7 @@ import MySentinels from "@/pages/MySentinels";
 import RoundTable from "@/pages/RoundTable";
 import Achievements from "@/pages/Achievements";
 import Referrals from "@/pages/Referrals";
+import SharedSession from "@/pages/SharedSession";
 
 
 function Router() {
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/round-table" component={RoundTable} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
+      <Route path="/session/:shareId" component={SharedSession} />
 
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

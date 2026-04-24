@@ -1633,3 +1633,13 @@
 - [x] routers.ts: sentinels.stats procedure — aggregates per-Sentinel avgConfidence, avgLatencyMs, dissentRate, totalRounds across user's RT sessions
 - [x] Sentinels.tsx: Track Record section — responsive table sorted by avg confidence, TOP badge for leader, color-coded confidence bar, latency in ms/s, dissent rate color coding
 - [x] Sentinels.tsx: sentinelStats query wired with enabled: !!user guard
+
+## Session Share Link + Track Record Sentinel Card Badges
+- [x] schema.ts: shareId VARCHAR(32) column added to round_table_sessions (nullable, default NULL)
+- [x] DB migration: ALTER TABLE round_table_sessions ADD COLUMN shareId via raw SQL
+- [x] routers.ts: roundTable.generateShareLink mutation — generates 12-char alphanumeric token, saves to DB, idempotent (returns existing if already set)
+- [x] routers.ts: roundTable.getSharedSession publicProcedure — looks up session by shareId, returns full session data without requiring auth
+- [x] SharedSession.tsx: new public read-only page at /session/:shareId — shows question, sentinels, consensus gauge, interruptions, deliberation chains, contradictions, final answer; no login required
+- [x] App.tsx: /session/:shareId route registered and SharedSession imported
+- [x] RoundTable.tsx: Share row in ResultsView — shows "Share read-only link" with Share button; on click generates link, copies to clipboard, shows Copied! confirmation; URL displayed inline after generation
+- [x] Sentinels.tsx: Track Record badge on each card — shows "87% confidence · 12 rounds" using sentinelStats data; only visible for Sentinels with RT history; color-coded confidence

@@ -396,6 +396,19 @@ function ResultsView({
   const contradictions = result.contradictions ?? [];
   const [exportFormat, setExportFormat] = useState<"markdown" | "json">("markdown");
   const [downloading, setDownloading] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const generateShareLink = trpc.roundTable.generateShareLink.useMutation({
+    onSuccess: (data) => {
+      const url = `${window.location.origin}/session/${data.shareId}`;
+      setShareUrl(url);
+      navigator.clipboard.writeText(url).then(() => {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      });
+    },
+  });
 
   const exportQuery = trpc.roundTable.exportSession.useQuery(
     { sessionId: result.sessionId, format: exportFormat },
@@ -504,6 +517,39 @@ function ResultsView({
 
       {/* Actions */}
       <div className="flex flex-col gap-3">
+        {/* Share row */}
+        <div className="flex items-center gap-2 p-3 rounded-xl border border-white/8 bg-white/3">
+          <Share2 className="w-4 h-4 text-white/40 shrink-0" />
+          <span className="text-xs text-white/50 flex-1 truncate">
+            {shareUrl ? (
+              <span className="font-mono text-cyan-400/80 text-[11px]">{shareUrl}</span>
+            ) : (
+              "Share read-only link"
+            )}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => generateShareLink.mutate({ sessionId: result.sessionId })}
+            disabled={generateShareLink.isPending}
+            className={`border-white/15 h-7 px-3 text-xs shrink-0 transition-colors ${
+              shareCopied
+                ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                : "text-white/70 hover:text-white hover:border-white/30"
+            }`}
+          >
+            {generateShareLink.isPending ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : shareCopied ? (
+              <><CheckCircle2 className="w-3 h-3 mr-1" />Copied!</>
+            ) : shareUrl ? (
+              <><Link2 className="w-3 h-3 mr-1" />Copy again</>
+            ) : (
+              <><Share2 className="w-3 h-3 mr-1" />Share</>
+            )}
+          </Button>
+        </div>
+
         {/* Export row */}
         <div className="flex items-center gap-2 p-3 rounded-xl border border-white/8 bg-white/3">
           <Download className="w-4 h-4 text-white/40 shrink-0" />

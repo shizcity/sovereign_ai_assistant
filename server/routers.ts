@@ -2482,6 +2482,49 @@ Reference these memories naturally when relevant. For example: "Remember when we
         return result;
       }),
 
+    /** Generate (or return existing) public share link for a session */
+    generateShareLink: protectedProcedure
+      .input(z.object({ sessionId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+        const { roundTableSessions } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const [session] = await db.select().from(roundTableSessions)
+          .where(and(eq(roundTableSessions.id, input.sessionId), eq(roundTableSessions.userId, ctx.user.id)))
+          .limit(1);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+        // Return existing share ID if already generated
+        if (session.shareId) return { shareId: session.shareId };
+        // Generate a new nanoid-style share token
+        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        let shareId = "";
+        for (let i = 0; i < 12; i++) shareId += chars[Math.floor(Math.random() * chars.length)];
+        await db.update(roundTableSessions).set({ shareId }).where(eq(roundTableSessions.id, input.sessionId));
+        return { shareId };
+      }),
+
+    /** Public read-only session view — no auth required */
+    getSharedSession: publicProcedure
+      .input(z.object({ shareId: z.string().min(6).max(32) }))
+      .query(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { roundTableSessions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const [session] = await db.select().from(roundTableSessions)
+          .where(eq(roundTableSessions.shareId, input.shareId))
+          .limit(1);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Shared session not found" });
+        const { getRoundTableSession } = await import("./roundtable");
+        // Use the session owner's userId to fetch full data
+        const result = await getRoundTableSession(session.id, session.userId);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Session data not found" });
+        return result;
+      }),
+
     /** Export a session as Markdown or JSON string */
     exportSession: protectedProcedure
       .input(z.object({ sessionId: z.number(), format: z.enum(["markdown", "json"]).default("markdown") }))

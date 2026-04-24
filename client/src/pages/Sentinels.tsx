@@ -303,6 +303,26 @@ export default function Sentinels() {
                       {sentinel.specialties.join(", ")}
                     </div>
 
+                    {/* Track Record badge — only shown if sentinel has RT history */}
+                    {(() => {
+                      const stat = sentinelStats?.find(s => s.sentinelName === sentinel.name);
+                      if (!stat || stat.totalRounds === 0) return null;
+                      return (
+                        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/4 border border-white/8">
+                          <BarChart3 className="w-3.5 h-3.5 text-cyan-400/70 shrink-0" />
+                          <span className="text-xs text-white/50">
+                            <span className={`font-semibold ${
+                              stat.avgConfidence >= 80 ? "text-emerald-400" :
+                              stat.avgConfidence >= 60 ? "text-cyan-400" :
+                              "text-amber-400"
+                            }`}>{stat.avgConfidence}% confidence</span>
+                            <span className="text-white/30"> · </span>
+                            <span className="text-white/45">{stat.totalRounds} round{stat.totalRounds !== 1 ? "s" : ""}</span>
+                          </span>
+                        </div>
+                      );
+                    })()}
+
                     {/* Unlock CTA for locked Sentinels */}
                     {isLocked && (
                       <div className="mt-4 pt-4 border-t border-white/10">
