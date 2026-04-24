@@ -1643,3 +1643,9 @@
 - [x] App.tsx: /session/:shareId route registered and SharedSession imported
 - [x] RoundTable.tsx: Share row in ResultsView — shows "Share read-only link" with Share button; on click generates link, copies to clipboard, shows Copied! confirmation; URL displayed inline after generation
 - [x] Sentinels.tsx: Track Record badge on each card — shows "87% confidence · 12 rounds" using sentinelStats data; only visible for Sentinels with RT history; color-coded confidence
+
+## M4 Streaming — Token-by-Token Live Deliberation Feed
+- [x] llm.ts: add invokeLLMStream(params, onToken) — streams raw text tokens via fetch body reader, calls onToken per delta
+- [x] roundtable.ts: update reasonSentinel() to use invokeLLMStream, emit 'token' SSE events per chunk, parse JSON from assembled text at end
+- [x] RoundTable.tsx: add useEffect that opens EventSource after startMutation fires, handles sentinel_start/token/sentinel_done/complete events
+- [x] RoundTable.tsx: build live deliberation feed panel in center column — Sentinel emoji+name+round badge, text building up in real time

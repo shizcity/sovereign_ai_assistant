@@ -265,6 +265,88 @@ const normalizeResponseFormat = ({
   };
 };
 
+/**
+ * Stream LLM response token by token.
+ * Calls onToken for each text delta as it arrives.
+ * Returns the fully assembled text when the stream ends.
+ * NOTE: Does NOT support response_format / json_schema — use plain text prompts.
+ */
+export async function invokeLLMStream(
+  params: Omit<InvokeParams, "responseFormat" | "response_format" | "outputSchema" | "output_schema">,
+  onToken: (token: string) => void
+): Promise<{ text: string; model: string }> {
+  assertApiKey();
+
+  const { messages, tools, toolChoice, tool_choice } = params;
+
+  const payload: Record<string, unknown> = {
+    model: "gemini-2.5-flash",
+    stream: true,
+    messages: messages.map(normalizeMessage),
+    max_tokens: 32768,
+    thinking: { budget_tokens: 128 },
+  };
+
+  if (tools && tools.length > 0) payload.tools = tools;
+  const normalizedToolChoice = normalizeToolChoice(toolChoice || tool_choice, tools);
+  if (normalizedToolChoice) payload.tool_choice = normalizedToolChoice;
+
+  const response = await fetch(resolveApiUrl(), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${ENV.forgeApiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`LLM stream failed: ${response.status} ${response.statusText} – ${errorText}`);
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body reader available");
+
+  const decoder = new TextDecoder();
+  let assembled = "";
+  let modelName = "gemini-2.5-flash";
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed === "data: [DONE]") continue;
+        if (!trimmed.startsWith("data: ")) continue;
+
+        try {
+          const json = JSON.parse(trimmed.slice(6));
+          if (json.model) modelName = json.model;
+          const delta = json.choices?.[0]?.delta?.content;
+          if (typeof delta === "string" && delta.length > 0) {
+            assembled += delta;
+            onToken(delta);
+          }
+        } catch {
+          // malformed SSE line — skip
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return { text: assembled, model: modelName };
+}
+
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   assertApiKey();
 

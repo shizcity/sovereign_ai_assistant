@@ -161,6 +161,38 @@ async function startServer() {
     })
   );
 
+  // ─── Round Table latest-stream helper ────────────────────────────────────────
+  // GET /api/roundtable/latest-stream
+  // Returns the streamId of the most recently started running session for the
+  // authenticated user. The frontend polls this right after mutate() fires so
+  // it can open the SSE connection before the session completes.
+  app.get("/api/roundtable/latest-stream", async (req, res) => {
+    try {
+      const { sdk } = await import("./sdk");
+      const user = await sdk.authenticateRequest(req);
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+      const { getDb } = await import("../db");
+      const { roundTableSessions } = await import("../../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+
+      const db = await getDb();
+      if (!db) { res.status(503).json({ error: "DB unavailable" }); return; }
+
+      const rows = await db
+        .select({ streamId: roundTableSessions.streamId })
+        .from(roundTableSessions)
+        .where(eq(roundTableSessions.userId, user.id))
+        .orderBy(desc(roundTableSessions.createdAt))
+        .limit(1);
+
+      const streamId = rows[0]?.streamId ?? null;
+      res.json({ streamId });
+    } catch (err) {
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
   // ─── Round Table SSE Streaming ─────────────────────────────────────────────
   // GET /api/roundtable/stream/:streamId
   // Streams reasoning events as Server-Sent Events while a session is running.

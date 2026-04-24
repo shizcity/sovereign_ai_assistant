@@ -1,4 +1,4 @@
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, invokeLLMStream } from "./_core/llm";
 import { getDb } from "./db";
 import {
   roundTableSessions,
@@ -203,14 +203,16 @@ Your role: Think deeply and honestly. Show your full reasoning chain. Do not jus
 
 Question: ${question}${previousContext}${modeInstruction}${injectionContext}
 
-Respond with your full reasoning in this exact JSON structure:
+Respond with your full reasoning in this EXACT JSON structure (no markdown, no code fences, raw JSON only):
 {
   "thinkingChain": "Step-by-step reasoning process (3-6 sentences showing HOW you arrived at your conclusion)",
   "conclusion": "Your clear, direct conclusion (2-3 sentences)",
   "confidence": 0.85,
   "concerns": ["Any caveats or limitations", "Things you're uncertain about"],
-  "dissent": null or "If you strongly disagree with a previous Sentinel's conclusion, state why here"
-}`;
+  "dissent": null
+}
+
+IMPORTANT: Output ONLY the JSON object. Do not wrap it in markdown or add any text before or after.`;
 
   // Emit sentinel_start event for streaming
   if (streamId) {
@@ -224,37 +226,43 @@ Respond with your full reasoning in this exact JSON structure:
 
   try {
     const t0 = Date.now();
-    const response = await invokeLLM({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "sentinel_reasoning",
-          strict: true,
-          schema: {
-            type: "object",
-            properties: {
-              thinkingChain: { type: "string" },
-              conclusion: { type: "string" },
-              confidence: { type: "number" },
-              concerns: { type: "array", items: { type: "string" } },
-              dissent: { type: ["string", "null"] },
-            },
-            required: ["thinkingChain", "conclusion", "confidence", "concerns", "dissent"],
-            additionalProperties: false,
-          },
-        },
-      },
-    });
 
-    const content = response.choices[0].message.content;
-    const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+    // Accumulate tokens as they stream in
+    let streamedText = "";
+
+    const { text: assembledText, model: streamedModel } = await invokeLLMStream(
+      {
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      },
+      (token: string) => {
+        streamedText += token;
+        // Emit each token chunk over SSE so the frontend can render it live
+        if (streamId) {
+          emitStreamEvent(streamId, "token", {
+            sentinelId: sentinel.id,
+            sentinelName: sentinel.name,
+            sentinelEmoji: sentinel.emoji,
+            round,
+            token,
+          });
+        }
+      }
+    );
+
+    // Parse JSON from the assembled plain-text response
+    // Strip any accidental markdown code fences the model may add
+    const jsonText = assembledText
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```\s*$/, "")
+      .trim();
+
+    const parsed = JSON.parse(jsonText);
 
     const latencyMs = Date.now() - t0;
-    const modelUsed: string = (response as any).model ?? "gemini-2.5-flash";
+    const modelUsed: string = streamedModel ?? "gemini-2.5-flash";
     const result: SentinelReasoning = {
       sentinelId: sentinel.id,
       sentinelName: sentinel.name,

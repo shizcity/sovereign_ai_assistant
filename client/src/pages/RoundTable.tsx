@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,11 +83,22 @@ interface RoundTableResult {
   routingReason: string;
   deliberationMode?: string;
   interruptionLog?: Array<{ message: string; timestamp: string; afterRound: number }>;
+  streamId?: string;
 }
 
 interface StreamEvent {
-  event: "connected" | "sentinel_start" | "sentinel_token" | "sentinel_complete" | "round_complete" | "paused" | "complete" | "error";
+  event: "connected" | "sentinel_start" | "token" | "sentinel_token" | "sentinel_done" | "sentinel_complete" | "round_complete" | "paused" | "complete" | "error";
   data: Record<string, unknown>;
+}
+
+// Live feed entry built from SSE events
+interface LiveFeedEntry {
+  sentinelId: number;
+  sentinelName: string;
+  sentinelEmoji: string;
+  round: number;
+  tokens: string; // accumulating text
+  done: boolean;
 }
 
 type DeliberationMode = "parallel" | "shared" | "synchronous";
@@ -664,6 +675,7 @@ export default function RoundTable() {
   const [loadingSessionId, setLoadingSessionId] = useState<number | null>(null);
   const [deliberationMode, setDeliberationMode] = useState<DeliberationMode>("parallel");
   const [streamingEvents, setStreamingEvents] = useState<StreamEvent[]>([]);
+  const [liveFeed, setLiveFeed] = useState<LiveFeedEntry[]>([]);
   const [activeSentinelName, setActiveSentinelName] = useState<string | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -671,6 +683,7 @@ export default function RoundTable() {
   const [showInterruptPanel, setShowInterruptPanel] = useState(false);
   const [maxRounds, setMaxRounds] = useState(3);
   const sseRef = useRef<EventSource | null>(null);
+  const activeStreamId = useRef<string | null>(null);
 
   const { data: sentinelList } = trpc.sentinels.list.useQuery();
   const { data: history, refetch: refetchHistory } = trpc.roundTable.history.useQuery();
@@ -680,9 +693,11 @@ export default function RoundTable() {
       setResult(data as RoundTableResult);
       setActiveSessionId(null);
       setStreamingEvents([]);
+      setLiveFeed([]);
       setActiveSentinelName(null);
       setIsPaused(false);
       if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
+      activeStreamId.current = null;
       refetchHistory();
       showAchievementToasts((data as any)?.newAchievements);
     },
@@ -714,7 +729,13 @@ export default function RoundTable() {
   const handleStart = () => {
     if (!canStart) return;
     setStreamingEvents([]);
+    setLiveFeed([]);
     setActiveSentinelName(null);
+    // Kick off the session — the server will return streamId in the response
+    // We open SSE immediately using a temp UUID that the server also generates;
+    // the server saves streamId to the session row before running rounds.
+    // We connect via useEffect once startMutation.isPending becomes true and
+    // the server has emitted the 'connected' event with the streamId.
     startMutation.mutate({ question: question.trim(), sentinelIds: selectedIds, maxRounds, deliberationMode });
   };
 
@@ -734,6 +755,119 @@ export default function RoundTable() {
     setSelectedIds([]);
     startMutation.reset();
   };
+
+  // ── SSE: open EventSource as soon as startMutation fires ──
+  // The server creates the streamId synchronously before running rounds,
+  // so we poll for it by watching the session list or rely on the
+  // 'connected' event. We use a simpler approach: the start procedure
+  // returns streamId in its result, but that arrives AFTER the session ends.
+  // Instead we open the SSE connection right after mutate() fires using a
+  // dedicated tRPC query that returns the latest session's streamId.
+  // The cleanest approach: open SSE optimistically using the streamId that
+  // the server will return, by reading it from the 'connected' SSE event.
+
+  // Open SSE as soon as startMutation is pending
+  useEffect(() => {
+    if (!startMutation.isPending) return;
+
+    // Close any existing SSE connection
+    if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
+
+    // We don't know the streamId yet — the server generates it.
+    // Poll the latest session streamId via a dedicated endpoint.
+    // For now, use a short polling approach: fetch /api/roundtable/latest-stream
+    // which returns the streamId of the most recently started session for this user.
+    // This is simpler than adding a new tRPC procedure.
+    const pollForStreamId = async () => {
+      for (let i = 0; i < 20; i++) {
+        try {
+          const res = await fetch("/api/roundtable/latest-stream", { credentials: "include" });
+          if (res.ok) {
+            const { streamId } = await res.json();
+            if (streamId && streamId !== activeStreamId.current) {
+              activeStreamId.current = streamId;
+              openSSE(streamId);
+              return;
+            }
+          }
+        } catch { /* ignore */ }
+        await new Promise(r => setTimeout(r, 300));
+      }
+    };
+
+    const openSSE = (streamId: string) => {
+      const es = new EventSource(`/api/roundtable/stream/${streamId}`);
+      sseRef.current = es;
+
+      es.onmessage = (e) => {
+        try {
+          const parsed: StreamEvent = JSON.parse(e.data);
+          const { event, data } = parsed;
+
+          if (event === "sentinel_start") {
+            const name = data.sentinelName as string;
+            setActiveSentinelName(name);
+            setLiveFeed(prev => [
+              ...prev,
+              {
+                sentinelId: data.sentinelId as number,
+                sentinelName: name,
+                sentinelEmoji: data.sentinelEmoji as string,
+                round: data.round as number,
+                tokens: "",
+                done: false,
+              }
+            ]);
+          } else if (event === "token") {
+            const token = data.token as string;
+            const sid = data.sentinelId as number;
+            const round = data.round as number;
+            setLiveFeed(prev => {
+              const idx = [...prev].reverse().findIndex(
+                e => e.sentinelId === sid && e.round === round && !e.done
+              );
+              if (idx === -1) return prev;
+              const realIdx = prev.length - 1 - idx;
+              const updated = [...prev];
+              updated[realIdx] = { ...updated[realIdx], tokens: updated[realIdx].tokens + token };
+              return updated;
+            });
+          } else if (event === "sentinel_done") {
+            const sid = data.sentinelId as number;
+            const round = data.round as number;
+            setLiveFeed(prev => {
+              const idx = [...prev].reverse().findIndex(
+                e => e.sentinelId === sid && e.round === round && !e.done
+              );
+              if (idx === -1) return prev;
+              const realIdx = prev.length - 1 - idx;
+              const updated = [...prev];
+              updated[realIdx] = { ...updated[realIdx], done: true };
+              return updated;
+            });
+            setActiveSentinelName(null);
+          } else if (event === "complete") {
+            es.close();
+            sseRef.current = null;
+          } else if (event === "error") {
+            es.close();
+            sseRef.current = null;
+          }
+        } catch { /* ignore malformed */ }
+      };
+
+      es.onerror = () => {
+        es.close();
+        sseRef.current = null;
+      };
+    };
+
+    pollForStreamId();
+
+    return () => {
+      if (sseRef.current) { sseRef.current.close(); sseRef.current = null; }
+    };
+  }, [startMutation.isPending]);
 
   const { data: sessionData } = trpc.roundTable.getSession.useQuery(
     { sessionId: loadingSessionId ?? 0 },
@@ -1061,6 +1195,45 @@ export default function RoundTable() {
                     </>
                   )}
                 </Button>
+
+                {/* ── Live Deliberation Feed ── */}
+                {isRunning && liveFeed.length > 0 && (
+                  <div className="space-y-3 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                      <span className="text-xs font-semibold text-cyan-400/80 uppercase tracking-wider">Live Deliberation</span>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {liveFeed.map((entry, i) => (
+                        <div
+                          key={`${entry.sentinelId}-${entry.round}-${i}`}
+                          className={`rounded-xl border p-3 transition-all duration-300 ${
+                            !entry.done
+                              ? "border-cyan-500/30 bg-cyan-950/20"
+                              : "border-white/8 bg-white/3"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-base">{entry.sentinelEmoji}</span>
+                            <span className="text-xs font-semibold text-white/80">{entry.sentinelName}</span>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-white/15 text-white/40">R{entry.round}</Badge>
+                            {!entry.done && (
+                              <Loader2 className="w-3 h-3 text-cyan-400 animate-spin ml-auto" />
+                            )}
+                            {entry.done && (
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400 ml-auto" />
+                            )}
+                          </div>
+                          {entry.tokens && (
+                            <p className="text-xs text-white/50 leading-relaxed font-mono whitespace-pre-wrap break-words line-clamp-6">
+                              {entry.tokens}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {startMutation.isError && (
                   <div className="bg-red-950/30 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
