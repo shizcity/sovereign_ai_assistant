@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper } from "lucide-react";
+import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, TrendingDown, Clock } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { ShareNudgeCard } from "@/components/ShareNudgeCard";
@@ -19,6 +19,7 @@ export default function Sentinels() {
   const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
 
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
+  const { data: sentinelStats } = trpc.sentinels.stats.useQuery(undefined, { enabled: !!user });
 
   // Pro-only Sentinels are shown as locked cards for free users
   // We fetch all 6 for the gallery display (the backend filters for chat use)
@@ -437,6 +438,112 @@ export default function Sentinels() {
                 </div>
               </div>
             </Card>
+          </div>
+        )}
+
+        {/* Track Record — Sentinel Performance Leaderboard */}
+        {sentinelStats && sentinelStats.length > 0 && (
+          <div className="mt-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 border border-cyan-500/20 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Track Record</h2>
+                <p className="text-sm text-slate-400">Your Sentinels' performance across all Round Table sessions</p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/3 backdrop-blur">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/8">
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">Sentinel</th>
+                    <th className="text-center px-4 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      <span className="flex items-center justify-center gap-1"><Zap className="w-3 h-3" />Rounds</span>
+                    </th>
+                    <th className="text-center px-4 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      <span className="flex items-center justify-center gap-1"><BarChart3 className="w-3 h-3" />Avg Confidence</span>
+                    </th>
+                    <th className="text-center px-4 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      <span className="flex items-center justify-center gap-1"><Clock className="w-3 h-3" />Avg Latency</span>
+                    </th>
+                    <th className="text-center px-4 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">
+                      <span className="flex items-center justify-center gap-1"><TrendingDown className="w-3 h-3" />Dissent Rate</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...sentinelStats]
+                    .sort((a, b) => b.avgConfidence - a.avgConfidence)
+                    .map((stat, i) => {
+                      const sentinel = sentinels?.find(s => s.name === stat.sentinelName);
+                      const color = sentinel?.primaryColor ?? "#8b5cf6";
+                      return (
+                        <tr
+                          key={stat.sentinelName}
+                          className={`border-b border-white/5 transition-colors hover:bg-white/4 ${
+                            i === 0 ? "bg-gradient-to-r from-yellow-500/5 to-transparent" : ""
+                          }`}
+                        >
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              {i === 0 && (
+                                <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 rounded-full px-2 py-0.5">TOP</span>
+                              )}
+                              <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0"
+                                style={{ background: `${color}25`, border: `1px solid ${color}40` }}
+                              >
+                                {stat.sentinelEmoji}
+                              </div>
+                              <span className="font-semibold text-white/85">{stat.sentinelName}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <span className="text-white/60 font-mono">{stat.totalRounds}</span>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={`font-semibold font-mono ${
+                                stat.avgConfidence >= 80 ? "text-emerald-400" :
+                                stat.avgConfidence >= 60 ? "text-cyan-400" :
+                                "text-amber-400"
+                              }`}>{stat.avgConfidence}%</span>
+                              <div className="w-16 h-1 rounded-full bg-white/10">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${stat.avgConfidence}%`,
+                                    background: stat.avgConfidence >= 80 ? "#34d399" : stat.avgConfidence >= 60 ? "#22d3ee" : "#fbbf24",
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <span className="text-white/50 font-mono text-xs">
+                              {stat.avgLatencyMs >= 1000
+                                ? `${(stat.avgLatencyMs / 1000).toFixed(1)}s`
+                                : stat.avgLatencyMs > 0 ? `${stat.avgLatencyMs}ms` : "—"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <span className={`font-mono text-xs ${
+                              stat.dissentRate >= 40 ? "text-red-400" :
+                              stat.dissentRate >= 20 ? "text-amber-400" :
+                              "text-white/40"
+                            }`}>
+                              {stat.dissentRate}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-white/25 mt-3 text-center">Sorted by average confidence · Only Sentinels used in Round Table sessions appear here</p>
           </div>
         )}
 

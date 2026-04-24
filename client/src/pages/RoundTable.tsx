@@ -32,6 +32,7 @@ import {
   GitBranch,
   RefreshCw,
   Play,
+  Download,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
@@ -393,6 +394,32 @@ function ResultsView({
   const consensusPct = Math.round(result.consensusScore * 100);
   const rounds = Array.from(new Set(result.reasoningChains.map((r) => r.round))).sort();
   const contradictions = result.contradictions ?? [];
+  const [exportFormat, setExportFormat] = useState<"markdown" | "json">("markdown");
+  const [downloading, setDownloading] = useState(false);
+
+  const exportQuery = trpc.roundTable.exportSession.useQuery(
+    { sessionId: result.sessionId, format: exportFormat },
+    { enabled: false }
+  );
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const data = await exportQuery.refetch();
+      if (!data.data) return;
+      const blob = new Blob([data.data.content], {
+        type: exportFormat === "json" ? "application/json" : "text/markdown",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = data.data.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -476,21 +503,64 @@ function ResultsView({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
-        <Button
-          onClick={onReset}
-          variant="outline"
-          className="flex-1 border-white/15 text-white/70 hover:text-white hover:border-white/30"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          New Session
-        </Button>
-        <Link href="/chat">
-          <Button variant="ghost" className="text-white/50 hover:text-white/80">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Chat
+      <div className="flex flex-col gap-3">
+        {/* Export row */}
+        <div className="flex items-center gap-2 p-3 rounded-xl border border-white/8 bg-white/3">
+          <Download className="w-4 h-4 text-white/40 shrink-0" />
+          <span className="text-xs text-white/50 flex-1">Export session</span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setExportFormat("markdown")}
+              className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
+                exportFormat === "markdown"
+                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                  : "text-white/35 hover:text-white/60"
+              }`}
+            >
+              .md
+            </button>
+            <button
+              onClick={() => setExportFormat("json")}
+              className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
+                exportFormat === "json"
+                  ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+                  : "text-white/35 hover:text-white/60"
+              }`}
+            >
+              .json
+            </button>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="border-white/15 text-white/70 hover:text-white hover:border-white/30 h-7 px-3 text-xs"
+          >
+            {downloading ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : (
+              <Download className="w-3 h-3" />
+            )}
           </Button>
-        </Link>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={onReset}
+            variant="outline"
+            className="flex-1 border-white/15 text-white/70 hover:text-white hover:border-white/30"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            New Session
+          </Button>
+          <Link href="/chat">
+            <Button variant="ghost" className="text-white/50 hover:text-white/80">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Chat
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

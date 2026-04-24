@@ -1625,3 +1625,11 @@
 - [x] RoundTable.tsx: mobile tab bar (History / Table / Panels) — hidden on sm+, shown on mobile
 - [x] RoundTable.tsx: three columns toggle visibility based on mobileTab state on mobile
 - [x] Version badge updated to "M4 · Model Tracking"
+
+## Session Export + Sentinel Track Record
+- [x] routers.ts: roundTable.exportSession procedure — builds .md or .json from full session data (reasoning chains, consensus, contradictions, model log)
+- [x] RoundTable.tsx: Download Session row in ResultsView — .md/.json toggle buttons + download icon button with spinner
+- [x] RoundTable.tsx: handleDownload — uses exportSession query refetch, creates Blob, triggers anchor download
+- [x] routers.ts: sentinels.stats procedure — aggregates per-Sentinel avgConfidence, avgLatencyMs, dissentRate, totalRounds across user's RT sessions
+- [x] Sentinels.tsx: Track Record section — responsive table sorted by avg confidence, TOP badge for leader, color-coded confidence bar, latency in ms/s, dissent rate color coding
+- [x] Sentinels.tsx: sentinelStats query wired with enabled: !!user guard

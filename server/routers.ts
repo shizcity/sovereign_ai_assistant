@@ -1309,6 +1309,49 @@ Reference these memories naturally when relevant. For example: "Remember when we
       return allSentinels;
     }),
 
+    /** Per-Sentinel performance stats across all user Round Table sessions */
+    stats: protectedProcedure.query(async ({ ctx }) => {
+      const { getDb } = await import("./db");
+      const { roundTableReasoning, roundTableSessions } = await import("../drizzle/schema");
+      const { eq, avg, count, sql } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return [];
+
+      // Get all session IDs for this user
+      const userSessions = await db
+        .select({ id: roundTableSessions.id })
+        .from(roundTableSessions)
+        .where(eq(roundTableSessions.userId, ctx.user.id));
+      if (userSessions.length === 0) return [];
+
+      const sessionIds = userSessions.map(s => s.id);
+
+      // Aggregate per sentinel name across all user sessions
+      const rows = await db
+        .select({
+          sentinelName: roundTableReasoning.sentinelName,
+          sentinelEmoji: roundTableReasoning.sentinelEmoji,
+          totalRounds: count(roundTableReasoning.id),
+          avgConfidence: avg(sql<number>`CAST(${roundTableReasoning.confidence} AS DECIMAL(5,4))`),
+          avgLatencyMs: avg(roundTableReasoning.latencyMs),
+          dissentCount: sql<number>`SUM(CASE WHEN ${roundTableReasoning.dissent} IS NOT NULL THEN 1 ELSE 0 END)`,
+          outlierCount: sql<number>`SUM(${roundTableReasoning.isOutlier})`,
+        })
+        .from(roundTableReasoning)
+        .where(sql`${roundTableReasoning.sessionId} IN (${sql.join(sessionIds.map(id => sql`${id}`), sql`, `)})`)
+        .groupBy(roundTableReasoning.sentinelName, roundTableReasoning.sentinelEmoji);
+
+      return rows.map(r => ({
+        sentinelName: r.sentinelName,
+        sentinelEmoji: r.sentinelEmoji ?? "🤖",
+        totalRounds: Number(r.totalRounds),
+        avgConfidence: r.avgConfidence ? Math.round(Number(r.avgConfidence) * 100) : 0,
+        avgLatencyMs: r.avgLatencyMs ? Math.round(Number(r.avgLatencyMs)) : 0,
+        dissentRate: r.totalRounds > 0 ? Math.round((Number(r.dissentCount) / Number(r.totalRounds)) * 100) : 0,
+        outlierRate: r.totalRounds > 0 ? Math.round((Number(r.outlierCount) / Number(r.totalRounds)) * 100) : 0,
+      }));
+    }),
+
     // Custom Sentinel CRUD (Creator tier only)
     custom: router({
       list: protectedProcedure.query(async ({ ctx }) => {
@@ -2437,6 +2480,76 @@ Reference these memories naturally when relevant. For example: "Remember when we
         const result = await getRoundTableSession(input.sessionId, ctx.user.id);
         if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
         return result;
+      }),
+
+    /** Export a session as Markdown or JSON string */
+    exportSession: protectedProcedure
+      .input(z.object({ sessionId: z.number(), format: z.enum(["markdown", "json"]).default("markdown") }))
+      .query(async ({ ctx, input }) => {
+        const { getRoundTableSession } = await import("./roundtable");
+        const result = await getRoundTableSession(input.sessionId, ctx.user.id);
+        if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+
+        if (input.format === "json") {
+          return { content: JSON.stringify(result, null, 2), filename: `round-table-${input.sessionId}.json` };
+        }
+
+        // Build Markdown export
+        const lines: string[] = [];
+        lines.push(`# Round Table Session #${result.sessionId}`);
+        lines.push(``);
+        lines.push(`**Question:** ${result.question}`);
+        lines.push(`**Mode:** ${result.deliberationMode}`);
+        lines.push(`**Consensus Score:** ${Math.round(result.consensusScore * 100)}%`);
+        lines.push(`**Sentinels:** ${result.sentinels.map(s => `${s.emoji} ${s.name}`).join(", ")}`);
+        lines.push(``);
+        if (result.interruptionLog.length > 0) {
+          lines.push(`## Human Interruptions`);
+          result.interruptionLog.forEach((e, i) => {
+            lines.push(`${i + 1}. After Round ${e.afterRound}: "${e.message}"`);
+          });
+          lines.push(``);
+        }
+        lines.push(`## Deliberation Chains`);
+        const rounds = Array.from(new Set(result.reasoningChains.map(r => r.round))).sort();
+        for (const round of rounds) {
+          lines.push(``);
+          lines.push(`### Round ${round}`);
+          const chains = result.reasoningChains.filter(r => r.round === round);
+          for (const r of chains) {
+            lines.push(``);
+            lines.push(`#### ${r.sentinelEmoji} ${r.sentinelName} (Confidence: ${Math.round(r.confidence * 100)}%)`);
+            if (r.modelUsed) lines.push(`*Model: ${r.modelUsed}${r.latencyMs ? ` · ${r.latencyMs >= 1000 ? (r.latencyMs/1000).toFixed(1)+"s" : r.latencyMs+"ms"}` : ""}*`);
+            lines.push(``);
+            lines.push(`**Reasoning:** ${r.thinkingChain}`);
+            lines.push(``);
+            lines.push(`**Conclusion:** ${r.conclusion}`);
+            if (r.dissent) lines.push(``);
+            if (r.dissent) lines.push(`**Dissent:** ${r.dissent}`);
+            if (r.concerns.length > 0) {
+              lines.push(``);
+              lines.push(`**Concerns:** ${r.concerns.join("; ")}`);
+            }
+          }
+        }
+        if (result.contradictions.length > 0) {
+          lines.push(``);
+          lines.push(`## Contradictions`);
+          result.contradictions.forEach((c, i) => {
+            lines.push(`${i + 1}. **${c.sentinelA} vs ${c.sentinelB}** (${c.severity}): ${c.claim}`);
+          });
+        }
+        lines.push(``);
+        lines.push(`## Final Answer`);
+        lines.push(`*Delivered by ${result.finalSentinelEmoji} ${result.finalSentinelName}*`);
+        if (result.routingReason) lines.push(`*Routing: ${result.routingReason}*`);
+        lines.push(``);
+        lines.push(result.finalAnswer);
+        lines.push(``);
+        lines.push(`---`);
+        lines.push(`*Exported from Glow · Round Table Session #${result.sessionId}*`);
+
+        return { content: lines.join("\n"), filename: `round-table-${input.sessionId}.md` };
       }),
   }),
 
