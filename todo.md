@@ -1601,3 +1601,14 @@
 - [x] Gamification: checkReferralAchievements() exported function for post-claim badge checks
 - [x] Referral claim procedure: runs checkReferralAchievements for referrer after successful claim, returns newAchievements
 - [x] App.tsx: showAchievementToasts wired into referral claim onSuccess — referral milestone badges appear as staggered toasts
+
+## Round Table UI Upgrade (M3 Visual Spec)
+- [x] OrbitalDiagram.tsx — SVG constellation of Sentinels with connecting lines, active glow pulse, delivering ring
+- [x] ConsensusGauge.tsx — animated circular SVG dial (0.00 → score), color-coded by consensus level
+- [x] Three-column layout: session history sidebar (left) / main form+results (center) / orbital+gauge+panels (right)
+- [x] Dissent Records side panel — collapsible, shows dissenting Sentinels with score and excerpt
+- [x] Contradiction Report side panel — collapsible, shows conflicting pairs with severity badge
+- [x] Model Switch Log side panel — placeholder for M4
+- [x] Max Rounds selector (1–5) in session setup
+- [x] Human Interruptions textarea in setup (pre-session) + live inject/resume buttons during session
+- [x] Session mode labels updated to match spec: Turn-Based / Shared Context / Synchronous
