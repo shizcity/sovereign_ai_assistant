@@ -1612,3 +1612,16 @@
 - [x] Max Rounds selector (1–5) in session setup
 - [x] Human Interruptions textarea in setup (pre-session) + live inject/resume buttons during session
 - [x] Session mode labels updated to match spec: Turn-Based / Shared Context / Synchronous
+
+## M4 Model Switch Log + Mobile Responsive Layout
+- [x] roundTableReasoning schema: added modelUsed (VARCHAR 100) and latencyMs (INT) columns
+- [x] DB migration: ALTER TABLE round_table_reasoning ADD COLUMN modelUsed, latencyMs
+- [x] SentinelReasoning interface: added modelUsed and latencyMs fields
+- [x] roundtable.ts engine: captures Date.now() before/after invokeLLM, reads response.model
+- [x] roundtable.ts engine: saves modelUsed + latencyMs to DB on each reasoning insert
+- [x] getRoundTableSession: maps modelUsed + latencyMs from DB rows into SentinelReasoning
+- [x] RoundTable.tsx: modelSwitchLog useMemo — builds per-Sentinel per-round log from reasoningChains
+- [x] RoundTable.tsx: Model Switch Log side panel — shows sentinel emoji, name, round badge, model name, latency (ms/s)
+- [x] RoundTable.tsx: mobile tab bar (History / Table / Panels) — hidden on sm+, shown on mobile
+- [x] RoundTable.tsx: three columns toggle visibility based on mobileTab state on mobile
+- [x] Version badge updated to "M4 · Model Tracking"

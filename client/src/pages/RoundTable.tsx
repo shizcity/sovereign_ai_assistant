@@ -53,6 +53,9 @@ interface SentinelReasoning {
   memoriesUsed: string[];
   dissentScore: number;
   isOutlier: boolean;
+  // M4
+  modelUsed?: string;
+  latencyMs?: number;
 }
 
 interface ContradictionFlag {
@@ -648,6 +651,21 @@ export default function RoundTable() {
     return result.reasoningChains.filter((r) => r.dissent || r.dissentScore > 0.3);
   }, [result]);
 
+  // Model switch log — unique model+sentinel combos per round
+  const modelSwitchLog = useMemo(() => {
+    if (!result) return [];
+    return result.reasoningChains.map((r) => ({
+      sentinelName: r.sentinelName,
+      sentinelEmoji: r.sentinelEmoji,
+      round: r.round,
+      modelUsed: r.modelUsed ?? "gemini-2.5-flash",
+      latencyMs: r.latencyMs ?? 0,
+    }));
+  }, [result]);
+
+  // Mobile tab state
+  const [mobileTab, setMobileTab] = useState<"history" | "table" | "panels">("table");
+
   // ── Gate: Pro/Creator only ──
   if (!isPro) {
     return (
@@ -706,14 +724,31 @@ export default function RoundTable() {
           <p className="text-xs text-white/40">Multi-Sentinel deliberation · {selectedIds.length > 0 ? `${selectedIds.length} Sentinels Active` : "No session"}</p>
         </div>
         {/* Version badge */}
-        <span className="text-xs text-white/20 font-mono">M3 · Extended Modes</span>
+        <span className="hidden sm:inline text-xs text-white/20 font-mono">M4 · Model Tracking</span>
+      </div>
+
+      {/* Mobile tab bar */}
+      <div className="flex sm:hidden border-b border-white/8 bg-[#080910]">
+        {(["history", "table", "panels"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setMobileTab(tab)}
+            className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+              mobileTab === tab
+                ? "text-cyan-400 border-b-2 border-cyan-500"
+                : "text-white/35 hover:text-white/60"
+            }`}
+          >
+            {tab === "history" ? "History" : tab === "table" ? "Table" : "Panels"}
+          </button>
+        ))}
       </div>
 
       {/* Three-column layout */}
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── LEFT: Session History ── */}
-        <div className="w-56 shrink-0 border-r border-white/8 flex flex-col bg-[#080910]">
+        <div className={`w-56 shrink-0 border-r border-white/8 flex-col bg-[#080910] hidden sm:flex ${mobileTab === "history" ? "!flex w-full sm:w-56" : ""}`}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
             <div className="flex items-center gap-2">
               <History className="w-3.5 h-3.5 text-white/40" />
@@ -743,7 +778,7 @@ export default function RoundTable() {
         </div>
 
         {/* ── CENTER: Main form / results ── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${mobileTab !== "table" ? "hidden sm:block" : ""}`}>
           <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
 
             {result ? (
@@ -925,7 +960,7 @@ export default function RoundTable() {
         </div>
 
         {/* ── RIGHT: Orbital diagram + consensus gauge + side panels ── */}
-        <div className="w-72 shrink-0 border-l border-white/8 flex flex-col bg-[#080910] overflow-y-auto">
+        <div className={`w-72 shrink-0 border-l border-white/8 flex-col bg-[#080910] overflow-y-auto hidden sm:flex ${mobileTab === "panels" ? "!flex w-full sm:w-72" : ""}`}>
 
           {/* Orbital diagram */}
           <div className="flex flex-col items-center pt-6 pb-2 px-4 border-b border-white/6">
@@ -1027,13 +1062,38 @@ export default function RoundTable() {
               </div>
             </SidePanel>
 
-            {/* Model Switch Log — placeholder for M4 */}
+            {/* Model Switch Log — M4 live data */}
             <SidePanel
               title="Model Switch Log"
               icon={<RefreshCw className="w-4 h-4" />}
-              count={0}
+              count={modelSwitchLog.length}
               accentColor="#a78bfa"
-            />
+              defaultOpen={modelSwitchLog.length > 0}
+            >
+              <div className="space-y-1.5 mt-2">
+                {modelSwitchLog.length === 0 ? (
+                  <p className="text-xs text-white/30 text-center py-2">No session data yet</p>
+                ) : (
+                  modelSwitchLog.map((entry, i) => (
+                    <div key={i} className="flex items-center gap-2 border border-violet-500/15 rounded-lg px-2.5 py-2 bg-violet-500/5">
+                      <span className="text-sm shrink-0">{entry.sentinelEmoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-semibold text-violet-300/80 truncate">{entry.sentinelName}</span>
+                          <span className="text-[10px] text-white/30 font-mono shrink-0">R{entry.round}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-white/45 font-mono truncate">{entry.modelUsed}</span>
+                          {entry.latencyMs > 0 && (
+                            <span className="text-[10px] text-white/25 font-mono shrink-0">{entry.latencyMs >= 1000 ? `${(entry.latencyMs / 1000).toFixed(1)}s` : `${entry.latencyMs}ms`}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </SidePanel>
 
           </div>
         </div>

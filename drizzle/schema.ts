@@ -385,6 +385,9 @@ export const roundTableReasoning = mysqlTable("round_table_reasoning", {
   dissentScore: varchar("dissentScore", { length: 10 }), // 0.00–1.00 how far this Sentinel diverges from group
   isOutlier: int("isOutlier").default(0).notNull(), // 1 if dissentScore > 0.5
   memoriesUsed: text("memoriesUsed"), // JSON array of memory snippets used
+  // M4: Model Switch Log
+  modelUsed: varchar("modelUsed", { length: 100 }), // e.g. "gpt-4o", "claude-3-5-sonnet"
+  latencyMs: int("latencyMs"), // time in ms for this Sentinel's LLM call
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

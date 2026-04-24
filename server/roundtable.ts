@@ -36,6 +36,9 @@ export interface SentinelReasoning {
   // Phase 2 additions
   dissentScore: number; // 0–1: how far this Sentinel diverges from group median
   isOutlier: boolean;   // true if dissentScore > 0.5
+  // M4: Model Switch Log
+  modelUsed: string;   // LLM model name returned by the API
+  latencyMs: number;   // wall-clock ms for this Sentinel's LLM call
 }
 
 /** A single structured contradiction between two specific Sentinels */
@@ -220,6 +223,7 @@ Respond with your full reasoning in this exact JSON structure:
   }
 
   try {
+    const t0 = Date.now();
     const response = await invokeLLM({
       messages: [
         { role: "system", content: systemPrompt },
@@ -249,6 +253,8 @@ Respond with your full reasoning in this exact JSON structure:
     const content = response.choices[0].message.content;
     const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
 
+    const latencyMs = Date.now() - t0;
+    const modelUsed: string = (response as any).model ?? "gemini-2.5-flash";
     const result: SentinelReasoning = {
       sentinelId: sentinel.id,
       sentinelName: sentinel.name,
@@ -262,6 +268,8 @@ Respond with your full reasoning in this exact JSON structure:
       memoriesUsed: memories,
       dissentScore: 0,  // computed later by computeDissentScores
       isOutlier: false,
+      modelUsed,
+      latencyMs,
     };
 
     // Emit sentinel_done with full reasoning for streaming display
@@ -295,6 +303,8 @@ Respond with your full reasoning in this exact JSON structure:
       memoriesUsed: [],
       dissentScore: 0,
       isOutlier: false,
+      modelUsed: "gemini-2.5-flash",
+      latencyMs: 0,
     };
     if (streamId) {
       emitStreamEvent(streamId, "sentinel_done", {
@@ -779,6 +789,8 @@ export async function runRoundTable(
         dissentScore: reasoning.dissentScore.toFixed(2),
         isOutlier: reasoning.isOutlier ? 1 : 0,
         memoriesUsed: JSON.stringify(reasoning.memoriesUsed),
+        modelUsed: reasoning.modelUsed ?? "gemini-2.5-flash",
+        latencyMs: reasoning.latencyMs ?? 0,
       });
     }
 
@@ -933,6 +945,8 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     memoriesUsed: JSON.parse(r.memoriesUsed ?? "[]") as string[],
     dissentScore: parseFloat(r.dissentScore ?? "0"),
     isOutlier: r.isOutlier === 1,
+    modelUsed: r.modelUsed ?? "gemini-2.5-flash",
+    latencyMs: r.latencyMs ?? 0,
   }));
 
   // Parse structured contradictions
