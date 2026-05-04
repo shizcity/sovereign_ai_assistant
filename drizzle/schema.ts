@@ -31,6 +31,8 @@ export const users = mysqlTable("users", {
   onboardingStep: int("onboardingStep").default(0).notNull(),
   // Referral system
   referralCode: varchar("referralCode", { length: 16 }).unique(),
+  // Free trial Round Table session for onboarding
+  freeRoundTableUsed: boolean("freeRoundTableUsed").default(false).notNull(),
 });
 
 export type User = typeof users.$inferSelect;

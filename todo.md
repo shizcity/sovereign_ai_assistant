@@ -1679,3 +1679,14 @@
 - [x] Sentinels.tsx — relationship card in selected Sentinel detail view
 - [x] Chat.tsx — compact relationship badge in chat header next to SentinelSelector
 - [x] Chat.tsx — level-up toast when relationship advances with query invalidation
+
+## Pre-built Round Table Configurations + Free Trial Session
+- [x] roundTablePresets.ts: 5 curated configurations (Strategy Session, Devil's Advocate, Creative Brainstorm, Deep Research, Life Decision)
+- [x] RoundTable.tsx: Quick Start presets grid — 2-column card grid above setup form, one-click applies Sentinels + mode + maxRounds + placeholder question
+- [x] RoundTable.tsx: Active preset badge + cyan accent on selected preset card
+- [x] RoundTable.tsx: applyPreset() handler — matches Sentinels by slug, sets mode/maxRounds, fills question placeholder, focuses textarea
+- [x] schema.ts + DB: freeRoundTableUsed boolean column added to users table
+- [x] routers.ts: roundTable.start — free users get exactly one trial session; freeRoundTableUsed marked before running to prevent double-use
+- [x] RoundTable.tsx: canAccessRoundTable gate — free users with trial available see full Round Table UI
+- [x] RoundTable.tsx: Free trial banner — cyan gradient banner showing "Free trial session — experience the Round Table once, on us"
+- [x] RoundTable.tsx: Post-trial paywall — amber-accented upgrade screen after trial is used

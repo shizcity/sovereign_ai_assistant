@@ -38,6 +38,7 @@ import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import OrbitalDiagram from "@/components/OrbitalDiagram";
 import ConsensusGauge from "@/components/ConsensusGauge";
+import { ROUND_TABLE_PRESETS, type RoundTablePreset } from "@/lib/roundTablePresets";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -682,6 +683,7 @@ export default function RoundTable() {
   const [interruptMessage, setInterruptMessage] = useState("");
   const [showInterruptPanel, setShowInterruptPanel] = useState(false);
   const [maxRounds, setMaxRounds] = useState(3);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
   const activeStreamId = useRef<string | null>(null);
 
@@ -717,11 +719,34 @@ export default function RoundTable() {
 
   const isCreator = user?.subscriptionTier === "creator";
   const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
+  const hasFreeTrialAvailable = !isPro && !(user as any)?.freeRoundTableUsed;
+  const canAccessRoundTable = isPro || hasFreeTrialAvailable;
 
   const toggleSentinel = (id: number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 6 ? [...prev, id] : prev
     );
+  };
+
+  // Apply a preset: match Sentinels by slug, set mode, maxRounds, and placeholder question
+  const applyPreset = (preset: RoundTablePreset) => {
+    if (!sentinelList) return;
+    const matched = sentinelList
+      .filter((s: any) => preset.sentinelSlugs.includes(s.slug))
+      .map((s: any) => s.id);
+    setSelectedIds(matched);
+    // Map preset mode to DeliberationMode id
+    const modeMap: Record<string, string> = {
+      "turn-based": "turn-based",
+      "shared-context": "shared-context",
+      "synchronous": "synchronous",
+    };
+    setDeliberationMode((modeMap[preset.mode] ?? "turn-based") as DeliberationMode);
+    setMaxRounds(preset.maxRounds);
+    if (!question.trim()) setQuestion(preset.questionPlaceholder);
+    setActivePresetId(preset.id);
+    // Scroll to question textarea
+    setTimeout(() => document.getElementById("rt-question")?.focus(), 100);
   };
 
   const canStart = question.trim().length >= 10 && selectedIds.length >= 2 && !startMutation.isPending;
@@ -916,8 +941,8 @@ export default function RoundTable() {
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<"history" | "table" | "panels">("table");
 
-  // ── Gate: Pro/Creator only ──
-  if (!isPro) {
+  // ── Gate: Pro/Creator only (free users get one trial session) ──
+  if (!canAccessRoundTable) {
     return (
       <div className="min-h-screen bg-[#0a0b14] flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center space-y-5">
@@ -926,12 +951,12 @@ export default function RoundTable() {
           </div>
           <h1 className="text-2xl font-bold text-white">Round Table</h1>
           <p className="text-white/55 text-sm leading-relaxed">
-            Convene a council of Sentinels to deliberate on your question. Each Sentinel reasons
-            independently, challenges the others, and the council reaches a consensus answer.
+            You've used your free trial session. Upgrade to Pro or Creator to convene unlimited
+            Round Tables with full deliberation modes and session history.
           </p>
-          <div className="bg-white/4 border border-white/10 rounded-xl p-4 text-left space-y-2">
-            <div className="text-xs text-white/40 uppercase tracking-wider mb-2">Available on</div>
-            {["Pro — $19/month", "Creator — $29/month"].map((tier) => (
+          <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl p-4 text-left space-y-2">
+            <div className="text-xs text-amber-400/70 uppercase tracking-wider mb-2">Unlock unlimited access</div>
+            {["Pro — $19/month · Unlimited sessions", "Creator — $29/month · All modes + advanced Sentinels"].map((tier) => (
               <div key={tier} className="flex items-center gap-2 text-sm text-white/70">
                 <Crown className="w-4 h-4 text-amber-400 shrink-0" />
                 {tier}
@@ -959,6 +984,20 @@ export default function RoundTable() {
 
   return (
     <div className="min-h-screen bg-[#0a0b14] text-white flex flex-col">
+      {/* Free trial banner */}
+      {hasFreeTrialAvailable && (
+        <div className="bg-gradient-to-r from-indigo-600/20 to-cyan-500/20 border-b border-cyan-500/20 px-4 py-2.5 flex items-center gap-3">
+          <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+          <p className="text-sm text-white/80 flex-1">
+            <span className="font-semibold text-cyan-300">Free trial session</span> — experience the Round Table once, on us. Upgrade to Pro for unlimited access.
+          </p>
+          <Link href="/settings">
+            <Button size="sm" className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 text-xs h-7 px-3">
+              Upgrade
+            </Button>
+          </Link>
+        </div>
+      )}
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0b14]/95 backdrop-blur border-b border-white/8 px-4 py-3 flex items-center gap-3">
         <Link href="/chat">
@@ -1035,6 +1074,51 @@ export default function RoundTable() {
               <ResultsView result={result} onReset={handleReset} />
             ) : (
               <>
+                {/* ── Presets ── */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                    <label className="text-sm font-semibold text-white/70">Quick Start</label>
+                    <span className="text-xs text-white/30">— pick a preset or configure manually below</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {ROUND_TABLE_PRESETS.map((preset) => {
+                      const isActive = activePresetId === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          onClick={() => applyPreset(preset)}
+                          className={`group relative flex flex-col gap-1.5 p-3.5 rounded-xl border text-left transition-all ${
+                            isActive
+                              ? "border-cyan-500/60 bg-cyan-500/8 shadow-[0_0_12px_rgba(6,182,212,0.10)]"
+                              : "border-white/8 bg-white/3 hover:border-white/20 hover:bg-white/5"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg leading-none">{preset.icon}</span>
+                            <span className={`text-sm font-semibold ${
+                              isActive ? "text-cyan-300" : "text-white/85"
+                            }`}>{preset.label}</span>
+                            {isActive && (
+                              <Badge className="ml-auto text-[10px] px-1.5 py-0 bg-cyan-500/20 text-cyan-300 border-cyan-500/30">Active</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-white/40 leading-snug">{preset.tagline}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {preset.sentinelSlugs.map((slug) => {
+                              const s = sentinelList?.find((x: any) => x.slug === slug);
+                              return s ? (
+                                <span key={slug} className="text-sm" title={s.name}>{s.symbolEmoji}</span>
+                              ) : null;
+                            })}
+                            <span className="text-[10px] text-white/25 ml-auto">{preset.mode} · {preset.maxRounds}R</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Deliberation Mode */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1080,6 +1164,7 @@ export default function RoundTable() {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-white/70">Question for the Table</label>
                   <Textarea
+                    id="rt-question"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="What question should the Sentinels reason through together?"

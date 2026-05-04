@@ -2444,12 +2444,26 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const { runRoundTable } = await import("./roundtable");
         const { isProOrAbove, isCreatorOrAbove } = await import("./products");
+        const { getDb } = await import("./db");
+        const { users } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
         const tier = ctx.user.subscriptionTier ?? "free";
+        const db = await getDb();
+
+        // Free users get exactly one trial Round Table session
         if (!isProOrAbove(tier)) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Round Table is available for Pro and Creator subscribers.",
-          });
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+          // Fetch fresh user row to check freeRoundTableUsed
+          const [freshUser] = await db.select({ freeRoundTableUsed: users.freeRoundTableUsed })
+            .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+          if (freshUser?.freeRoundTableUsed) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Round Table is available for Pro and Creator subscribers. Your free trial session has been used.",
+            });
+          }
+          // Mark the free trial as used before running (prevent double-use)
+          await db.update(users).set({ freeRoundTableUsed: true } as any).where(eq(users.id, ctx.user.id));
         }
         // Shared and Synchronous modes are Architect (Creator) tier only
         if ((input.deliberationMode === "shared" || input.deliberationMode === "synchronous") && !isCreatorOrAbove(tier)) {
