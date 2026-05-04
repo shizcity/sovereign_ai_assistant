@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
-import { X, Filter, Lock, Crown } from "lucide-react";
+import { X, Filter, Lock, Crown, BarChart3, Zap, TrendingDown } from "lucide-react";
 
 interface Sentinel {
   id: number;
@@ -16,6 +16,15 @@ interface Sentinel {
   primaryColor: string;
 }
 
+interface SentinelStat {
+  sentinelName: string;
+  sentinelEmoji: string;
+  totalRounds: number;
+  avgConfidence: number;
+  avgLatencyMs: number;
+  dissentRate: number;
+}
+
 interface SentinelComparisonProps {
   sentinels: Sentinel[];
   /** Whether the current user has Pro or Creator tier */
@@ -24,6 +33,8 @@ interface SentinelComparisonProps {
   proOnlySlugs?: string[];
   /** Called when user clicks "Unlock Pro" on a locked column */
   onUpgrade?: () => void;
+  /** Track Record stats from Round Table sessions */
+  sentinelStats?: SentinelStat[];
 }
 
 export function SentinelComparison({
@@ -31,6 +42,7 @@ export function SentinelComparison({
   isPro = false,
   proOnlySlugs = [],
   onUpgrade,
+  sentinelStats = [],
 }: SentinelComparisonProps) {
   const [, setLocation] = useLocation();
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
@@ -215,6 +227,69 @@ export function SentinelComparison({
             </tr>
           </thead>
           <tbody>
+            {/* Track Record Row — shown first if stats exist */}
+            {sentinelStats.length > 0 && (
+              <tr className="border-b border-slate-800 bg-slate-900/40">
+                <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-cyan-400" />
+                    Track Record
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-normal">Round Table performance</p>
+                </td>
+                {filteredSentinels.map((sentinel) => {
+                  const locked = isLocked(sentinel);
+                  const stat = sentinelStats.find(s => s.sentinelName === sentinel.name);
+                  return (
+                    <td key={sentinel.id} className={`p-4 text-center transition-opacity ${locked ? "opacity-40" : ""}`}>
+                      {stat ? (
+                        <div className="space-y-3">
+                          {/* Confidence */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs text-slate-500 uppercase tracking-wider">Confidence</span>
+                            <span className={`text-xl font-bold font-mono ${
+                              stat.avgConfidence >= 80 ? "text-emerald-400" :
+                              stat.avgConfidence >= 60 ? "text-cyan-400" : "text-amber-400"
+                            }`}>{stat.avgConfidence}%</span>
+                            <div className="w-24 h-1.5 rounded-full bg-white/10">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${stat.avgConfidence}%`,
+                                  background: stat.avgConfidence >= 80 ? "#34d399" : stat.avgConfidence >= 60 ? "#22d3ee" : "#fbbf24",
+                                }}
+                              />
+                            </div>
+                          </div>
+                          {/* Latency + Dissent */}
+                          <div className="flex items-center justify-center gap-3 text-xs">
+                            <span className="flex items-center gap-1 text-white/40">
+                              <Zap className="w-3 h-3" />
+                              {stat.avgLatencyMs >= 1000
+                                ? `${(stat.avgLatencyMs / 1000).toFixed(1)}s`
+                                : stat.avgLatencyMs > 0 ? `${stat.avgLatencyMs}ms` : "—"}
+                            </span>
+                            <span className={`flex items-center gap-1 ${
+                              stat.dissentRate >= 40 ? "text-red-400" :
+                              stat.dissentRate >= 20 ? "text-amber-400" : "text-white/35"
+                            }`}>
+                              <TrendingDown className="w-3 h-3" />
+                              {stat.dissentRate}% dissent
+                            </span>
+                          </div>
+                          <span className="text-xs text-white/25">
+                            {stat.totalRounds} round{stat.totalRounds !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-white/20 italic">No data yet</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            )}
+
             {/* Primary Function Row */}
             <tr className="border-b border-slate-800">
               <td className="p-4 font-semibold text-slate-300 sticky left-0 bg-slate-900/95 backdrop-blur-sm">

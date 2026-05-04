@@ -365,6 +365,7 @@ export default function Sentinels() {
                 isPro={isPro || user?.subscriptionTier === "creator"}
                 proOnlySlugs={PRO_ONLY_SENTINEL_SLUGS}
                 onUpgrade={() => createCheckout.mutate({ tier: "pro" })}
+                sentinelStats={sentinelStats ?? []}
               />
             )}
           </div>

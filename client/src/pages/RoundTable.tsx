@@ -33,6 +33,8 @@ import {
   RefreshCw,
   Play,
   Download,
+  Search,
+  X,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
@@ -940,6 +942,7 @@ export default function RoundTable() {
 
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<"history" | "table" | "panels">("table");
+  const [sessionSearch, setSessionSearch] = useState("");
 
   // ── Gate: Pro/Creator only (free users get one trial session) ──
   if (!canAccessRoundTable) {
@@ -1046,6 +1049,30 @@ export default function RoundTable() {
             <span className="text-xs font-mono text-white/25">{history?.length ?? 0}</span>
           </div>
 
+          {/* Search bar */}
+          {history && history.length > 0 && (
+            <div className="px-3 py-2 border-b border-white/6">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white/25 pointer-events-none" />
+                <input
+                  type="text"
+                  value={sessionSearch}
+                  onChange={(e) => setSessionSearch(e.target.value)}
+                  placeholder="Search sessions…"
+                  className="w-full bg-white/5 border border-white/8 rounded-md pl-7 pr-7 py-1.5 text-xs text-white/70 placeholder:text-white/20 focus:outline-none focus:border-cyan-500/40 focus:bg-white/8 transition-colors"
+                />
+                {sessionSearch && (
+                  <button
+                    onClick={() => setSessionSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {!history || history.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-8">
@@ -1054,15 +1081,28 @@ export default function RoundTable() {
                   No sessions yet<br />Convene your first table
                 </p>
               </div>
-            ) : (
-              history.map((s) => (
-                <HistoryItem
-                  key={s.id}
-                  session={s as any}
-                  onClick={() => setLoadingSessionId(s.id)}
-                />
-              ))
-            )}
+            ) : (() => {
+              const filtered = sessionSearch.trim()
+                ? history.filter(s =>
+                    s.question?.toLowerCase().includes(sessionSearch.toLowerCase()) ||
+                    s.sentinelNames?.toLowerCase().includes(sessionSearch.toLowerCase())
+                  )
+                : history;
+              return filtered.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-8">
+                  <Search className="w-5 h-5 text-white/15" />
+                  <p className="text-xs text-white/25 text-center">No sessions match<br />"{sessionSearch}"</p>
+                </div>
+              ) : (
+                filtered.map((s) => (
+                  <HistoryItem
+                    key={s.id}
+                    session={s as any}
+                    onClick={() => setLoadingSessionId(s.id)}
+                  />
+                ))
+              );
+            })()}
           </div>
         </div>
 

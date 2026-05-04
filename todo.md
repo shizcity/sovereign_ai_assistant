@@ -1696,3 +1696,11 @@
 - [x] main.tsx: wrap app in HelmetProvider
 - [x] server/index.ts: add POST /api/scheduled/checkin endpoint — auth via session cookie, accepts nudge+sentinelName+emoji+title, inserts assistant message into most recent conversation
 - [x] Scheduled task: daily 9am Mon-Fri — scans user memories for upcoming commitments, generates personalized Sentinel nudge, POSTs to /api/scheduled/checkin
+
+## Sentinel Comparison Mode + Session Search
+- [x] SentinelComparison.tsx: add sentinelStats prop with SentinelStat interface
+- [x] SentinelComparison.tsx: add Track Record row (confidence bar, latency, dissent rate, total rounds) at top of comparison table
+- [x] Sentinels.tsx: pass sentinelStats to SentinelComparison component
+- [x] RoundTable.tsx: add sessionSearch state + Search/X icons
+- [x] RoundTable.tsx: add search bar below session history header (only shown when sessions exist)
+- [x] RoundTable.tsx: filter history list by question text and sentinelNames with empty state
