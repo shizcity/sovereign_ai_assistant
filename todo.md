@@ -1649,3 +1649,33 @@
 - [x] roundtable.ts: update reasonSentinel() to use invokeLLMStream, emit 'token' SSE events per chunk, parse JSON from assembled text at end
 - [x] RoundTable.tsx: add useEffect that opens EventSource after startMutation fires, handles sentinel_start/token/sentinel_done/complete events
 - [x] RoundTable.tsx: build live deliberation feed panel in center column — Sentinel emoji+name+round badge, text building up in real time
+
+## Sentinel Relationship Depth
+- [ ] DB schema: sentinelRelationships table (userId, sentinelSlug, messageCount, roundTableCount, topicSummary, userModel JSON, relationshipLevel, lastInteraction)
+- [ ] DB migration: push sentinelRelationships table
+- [ ] relationship-engine.ts: computeRelationshipLevel() — Acquaintance (0-9 msgs) → Colleague (10-49) → Trusted Advisor (50-199) → Partner (200+)
+- [ ] relationship-engine.ts: updateRelationship() — increment messageCount, update lastInteraction, trigger buildUserModel every 10 messages
+- [ ] relationship-engine.ts: buildUserModel() — LLM extraction of preferences, communication style, recurring themes from last 20 messages
+- [ ] messages.send: inject adaptive relationship context block into Sentinel system prompt
+- [ ] routers.ts: sentinels.getRelationship tRPC procedure (get relationship data for a Sentinel)
+- [ ] routers.ts: sentinels.getAllRelationships tRPC procedure (all Sentinels with relationship data)
+- [ ] SentinelRelationshipCard.tsx: relationship level badge, message count, topic tags, user model preview
+- [ ] Sentinels page: show relationship level on each Sentinel card
+- [ ] Chat sidebar: show relationship level badge next to active Sentinel name
+- [ ] Sentinel detail view: full relationship history panel
+- [ ] Write vitest tests for relationship level computation and user model extraction
+- [ ] Save checkpoint
+
+## Sentinel Relationship Depth — COMPLETED (May 4 2026)
+- [x] DB: Added relationshipLevel, userModel, topicSummary, roundTableCount columns to sentinelMemory table
+- [x] relationship-engine.ts: computeRelationshipLevel() — Acquaintance/Colleague/Trusted Advisor/Partner
+- [x] relationship-engine.ts: updateRelationship() — increments count, triggers buildUserModel() every 10 messages
+- [x] relationship-engine.ts: buildUserModel() — LLM extracts preferences, style, themes, current focus
+- [x] relationship-engine.ts: buildRelationshipContext() — injects adaptive context block into system prompt
+- [x] routers.ts: sentinels.getRelationship + sentinels.getAllRelationships procedures
+- [x] routers.ts: messages.send — injects relationship context + calls updateRelationship after each response
+- [x] routers.ts: messages.send — returns relationshipLeveledUp + newRelationshipLevel
+- [x] SentinelRelationshipCard.tsx — full card (level badge, progress bar, user model) + compact badge mode
+- [x] Sentinels.tsx — relationship card in selected Sentinel detail view
+- [x] Chat.tsx — compact relationship badge in chat header next to SentinelSelector
+- [x] Chat.tsx — level-up toast when relationship advances with query invalidation

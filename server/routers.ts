@@ -374,11 +374,18 @@ export const appRouter = router({
           const memories = await getTopMemories(ctx.user.id, primarySentinel.sentinelId, 5);
           
           if (memories.length > 0) {
-            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memories.map((m, i) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n")}
-
-Reference these memories naturally when relevant. For example: "Remember when we worked on [topic]?" or "Building on what we discussed about [topic]..."`;
-            
+            const memItemsSend = memories.map((m: any, i: number) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n");
+            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memItemsSend}\n\nReference these memories naturally when relevant.`;
             systemPrompt = systemPrompt + memoryContext;
+          }
+
+          // Inject adaptive relationship context (makes Sentinel feel like it knows the user)
+          try {
+            const { buildRelationshipContext } = await import("./relationship-engine");
+            const relContext = await buildRelationshipContext(ctx.user.id, primarySentinel.sentinelId, primarySentinel.sentinelName || "Sentinel");
+            if (relContext) systemPrompt = systemPrompt + relContext;
+          } catch (relErr) {
+            console.error("[RelationshipEngine] context injection error:", relErr);
           }
         } else {
           // Fall back to user's custom system prompt or default
@@ -519,6 +526,25 @@ Reference these memories naturally when relevant. For example: "Remember when we
         // Award XP for sending a message — await so we can surface new achievements
         const xpResult = await awardXp(ctx.user.id, "message_sent").catch(() => ({ xpAwarded: 0, newAchievements: [] }));
 
+        // Update Sentinel relationship depth (async, non-blocking)
+        let relationshipLeveledUp = false;
+        let newRelationshipLevel: string | undefined;
+        if (primarySentinel) {
+          try {
+            const { updateRelationship } = await import("./relationship-engine");
+            const relResult = await updateRelationship(
+              ctx.user.id,
+              primarySentinel.sentinelId,
+              messages.map((m: any) => ({ role: m.role, content: m.content })),
+              primarySentinel.sentinelName || "Sentinel"
+            );
+            relationshipLeveledUp = relResult.leveledUp;
+            newRelationshipLevel = relResult.newLevel;
+          } catch (relErr) {
+            console.error("[RelationshipEngine] updateRelationship error:", relErr);
+          }
+        }
+
         return {
           id: messageId,
           content: response.content,
@@ -531,6 +557,8 @@ Reference these memories naturally when relevant. For example: "Remember when we
             breakdown: costBreakdown,
           },
           newAchievements: xpResult.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })),
+          relationshipLeveledUp,
+          newRelationshipLevel,
         };
       }),
 
@@ -597,11 +625,18 @@ Reference these memories naturally when relevant. For example: "Remember when we
           const memories = await getTopMemories(ctx.user.id, primarySentinel.sentinelId, 5);
           
           if (memories.length > 0) {
-            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memories.map((m, i) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n")}
-
-Reference these memories naturally when relevant. For example: "Remember when we worked on [topic]?" or "Building on what we discussed about [topic]..."`;
-            
+            const memItems = memories.map((m: any, i: number) => `${i + 1}. **${m.category.toUpperCase()}**: ${m.content}${m.context ? ` (${m.context})` : ""}`).join("\n");
+            const memoryContext = `\n\n## Your Memories of This User\n\nYou have worked with this user before. Here are key things you remember:\n\n${memItems}\n\nReference these memories naturally when relevant.`;
             systemPrompt = systemPrompt + memoryContext;
+          }
+
+          // Inject adaptive relationship context
+          try {
+            const { buildRelationshipContext } = await import("./relationship-engine");
+            const relCtx = await buildRelationshipContext(ctx.user.id, primarySentinel.sentinelId, primarySentinel.sentinelName || "Sentinel");
+            if (relCtx) systemPrompt = systemPrompt + relCtx;
+          } catch (relErr) {
+            console.error("[RelationshipEngine] edit context injection error:", relErr);
           }
         } else {
           // Fall back to user's custom system prompt or default
@@ -1353,6 +1388,20 @@ Reference these memories naturally when relevant. For example: "Remember when we
     }),
 
     // Custom Sentinel CRUD (Creator tier only)
+    /** Get relationship depth data for a specific Sentinel */
+    getRelationship: protectedProcedure
+      .input(z.object({ sentinelId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getRelationshipData } = await import("./relationship-engine");
+        return getRelationshipData(ctx.user.id, input.sentinelId);
+      }),
+
+    /** Get all relationship data for the current user */
+    getAllRelationships: protectedProcedure.query(async ({ ctx }) => {
+      const { getAllRelationships } = await import("./relationship-engine");
+      return getAllRelationships(ctx.user.id);
+    }),
+
     custom: router({
       list: protectedProcedure.query(async ({ ctx }) => {
         const tier = (ctx.user.subscriptionTier ?? "free").toLowerCase();

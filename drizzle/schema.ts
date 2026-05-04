@@ -232,10 +232,14 @@ export const sentinelMemory = mysqlTable("sentinel_memory", {
   relationshipStrength: int("relationshipStrength").default(0), // 0-100 score
   preferredTopics: text("preferredTopics"), // JSON array
   conversationStyle: varchar("conversationStyle", { length: 100 }),
+  // Relationship depth fields
+  relationshipLevel: mysqlEnum("relationshipLevel", ["acquaintance", "colleague", "trusted_advisor", "partner"]).default("acquaintance"),
+  userModel: text("userModel"), // JSON: { preferences, communicationStyle, recurringThemes, decisionPatterns }
+  topicSummary: text("topicSummary"), // Short human-readable summary of collaboration areas
+  roundTableCount: int("roundTableCount").default(0), // How many Round Table sessions included this Sentinel
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
-
 export type SentinelMemory = typeof sentinelMemory.$inferSelect;
 export type InsertSentinelMemory = typeof sentinelMemory.$inferInsert;
 

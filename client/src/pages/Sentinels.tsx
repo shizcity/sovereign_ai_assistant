@@ -7,6 +7,7 @@ import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, T
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { ShareNudgeCard } from "@/components/ShareNudgeCard";
+import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -435,6 +436,9 @@ export default function Sentinels() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Relationship depth card */}
+                  <SentinelRelationshipCard sentinelId={selected.id} />
 
                   <div>
                     <h3 className="text-xl font-semibold mb-2" style={{ color: selected.primaryColor }}>

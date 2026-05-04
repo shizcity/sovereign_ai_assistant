@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
+import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -352,6 +353,21 @@ export default function Chat() {
       utils.messages.list.invalidate({ conversationId: selectedConversation! });
       setInputMessage("");
       showAchievementToasts(data?.newAchievements);
+      // Relationship level-up toast
+      if (data?.relationshipLeveledUp && data?.newRelationshipLevel) {
+        const levelLabels: Record<string, string> = {
+          colleague: "Colleague",
+          trusted_advisor: "Trusted Advisor",
+          partner: "Partner",
+        };
+        const label = levelLabels[data.newRelationshipLevel] ?? data.newRelationshipLevel;
+        toast.success(`✨ Relationship deepened — ${activeSentinel?.name ?? "Sentinel"} now sees you as a ${label}`, {
+          duration: 5000,
+          description: "Your Sentinel now has deeper context about how you think and work.",
+        });
+        // Refresh relationship data
+        if (selectedSentinel) utils.sentinels.getRelationship.invalidate({ sentinelId: selectedSentinel });
+      }
     },
     onError: (error) => {
       toast.error(`Failed to send message: ${error.message}`);
@@ -1322,6 +1338,11 @@ export default function Chat() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Relationship depth badge */}
+                  {selectedSentinel && (
+                    <SentinelRelationshipCard sentinelId={selectedSentinel} compact />
+                  )}
+
                   <SentinelSelector
                     value={selectedSentinel}
                     onChange={(sentinelId) => {
