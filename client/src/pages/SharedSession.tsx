@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Brain, Route, AlertTriangle, MessageSquarePlus, ExternalLink, Clock, Zap } from "lucide-react";
 import { Streamdown } from "streamdown";
 import ConsensusGauge from "@/components/ConsensusGauge";
+import { Helmet } from "react-helmet-async";
 
 // ─── Reusable read-only reasoning card ───────────────────────────────────────
 
@@ -96,8 +97,36 @@ export default function SharedSession() {
   const consensusPct = Math.round(session.consensusScore * 100);
   const contradictions = session.contradictions ?? [];
 
+  // Build OG meta values
+  const sentinelNames = session.sentinels.map((s: any) => `${s.emoji} ${s.name}`).join(" · ");
+  const ogTitle = `Round Table: ${session.question.slice(0, 80)}${session.question.length > 80 ? "…" : ""}`;
+  const ogDescription = `${consensusPct}% consensus · ${session.sentinels.length} Sentinels (${sentinelNames}) · ${session.deliberationMode} mode · Powered by Glow`;
+  const canonicalUrl = typeof window !== "undefined" ? window.location.href : `https://glow.manus.space/session/${shareId}`;
+  const ogImage = `https://files.manuscdn.com/user_upload_by_module/session_file/86706373/XMimnGTKzlpUegGs.png`;
+
   return (
     <div className="min-h-screen bg-[#080910] text-white">
+      <Helmet>
+        <title>{ogTitle} | Glow</title>
+        <meta name="description" content={ogDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        {/* Open Graph */}
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Glow" />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={ogTitle} />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <meta name="twitter:image:alt" content={ogTitle} />
+      </Helmet>
       {/* Header */}
       <div className="border-b border-white/8 bg-[#080910]/95 backdrop-blur sticky top-0 z-20">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">

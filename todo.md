@@ -1690,3 +1690,9 @@
 - [x] RoundTable.tsx: canAccessRoundTable gate — free users with trial available see full Round Table UI
 - [x] RoundTable.tsx: Free trial banner — cyan gradient banner showing "Free trial session — experience the Round Table once, on us"
 - [x] RoundTable.tsx: Post-trial paywall — amber-accented upgrade screen after trial is used
+
+## OG Meta Tags + Sentinel Check-ins
+- [x] SharedSession.tsx: add react-helmet-async Helmet block with og:title, og:description, og:url, og:image, og:type, twitter:card, twitter:title, twitter:description, twitter:image
+- [x] main.tsx: wrap app in HelmetProvider
+- [x] server/index.ts: add POST /api/scheduled/checkin endpoint — auth via session cookie, accepts nudge+sentinelName+emoji+title, inserts assistant message into most recent conversation
+- [x] Scheduled task: daily 9am Mon-Fri — scans user memories for upcoming commitments, generates personalized Sentinel nudge, POSTs to /api/scheduled/checkin

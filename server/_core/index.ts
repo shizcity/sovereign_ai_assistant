@@ -243,6 +243,80 @@ async function startServer() {
     });
   });
 
+  // ─── Scheduled Task: Sentinel Check-in ───────────────────────────────────────
+  // POST /api/scheduled/checkin
+  // Called by the Manus scheduled task agent. Accepts a user_id + nudge message
+  // and injects it as a Sentinel message into the user's most recent conversation
+  // (or creates a new one). Auth via session cookie (scheduled task cookie).
+  app.post("/api/scheduled/checkin", async (req, res) => {
+    try {
+      const { sdk } = await import("./sdk");
+      const user = await sdk.authenticateRequest(req);
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+      const { nudge, sentinelName, sentinelEmoji, conversationTitle } = req.body as {
+        nudge: string;
+        sentinelName?: string;
+        sentinelEmoji?: string;
+        conversationTitle?: string;
+      };
+
+      if (!nudge || typeof nudge !== "string" || nudge.length < 5) {
+        res.status(400).json({ error: "nudge text is required" });
+        return;
+      }
+
+      const { getDb } = await import("../db");
+      const { conversations, messages, conversationSentinels } = await import("../../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+
+      const db = await getDb();
+      if (!db) { res.status(503).json({ error: "DB unavailable" }); return; }
+
+      // Find or create a conversation for this check-in
+      let conversationId: number;
+      const title = conversationTitle || `Check-in from ${sentinelName ?? "Your Sentinel"}`;
+
+      // Try to find an existing check-in conversation from today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const existing = await db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .where(eq(conversations.userId, user.id))
+        .orderBy(desc(conversations.createdAt))
+        .limit(20);
+
+      const checkinConv = existing.find((c: any) => c.id); // use most recent conv
+      if (checkinConv) {
+        conversationId = checkinConv.id;
+      } else {
+        // Create a new conversation
+        const [newConv] = await db.insert(conversations).values({
+          userId: user.id,
+          title,
+          defaultModel: "gemini-2.5-flash",
+        }).$returningId();
+        conversationId = newConv.id;
+      }
+
+      // Insert the nudge as an assistant message
+      await db.insert(messages).values({
+        conversationId,
+        role: "assistant",
+        content: nudge,
+        model: "sentinel-checkin",
+        totalTokens: 0,
+      });
+
+      console.log(`[Checkin] Delivered nudge to user ${user.id} in conversation ${conversationId}`);
+      res.json({ ok: true, conversationId });
+    } catch (err: any) {
+      console.error("[Checkin] Error:", err);
+      res.status(500).json({ error: String(err?.message ?? err) });
+    }
+  });
+
   // Global error handler - ensures all errors return JSON for API routes
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Only handle errors for API routes
