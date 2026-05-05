@@ -1704,3 +1704,14 @@
 - [x] RoundTable.tsx: add sessionSearch state + Search/X icons
 - [x] RoundTable.tsx: add search bar below session history header (only shown when sessions exist)
 - [x] RoundTable.tsx: filter history list by question text and sentinelNames with empty state
+
+## XP Reframe — Craft Progression Levels
+- [x] gamification.ts: rename level tiers to craft progression (Thinker → Inquirer → Analyst → Strategist → Operator → Synthesizer → Architect → Sovereign → Luminary → Oracle)
+- [x] gamification.ts: each level now has a `description` field with craft mastery language
+- [x] gamification.ts: all 25 achievements rewritten with craft mastery copy (e.g. "First Inquiry", "Disciplined Mind", "Sovereign Intellect", "Catalyst")
+- [x] useAchievementToast.ts: toast now shows achievement title as headline, "A new milestone in your practice." as description
+- [x] Achievements.tsx: page renamed to "Craft Progression", badges renamed to "Milestones", stats use craft labels (Exchanges, Deliberations, Sentinels Built), level description shown below XP bar
+- [x] Chat.tsx XpLevelIndicator: shows level title (not Lv.N prefix), level description as italic subtitle
+- [x] Referrals.tsx: header copy updated to craft framing ("Bring Others Into the Practice")
+- [x] routers.ts getProgress: exposes levelDescription field to all consumers
+- [x] Zero TypeScript errors confirmed

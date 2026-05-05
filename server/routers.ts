@@ -2668,6 +2668,7 @@ export const appRouter = router({
       return {
         level: level.level,
         levelTitle: level.title,
+        levelDescription: level.description,
         xp: stats.totalXp,
         nextLevelXp: level.nextLevel?.minXp ?? stats.totalXp,
         currentLevelXp: level.minXp,

@@ -23,8 +23,8 @@ export function showAchievementToasts(achievements: AchievementUnlock[] | undefi
   // Stagger toasts slightly so they don't all fire at once
   achievements.forEach((a, i) => {
     setTimeout(() => {
-      toast(`${a.emoji} Achievement unlocked!`, {
-        description: a.title,
+      toast(`${a.emoji} ${a.title}`, {
+        description: "A new milestone in your practice.",
         duration: 5000,
         style: {
           background: "#0f172a",

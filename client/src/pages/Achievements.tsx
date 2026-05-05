@@ -39,10 +39,10 @@ export default function Achievements() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/20">
               <Trophy className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">Achievements</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Craft Progression</h1>
           </div>
           <p className="text-slate-400 text-sm ml-13">
-            Track your progress and earn badges as you explore Glow.
+            Every milestone marks a deeper level of craft. Keep the practice going.
           </p>
         </div>
 
@@ -59,6 +59,10 @@ export default function Achievements() {
                   {progress.levelTitle}
                 </span>
               </div>
+              {/* Level description */}
+              {progress.levelDescription && (
+                <p className="text-xs text-slate-400 italic sm:hidden mt-2 text-center">{progress.levelDescription}</p>
+              )}
 
               {/* XP + Streak */}
               <div className="flex-1 space-y-4">
@@ -79,30 +83,34 @@ export default function Achievements() {
                       style={{ width: `${Math.min(progress.progressPct, 100)}%` }}
                     />
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">{progress.progressPct}% to level {progress.level + 1}</div>
+                  <div className="text-xs text-slate-500 mt-1">{progress.progressPct}% to {progress.level < 10 ? `level ${progress.level + 1}` : "mastery"}</div>
                 </div>
+                {/* Level description — desktop */}
+                {progress.levelDescription && (
+                  <p className="hidden sm:block text-xs text-slate-400 italic">{progress.levelDescription}</p>
+                )}
 
-                {/* Streak + Achievements count */}
+                {/* Streak + Milestones count */}
                 <div className="flex gap-6">
                   <div className="flex items-center gap-2">
                     <Flame className="w-4 h-4 text-orange-400" />
                     <div>
                       <div className="text-lg font-bold leading-none">{progress.streak}</div>
-                      <div className="text-xs text-slate-500">day streak</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-wide">day streak</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-yellow-400" />
                     <div>
                       <div className="text-lg font-bold leading-none">{progress.longestStreak}</div>
-                      <div className="text-xs text-slate-500">best streak</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-wide">best streak</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Trophy className="w-4 h-4 text-amber-400" />
                     <div>
                       <div className="text-lg font-bold leading-none">{unlockedCount}/{totalCount}</div>
-                      <div className="text-xs text-slate-500">badges</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-wide">milestones</div>
                     </div>
                   </div>
                 </div>
@@ -115,10 +123,10 @@ export default function Achievements() {
         {progress?.stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {[
-              { label: "Messages", value: progress.stats.totalMessages, icon: "💬" },
+              { label: "Exchanges", value: progress.stats.totalMessages, icon: "💬" },
               { label: "Memories", value: progress.stats.totalMemories, icon: "🧠" },
-              { label: "Round Tables", value: progress.stats.totalRoundTables, icon: "⚡" },
-              { label: "Custom Sentinels", value: progress.stats.totalCustomSentinels, icon: "🔧" },
+              { label: "Deliberations", value: progress.stats.totalRoundTables, icon: "⚡" },
+              { label: "Sentinels Built", value: progress.stats.totalCustomSentinels, icon: "🔧" },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -126,7 +134,7 @@ export default function Achievements() {
               >
                 <div className="text-2xl mb-1">{stat.icon}</div>
                 <div className="text-xl font-bold">{stat.value.toLocaleString()}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{stat.label}</div>
+                <div className="text-xs text-slate-500 mt-0.5 uppercase tracking-wide">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -134,7 +142,8 @@ export default function Achievements() {
 
         {/* Achievements Grid */}
         <div>
-          <h2 className="text-lg font-semibold mb-4 text-slate-200">Badges</h2>
+          <h2 className="text-lg font-semibold mb-1 text-slate-200">Milestones</h2>
+          <p className="text-xs text-slate-500 mb-4">Markers of depth in your practice. Each one is earned, not given.</p>
           {achievementsLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (

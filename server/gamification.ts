@@ -30,16 +30,16 @@ export type XpAction = keyof typeof XP_ACTIONS;
 // LEVEL SYSTEM
 // ─────────────────────────────────────────────
 export const LEVELS = [
-  { level: 1, title: "Initiate",       minXp: 0 },
-  { level: 2, title: "Seeker",         minXp: 100 },
-  { level: 3, title: "Apprentice",     minXp: 300 },
-  { level: 4, title: "Adept",          minXp: 600 },
-  { level: 5, title: "Practitioner",   minXp: 1000 },
-  { level: 6, title: "Specialist",     minXp: 1500 },
-  { level: 7, title: "Expert",         minXp: 2200 },
-  { level: 8, title: "Architect",      minXp: 3000 },
-  { level: 9, title: "Sovereign",      minXp: 4000 },
-  { level: 10, title: "Luminary",      minXp: 5500 },
+  { level: 1,  title: "Thinker",       description: "You've begun asking the right questions.",                          minXp: 0 },
+  { level: 2,  title: "Inquirer",      description: "Curiosity is sharpening into a practice.",                          minXp: 100 },
+  { level: 3,  title: "Analyst",       description: "Patterns are emerging. You're learning to see beneath the surface.",  minXp: 300 },
+  { level: 4,  title: "Strategist",    description: "You think in systems. Decisions are deliberate.",                    minXp: 600 },
+  { level: 5,  title: "Operator",      description: "You move with precision. Insight is becoming action.",               minXp: 1000 },
+  { level: 6,  title: "Synthesizer",   description: "You connect what others miss. Complexity is your medium.",           minXp: 1500 },
+  { level: 7,  title: "Architect",     description: "You build frameworks others rely on. Your thinking has structure.",   minXp: 2200 },
+  { level: 8,  title: "Sovereign",     description: "You operate at the edge of your domain. Few think at this depth.",   minXp: 3000 },
+  { level: 9,  title: "Luminary",      description: "Your perspective shapes the room. Mastery is visible.",              minXp: 4000 },
+  { level: 10, title: "Oracle",        description: "You see what others cannot. This is the highest form of the craft.",  minXp: 5500 },
 ];
 
 export function getLevelFromXp(totalXp: number) {
@@ -84,40 +84,40 @@ export interface UserStats {
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  // First steps
-  { id: "first_message",        title: "First Words",          description: "Send your first message",                emoji: "💬", tier: "bronze",   xpReward: 50,  check: s => s.totalMessages >= 1 },
-  { id: "first_voice",          title: "Speak Up",             description: "Use voice mode for the first time",      emoji: "🎙️", tier: "bronze",   xpReward: 75,  check: s => s.totalVoiceMessages >= 1 },
-  { id: "first_memory",         title: "Remember Me",          description: "Save your first memory",                 emoji: "🧠", tier: "bronze",   xpReward: 75,  check: s => s.totalMemories >= 1 },
-  { id: "first_round_table",    title: "Convene the Council",  description: "Complete your first Round Table",        emoji: "⚡", tier: "silver",   xpReward: 150, check: s => s.totalRoundTables >= 1 },
-  { id: "first_custom_sentinel",title: "Architect",            description: "Build your first custom Sentinel",       emoji: "🔧", tier: "silver",   xpReward: 150, check: s => s.totalCustomSentinels >= 1 },
-  // Message milestones
-  { id: "messages_10",          title: "Getting Started",      description: "Send 10 messages",                       emoji: "🌱", tier: "bronze",   xpReward: 50,  check: s => s.totalMessages >= 10 },
-  { id: "messages_50",          title: "Conversationalist",    description: "Send 50 messages",                       emoji: "🗣️", tier: "bronze",   xpReward: 100, check: s => s.totalMessages >= 50 },
-  { id: "messages_100",         title: "Deep Thinker",         description: "Send 100 messages",                      emoji: "💡", tier: "silver",   xpReward: 200, check: s => s.totalMessages >= 100 },
-  { id: "messages_500",         title: "Philosopher",          description: "Send 500 messages",                      emoji: "🔮", tier: "gold",     xpReward: 500, check: s => s.totalMessages >= 500 },
+  // First steps — craft entry points
+  { id: "first_message",        title: "First Inquiry",        description: "You asked your first question. Every great thinker starts here.",                emoji: "💬", tier: "bronze",   xpReward: 50,  check: s => s.totalMessages >= 1 },
+  { id: "first_voice",          title: "Spoken Thought",       description: "You trusted your voice. Ideas flow differently when spoken aloud.",             emoji: "🎙️", tier: "bronze",   xpReward: 75,  check: s => s.totalVoiceMessages >= 1 },
+  { id: "first_memory",         title: "First Anchor",         description: "You preserved something worth keeping. This is how knowledge compounds.",       emoji: "🧠", tier: "bronze",   xpReward: 75,  check: s => s.totalMemories >= 1 },
+  { id: "first_round_table",    title: "First Deliberation",   description: "You convened the council. Multi-perspective thinking is a rare skill.",         emoji: "⚡", tier: "silver",   xpReward: 150, check: s => s.totalRoundTables >= 1 },
+  { id: "first_custom_sentinel",title: "Designed a Mind",      description: "You built a thinking partner from scratch. This is craft at its finest.",       emoji: "🔧", tier: "silver",   xpReward: 150, check: s => s.totalCustomSentinels >= 1 },
+  // Depth of practice — message milestones
+  { id: "messages_10",          title: "In Practice",          description: "Ten exchanges. The habit is forming.",                                           emoji: "🌱", tier: "bronze",   xpReward: 50,  check: s => s.totalMessages >= 10 },
+  { id: "messages_50",          title: "Sustained Inquiry",    description: "Fifty exchanges. You think in dialogue, not monologue.",                        emoji: "🗣️", tier: "bronze",   xpReward: 100, check: s => s.totalMessages >= 50 },
+  { id: "messages_100",         title: "Depth of Practice",    description: "A hundred exchanges. Your questions are sharper than when you started.",         emoji: "💡", tier: "silver",   xpReward: 200, check: s => s.totalMessages >= 100 },
+  { id: "messages_500",         title: "Committed Practitioner",description: "Five hundred exchanges. This is no longer a tool — it is a practice.",          emoji: "🔮", tier: "gold",     xpReward: 500, check: s => s.totalMessages >= 500 },
   // Voice milestones
-  { id: "voice_10",             title: "Voice of Reason",      description: "Send 10 voice messages",                 emoji: "🎵", tier: "silver",   xpReward: 150, check: s => s.totalVoiceMessages >= 10 },
-  // Memory milestones
-  { id: "memories_10",          title: "Archivist",            description: "Save 10 memories",                       emoji: "📚", tier: "silver",   xpReward: 150, check: s => s.totalMemories >= 10 },
-  { id: "memories_50",          title: "Memory Keeper",        description: "Save 50 memories",                       emoji: "🗄️", tier: "gold",     xpReward: 300, check: s => s.totalMemories >= 50 },
-  // Round Table milestones
-  { id: "round_tables_5",       title: "Council Regular",      description: "Complete 5 Round Tables",                emoji: "🏛️", tier: "silver",   xpReward: 200, check: s => s.totalRoundTables >= 5 },
-  { id: "round_tables_25",      title: "Grand Deliberator",    description: "Complete 25 Round Tables",               emoji: "👑", tier: "gold",     xpReward: 500, check: s => s.totalRoundTables >= 25 },
-  // Streak milestones
-  { id: "streak_3",             title: "Consistent",           description: "Maintain a 3-day streak",                emoji: "🔥", tier: "bronze",   xpReward: 75,  check: s => s.longestStreak >= 3 },
-  { id: "streak_7",             title: "Week Warrior",         description: "Maintain a 7-day streak",                emoji: "⚡", tier: "silver",   xpReward: 150, check: s => s.longestStreak >= 7 },
-  { id: "streak_30",            title: "Unstoppable",          description: "Maintain a 30-day streak",               emoji: "🌟", tier: "gold",     xpReward: 500, check: s => s.longestStreak >= 30 },
-  // XP milestones
-  { id: "xp_1000",              title: "Rising Force",         description: "Earn 1,000 total XP",                    emoji: "✨", tier: "bronze",   xpReward: 100, check: s => s.totalXp >= 1000 },
-  { id: "xp_5000",              title: "Power User",           description: "Earn 5,000 total XP",                    emoji: "💎", tier: "silver",   xpReward: 250, check: s => s.totalXp >= 5000 },
-  { id: "xp_10000",             title: "Sovereign Mind",       description: "Earn 10,000 total XP",                   emoji: "🏆", tier: "platinum", xpReward: 1000, check: s => s.totalXp >= 10000 },
-  // Template milestones
-  { id: "template_creator",     title: "Template Artisan",     description: "Create your first template",             emoji: "🎨", tier: "bronze",   xpReward: 75,  check: s => s.totalTemplatesCreated >= 1 },
-  { id: "templates_used_10",    title: "Workflow Master",      description: "Use templates 10 times",                 emoji: "⚙️", tier: "silver",   xpReward: 150, check: s => s.totalTemplatesUsed >= 10 },
+  { id: "voice_10",             title: "Articulate",           description: "Ten voice messages. You've learned to think out loud with precision.",            emoji: "🎵", tier: "silver",   xpReward: 150, check: s => s.totalVoiceMessages >= 10 },
+  // Memory milestones — knowledge architecture
+  { id: "memories_10",          title: "Knowledge Architect",  description: "Ten memories preserved. You're building a second mind.",                         emoji: "📚", tier: "silver",   xpReward: 150, check: s => s.totalMemories >= 10 },
+  { id: "memories_50",          title: "Deep Archive",         description: "Fifty memories. Your knowledge graph is becoming a genuine asset.",              emoji: "🗄️", tier: "gold",     xpReward: 300, check: s => s.totalMemories >= 50 },
+  // Round Table milestones — deliberation craft
+  { id: "round_tables_5",       title: "Deliberate Thinker",   description: "Five deliberations. You've made multi-perspective thinking a habit.",            emoji: "🏛️", tier: "silver",   xpReward: 200, check: s => s.totalRoundTables >= 5 },
+  { id: "round_tables_25",      title: "Master Deliberator",   description: "Twenty-five deliberations. Few decisions escape your scrutiny.",                emoji: "👑", tier: "gold",     xpReward: 500, check: s => s.totalRoundTables >= 25 },
+  // Consistency — practice milestones
+  { id: "streak_3",             title: "Daily Practice",       description: "Three consecutive days. Consistency is the foundation of mastery.",              emoji: "🔥", tier: "bronze",   xpReward: 75,  check: s => s.longestStreak >= 3 },
+  { id: "streak_7",             title: "Disciplined Mind",     description: "Seven days without interruption. Discipline is a form of intelligence.",         emoji: "⚡", tier: "silver",   xpReward: 150, check: s => s.longestStreak >= 7 },
+  { id: "streak_30",            title: "Committed Scholar",    description: "Thirty days. You've made serious thinking a non-negotiable part of your life.",  emoji: "🌟", tier: "gold",     xpReward: 500, check: s => s.longestStreak >= 30 },
+  // Mastery depth — XP milestones
+  { id: "xp_1000",              title: "Emerging Craft",       description: "1,000 XP. The foundation is solid. The real work begins here.",                  emoji: "✨", tier: "bronze",   xpReward: 100, check: s => s.totalXp >= 1000 },
+  { id: "xp_5000",              title: "Refined Practice",     description: "5,000 XP. Your thinking has texture. Others notice the difference.",             emoji: "💎", tier: "silver",   xpReward: 250, check: s => s.totalXp >= 5000 },
+  { id: "xp_10000",             title: "Sovereign Intellect",  description: "10,000 XP. You've reached a level of mastery that cannot be faked.",             emoji: "🏆", tier: "platinum", xpReward: 1000, check: s => s.totalXp >= 10000 },
+  // Templates — systematic thinking
+  { id: "template_creator",     title: "Systematic Thinker",   description: "You built a reusable thinking framework. That's how experts operate.",          emoji: "🎨", tier: "bronze",   xpReward: 75,  check: s => s.totalTemplatesCreated >= 1 },
+  { id: "templates_used_10",    title: "Structured Practice",  description: "Ten template uses. Your thinking is becoming more systematic.",                  emoji: "⚙️", tier: "silver",   xpReward: 150, check: s => s.totalTemplatesUsed >= 10 },
   // Referral milestones
-  { id: "referral_first",       title: "First Invite",         description: "Successfully invite your first friend",  emoji: "🤝", tier: "bronze",   xpReward: 100, check: s => s.totalReferrals >= 1 },
-  { id: "referral_5",           title: "Community Builder",    description: "Invite 5 friends to Glow",               emoji: "🌐", tier: "silver",   xpReward: 300, check: s => s.totalReferrals >= 5 },
-  { id: "referral_10",          title: "Growth Champion",      description: "Invite 10 friends to Glow",              emoji: "🚀", tier: "gold",     xpReward: 750, check: s => s.totalReferrals >= 10 },
+  { id: "referral_first",       title: "First Invite",         description: "You brought someone into the practice. The best ideas spread person to person.", emoji: "🤝", tier: "bronze",   xpReward: 100, check: s => s.totalReferrals >= 1 },
+  { id: "referral_5",           title: "Community Builder",    description: "Five people thinking more deeply because of you. That compounds.",               emoji: "🌐", tier: "silver",   xpReward: 300, check: s => s.totalReferrals >= 5 },
+  { id: "referral_10",          title: "Catalyst",             description: "Ten people in the practice. You're not just thinking better — you're spreading it.",emoji: "🚀", tier: "gold",     xpReward: 750, check: s => s.totalReferrals >= 10 },
 ];
 
 // ─────────────────────────────────────────────

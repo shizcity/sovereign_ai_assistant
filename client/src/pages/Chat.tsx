@@ -46,7 +46,7 @@ function XpLevelIndicator() {
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5">
             <Trophy className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-xs font-semibold text-white/80">Lv.{progress.level} {progress.levelTitle}</span>
+            <span className="text-xs font-semibold text-white/80">{progress.levelTitle}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-cyan-400 font-medium">
             <Zap className="w-3 h-3" />
@@ -59,6 +59,9 @@ function XpLevelIndicator() {
             style={{ width: `${Math.min(progress.progressPct, 100)}%` }}
           />
         </div>
+        {progress.levelDescription && (
+          <div className="text-[10px] text-slate-500 mt-0.5 italic leading-tight">{progress.levelDescription}</div>
+        )}
         {progress.streak > 0 && (
           <div className="text-[10px] text-orange-400 mt-1 flex items-center gap-1">
             🔥 {progress.streak}-day streak
@@ -361,9 +364,10 @@ export default function Chat() {
           partner: "Partner",
         };
         const label = levelLabels[data.newRelationshipLevel] ?? data.newRelationshipLevel;
-        toast.success(`✨ Relationship deepened — ${activeSentinel?.name ?? "Sentinel"} now sees you as a ${label}`, {
+        toast(`✨ ${activeSentinel?.name ?? "Sentinel"} — ${label}`, {
           duration: 5000,
-          description: "Your Sentinel now has deeper context about how you think and work.",
+          description: "Your working relationship has deepened. Expect more calibrated responses.",
+          style: { background: "#0f172a", border: "1px solid #6366f140", color: "#f1f5f9" },
         });
         // Refresh relationship data
         if (selectedSentinel) utils.sentinels.getRelationship.invalidate({ sentinelId: selectedSentinel });

@@ -121,10 +121,10 @@ export default function Referrals() {
             <Gift className="w-8 h-8 text-cyan-400" />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-            Invite Friends, Earn XP
+            Bring Others Into the Practice
           </h2>
           <p className="text-white/55 max-w-md mx-auto">
-            Share your unique invite link. When a friend signs up, you both earn bonus XP — turning your network into a growth engine.
+            Share your invite link. When a colleague joins, you both earn XP — because serious thinking is better when it spreads.
           </p>
         </div>
 
@@ -414,8 +414,8 @@ export default function Referrals() {
             {[
               { step: "1", text: "Copy your unique invite link above" },
               { step: "2", text: "Share it with friends via any channel" },
-              { step: "3", text: "When they sign up, you both earn XP instantly" },
-              { step: "4", text: "XP counts toward your level and achievements" },
+              { step: "3", text: "When they join, you both earn XP toward your next level" },
+              { step: "4", text: "XP compounds into your craft progression" },
             ].map(({ step, text }) => (
               <div key={step} className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-xs font-bold text-cyan-400 flex-shrink-0">
