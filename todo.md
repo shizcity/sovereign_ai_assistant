@@ -1715,3 +1715,24 @@
 - [x] Referrals.tsx: header copy updated to craft framing ("Bring Others Into the Practice")
 - [x] routers.ts getProgress: exposes levelDescription field to all consumers
 - [x] Zero TypeScript errors confirmed
+
+## Onboarding Modal (3-step flow)
+- [x] schema.ts: onboardingCompleted + onboardingStep already exist on users table — verified
+- [x] routers.ts: completeOnboarding mutation — sets onboardingCompleted=true, onboardingStep=6
+- [x] OnboardingModal.tsx: fully rewritten as 3-step craft-framed modal (Step 0: welcome, Step 1: pick Sentinel, Step 2: Round Table teaser, Step 3: save first memory)
+- [x] OnboardingModal.tsx: Step 1 — Sentinel grid (emoji, name, archetype) with single-select and cyan ring highlight
+- [x] OnboardingModal.tsx: Step 2 — Round Table teaser with CTA that navigates to /round-table
+- [x] OnboardingModal.tsx: Step 3 — Memory prompt with textarea, saves via sentinels.memories.create mutation
+- [x] OnboardingModal.tsx: 4-dot progress indicator, X skip button, craft-mastery framing ("Begin Your Practice")
+- [x] App.tsx: OnboardingModal shown when user.onboardingCompleted === false (already wired)
+
+## Session Tagging (Round Table)
+- [x] schema.ts: added sessionTags column (text, JSON array of strings) to roundTableSessions
+- [x] DB push: ALTER TABLE applied directly via SQL (column added)
+- [x] routers.ts: roundTable.updateTags mutation — validates ownership, cleans tags, saves JSON
+- [x] roundtable.ts: getRoundTableHistory uses db.select() (returns all columns including sessionTags)
+- [x] roundtable.ts: getRoundTableSession — parses sessionTags and includes in return object
+- [x] RoundTable.tsx: HistoryItemWithTags component — inline tag editing (comma-separated input, Enter to save, Esc to cancel, + tag / edit buttons)
+- [x] RoundTable.tsx: tag filter chips bar above session list — clickable, active filter highlighted in cyan
+- [x] RoundTable.tsx: filter logic applies both text search and active tag filter simultaneously
+- [x] Zero TypeScript errors confirmed

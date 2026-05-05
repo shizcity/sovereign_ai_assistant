@@ -367,6 +367,7 @@ export const roundTableSessions = mysqlTable("round_table_sessions", {
   streamId: varchar("streamId", { length: 64 }), // SSE channel ID for streaming
   isPaused: int("isPaused").default(0).notNull(), // 1 if session is paused for human input
   shareId: varchar("shareId", { length: 32 }), // Public share token (nanoid) — null means not shared
+  sessionTags: text("sessionTags"), // JSON array of user-defined tag strings
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
 });

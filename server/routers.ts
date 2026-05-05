@@ -2657,6 +2657,27 @@ export const appRouter = router({
 
         return { content: lines.join("\n"), filename: `round-table-${input.sessionId}.md` };
       }),
+
+    /** Update tags on a Round Table session */
+    updateTags: protectedProcedure
+      .input(z.object({ sessionId: z.number(), tags: z.array(z.string().max(40)).max(10) }))
+      .mutation(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+        const { roundTableSessions } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+        const [session] = await db.select({ id: roundTableSessions.id })
+          .from(roundTableSessions)
+          .where(and(eq(roundTableSessions.id, input.sessionId), eq(roundTableSessions.userId, ctx.user.id)))
+          .limit(1);
+        if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "Session not found" });
+        const cleaned = input.tags.map(t => t.trim().toLowerCase()).filter(Boolean);
+        await db.update(roundTableSessions)
+          .set({ sessionTags: JSON.stringify(cleaned) })
+          .where(eq(roundTableSessions.id, input.sessionId));
+        return { tags: cleaned };
+      }),
   }),
 
   // ─── Gamification ─────────────────────────────────────────────────────────

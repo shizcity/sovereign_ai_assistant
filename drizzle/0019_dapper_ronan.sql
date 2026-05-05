@@ -1,0 +1,1 @@
+ALTER TABLE `round_table_sessions` ADD `sessionTags` text;

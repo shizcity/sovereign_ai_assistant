@@ -87,6 +87,7 @@ interface RoundTableResult {
   deliberationMode?: string;
   interruptionLog?: Array<{ message: string; timestamp: string; afterRound: number }>;
   streamId?: string;
+  sessionTags?: string[];
 }
 
 interface StreamEvent {
@@ -668,6 +669,83 @@ function HistoryItem({
   );
 }
 
+// ─── HistoryItemWithTags ─────────────────────────────────────────────────────
+
+function HistoryItemWithTags({
+  session,
+  tags,
+  isEditingTags,
+  tagDraft,
+  onTagDraftChange,
+  onEditTags,
+  onSaveTags,
+  onCancelEdit,
+  onClick,
+}: {
+  session: { id: number; question: string; sentinelNames: string; consensusScore: string | null; status: string; createdAt: Date };
+  tags: string[];
+  isEditingTags: boolean;
+  tagDraft: string;
+  onTagDraftChange: (v: string) => void;
+  onEditTags: () => void;
+  onSaveTags: () => void;
+  onCancelEdit: () => void;
+  onClick: () => void;
+}) {
+  const names = JSON.parse(session.sentinelNames || "[]") as string[];
+  const score = session.consensusScore ? Math.round(parseFloat(session.consensusScore) * 100) : null;
+
+  return (
+    <div className="rounded-xl border border-white/8 bg-white/3 hover:border-white/15 transition-all">
+      <button onClick={onClick} className="w-full text-left p-3">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm text-white/75 line-clamp-2 flex-1">{session.question}</p>
+          {score !== null && (
+            <span className="text-xs font-mono text-cyan-400 shrink-0">{score}%</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className="text-xs text-white/35">{names.slice(0, 3).join(", ")}</span>
+          <span className="text-white/20">·</span>
+          <span className="text-xs text-white/30 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {new Date(session.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      </button>
+      {/* Tags row */}
+      <div className="px-3 pb-2.5">
+        {isEditingTags ? (
+          <div className="flex items-center gap-1.5">
+            <input
+              autoFocus
+              value={tagDraft}
+              onChange={(e) => onTagDraftChange(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") onSaveTags(); if (e.key === "Escape") onCancelEdit(); }}
+              placeholder="tag1, tag2, tag3"
+              className="flex-1 text-[10px] bg-white/8 border border-cyan-500/30 rounded px-2 py-1 text-white/80 placeholder:text-white/25 focus:outline-none focus:border-cyan-500/50"
+            />
+            <button onClick={onSaveTags} className="text-[10px] text-cyan-400 hover:text-cyan-300 font-medium px-1">Save</button>
+            <button onClick={onCancelEdit} className="text-[10px] text-white/30 hover:text-white/60 px-1">✕</button>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1">
+            {tags.map(tag => (
+              <span key={tag} className="px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/20">#{tag}</span>
+            ))}
+            <button
+              onClick={(e) => { e.stopPropagation(); onEditTags(); }}
+              className="text-[9px] text-white/20 hover:text-white/50 transition-colors ml-0.5"
+            >
+              {tags.length === 0 ? "+ tag" : "edit"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RoundTable() {
@@ -943,6 +1021,29 @@ export default function RoundTable() {
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<"history" | "table" | "panels">("table");
   const [sessionSearch, setSessionSearch] = useState("");
+  // Session tag filter
+  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  // Inline tag editing state: sessionId -> current draft tags
+  const [editingTagsFor, setEditingTagsFor] = useState<number | null>(null);
+  const [tagDraft, setTagDraft] = useState("");
+  const [sessionTagsMap, setSessionTagsMap] = useState<Record<number, string[]>>({});
+
+  const updateTagsMutation = trpc.roundTable.updateTags.useMutation({
+    onSuccess: (data, vars) => {
+      setSessionTagsMap(prev => ({ ...prev, [vars.sessionId]: data.tags }));
+      setEditingTagsFor(null);
+      setTagDraft("");
+      refetchHistory();
+    },
+  });
+
+  // Collect all unique tags from history for the filter bar
+  const allTags = Array.from(new Set(
+    (history ?? []).flatMap(s => {
+      const raw = (s as any).sessionTags;
+      try { return (typeof raw === "string" ? JSON.parse(raw) : raw) as string[]; } catch { return []; }
+    })
+  )).sort();
 
   // ── Gate: Pro/Creator only (free users get one trial session) ──
   if (!canAccessRoundTable) {
@@ -1049,9 +1150,9 @@ export default function RoundTable() {
             <span className="text-xs font-mono text-white/25">{history?.length ?? 0}</span>
           </div>
 
-          {/* Search bar */}
+          {/* Search bar + tag filter */}
           {history && history.length > 0 && (
-            <div className="px-3 py-2 border-b border-white/6">
+            <div className="px-3 py-2 border-b border-white/6 space-y-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-white/25 pointer-events-none" />
                 <input
@@ -1070,6 +1171,24 @@ export default function RoundTable() {
                   </button>
                 )}
               </div>
+              {/* Tag filter chips */}
+              {allTags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => setActiveTagFilter(activeTagFilter === tag ? null : tag)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-all ${
+                        activeTagFilter === tag
+                          ? "bg-cyan-500/25 text-cyan-300 border border-cyan-500/40"
+                          : "bg-white/5 text-white/40 border border-white/10 hover:border-white/20 hover:text-white/60"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -1082,25 +1201,47 @@ export default function RoundTable() {
                 </p>
               </div>
             ) : (() => {
-              const filtered = sessionSearch.trim()
-                ? history.filter(s =>
-                    s.question?.toLowerCase().includes(sessionSearch.toLowerCase()) ||
-                    s.sentinelNames?.toLowerCase().includes(sessionSearch.toLowerCase())
-                  )
-                : history;
+              let filtered = history;
+              if (sessionSearch.trim()) {
+                filtered = filtered.filter(s =>
+                  s.question?.toLowerCase().includes(sessionSearch.toLowerCase()) ||
+                  s.sentinelNames?.toLowerCase().includes(sessionSearch.toLowerCase())
+                );
+              }
+              if (activeTagFilter) {
+                filtered = filtered.filter(s => {
+                  const raw = (s as any).sessionTags;
+                  const tags: string[] = sessionTagsMap[s.id] ?? (() => { try { return typeof raw === "string" ? JSON.parse(raw) : (raw ?? []); } catch { return []; } })();
+                  return tags.includes(activeTagFilter);
+                });
+              }
               return filtered.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-8">
                   <Search className="w-5 h-5 text-white/15" />
-                  <p className="text-xs text-white/25 text-center">No sessions match<br />"{sessionSearch}"</p>
+                  <p className="text-xs text-white/25 text-center">No sessions match{activeTagFilter ? <> <span className="text-cyan-400">#{activeTagFilter}</span></> : null}</p>
                 </div>
               ) : (
-                filtered.map((s) => (
-                  <HistoryItem
-                    key={s.id}
-                    session={s as any}
-                    onClick={() => setLoadingSessionId(s.id)}
-                  />
-                ))
+                filtered.map((s) => {
+                  const raw = (s as any).sessionTags;
+                  const tags: string[] = sessionTagsMap[s.id] ?? (() => { try { return typeof raw === "string" ? JSON.parse(raw) : (raw ?? []); } catch { return []; } })();
+                  return (
+                    <HistoryItemWithTags
+                      key={s.id}
+                      session={s as any}
+                      tags={tags}
+                      isEditingTags={editingTagsFor === s.id}
+                      tagDraft={editingTagsFor === s.id ? tagDraft : ""}
+                      onTagDraftChange={setTagDraft}
+                      onEditTags={() => { setEditingTagsFor(s.id); setTagDraft(tags.join(", ")); }}
+                      onSaveTags={() => {
+                        const newTags = tagDraft.split(",").map(t => t.trim()).filter(Boolean).slice(0, 8);
+                        updateTagsMutation.mutate({ sessionId: s.id, tags: newTags });
+                      }}
+                      onCancelEdit={() => { setEditingTagsFor(null); setTagDraft(""); }}
+                      onClick={() => setLoadingSessionId(s.id)}
+                    />
+                  );
+                })
               );
             })()}
           </div>

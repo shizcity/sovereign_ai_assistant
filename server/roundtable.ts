@@ -74,6 +74,7 @@ export interface RoundTableResult {
   deliberationMode: DeliberationMode; // Phase 3
   interruptionLog: InterruptionEvent[]; // Phase 3
   streamId: string | null; // Phase 3: SSE channel ID
+  sessionTags: string[]; // User-defined tags for filtering
 }
 
 // ─── SSE Streaming Bus ────────────────────────────────────────────────────────
@@ -866,6 +867,7 @@ export async function runRoundTable(
       deliberationMode: mode,
       interruptionLog,
       streamId,
+      sessionTags: [],
     };
   } catch (err) {
     // Mark session as failed
@@ -973,6 +975,9 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     interruptionLog = [];
   }
 
+  let sessionTags: string[] = [];
+  try { sessionTags = JSON.parse(session.sessionTags ?? "[]") as string[]; } catch { sessionTags = []; }
+
   return {
     sessionId: session.id,
     question: session.question,
@@ -989,5 +994,6 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     deliberationMode: (session.deliberationMode as DeliberationMode) ?? "parallel",
     interruptionLog,
     streamId: session.streamId ?? null,
+    sessionTags,
   };
 }
