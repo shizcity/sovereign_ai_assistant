@@ -317,6 +317,85 @@ async function startServer() {
     }
   });
 
+  // ─── Scheduled Task: User Context ───────────────────────────────────────────
+  // GET /api/scheduled/context
+  // Called by the Manus scheduled task agent to fetch user memories, sentinel
+  // usage stats, and recent conversation summaries for nudge generation.
+  app.get("/api/scheduled/context", async (req, res) => {
+    try {
+      const { sdk } = await import("./sdk");
+      const user = await sdk.authenticateRequest(req);
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+      const { getDb } = await import("../db");
+      const { sentinelMemoryEntries, conversations, messages, conversationSentinels, sentinels } = await import("../../drizzle/schema");
+      const { eq, desc, and, sql } = await import("drizzle-orm");
+
+      const db = await getDb();
+      if (!db) { res.status(503).json({ error: "DB unavailable" }); return; }
+
+      // Fetch recent memories (last 30, ordered by importance then recency)
+      const memories = await db
+        .select()
+        .from(sentinelMemoryEntries)
+        .where(and(eq(sentinelMemoryEntries.userId, user.id), eq(sentinelMemoryEntries.isActive, 1)))
+        .orderBy(desc(sentinelMemoryEntries.importance), desc(sentinelMemoryEntries.createdAt))
+        .limit(30);
+
+      // Fetch most-used sentinel (by conversation count)
+      const sentinelUsage = await db
+        .select({
+          sentinelId: conversationSentinels.sentinelId,
+          count: sql<number>`count(*)`.as("count"),
+        })
+        .from(conversationSentinels)
+        .innerJoin(conversations, eq(conversations.id, conversationSentinels.conversationId))
+        .where(eq(conversations.userId, user.id))
+        .groupBy(conversationSentinels.sentinelId)
+        .orderBy(desc(sql`count(*)`))
+        .limit(1);
+
+      let topSentinel = null;
+      if (sentinelUsage.length > 0) {
+        const topSentinelId = sentinelUsage[0].sentinelId;
+        const sentinelRows = await db
+          .select()
+          .from(sentinels)
+          .where(eq(sentinels.id, topSentinelId))
+          .limit(1);
+        if (sentinelRows.length > 0) {
+          topSentinel = sentinelRows[0];
+        }
+      }
+
+      // Fetch recent conversation titles (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentConvs = await db
+        .select({ id: conversations.id, title: conversations.title, createdAt: conversations.createdAt })
+        .from(conversations)
+        .where(eq(conversations.userId, user.id))
+        .orderBy(desc(conversations.createdAt))
+        .limit(10);
+
+      const parsedMemories = memories.map((m: any) => ({
+        ...m,
+        tags: m.tags ? JSON.parse(m.tags) : [],
+      }));
+
+      console.log(`[Context] Fetched context for user ${user.id}: ${parsedMemories.length} memories, topSentinel=${topSentinel?.name ?? 'none'}`);
+      res.json({
+        userId: user.id,
+        memories: parsedMemories,
+        topSentinel,
+        recentConversations: recentConvs,
+      });
+    } catch (err: any) {
+      console.error("[Context] Error:", err);
+      res.status(500).json({ error: String(err?.message ?? err) });
+    }
+  });
+
   // Global error handler - ensures all errors return JSON for API routes
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Only handle errors for API routes
