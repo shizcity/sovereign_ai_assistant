@@ -318,10 +318,12 @@ async function startServer() {
   });
 
   // ─── Scheduled Task: User Context ───────────────────────────────────────────
-  // GET /api/scheduled/context
+  // GET + POST /api/scheduled/context
   // Called by the Manus scheduled task agent to fetch user memories, sentinel
   // usage stats, and recent conversation summaries for nudge generation.
-  app.get("/api/scheduled/context", async (req, res) => {
+  // POST is provided because the Manus platform CDN intercepts GET requests to
+  // /api/scheduled/* paths and serves the static SPA instead.
+  async function handleScheduledContext(req: any, res: any) {
     try {
       const { sdk } = await import("./sdk");
       const user = await sdk.authenticateRequest(req);
@@ -394,7 +396,9 @@ async function startServer() {
       console.error("[Context] Error:", err);
       res.status(500).json({ error: String(err?.message ?? err) });
     }
-  });
+  }
+  app.get("/api/scheduled/context", handleScheduledContext);
+  app.post("/api/scheduled/context", handleScheduledContext);
 
   // Global error handler - ensures all errors return JSON for API routes
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
