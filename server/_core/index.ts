@@ -254,12 +254,43 @@ async function startServer() {
       const user = await sdk.authenticateRequest(req);
       if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-      const { nudge, sentinelName, sentinelEmoji, conversationTitle } = req.body as {
-        nudge: string;
+       const { nudge, sentinelName, sentinelEmoji, conversationTitle, fetchContext } = req.body as {
+        nudge?: string;
         sentinelName?: string;
         sentinelEmoji?: string;
         conversationTitle?: string;
+        fetchContext?: boolean;
       };
+
+      // Context-fetch mode: return user memories + sentinel data without delivering a nudge
+      if (fetchContext) {
+        const { getDb } = await import("../db");
+        const { sentinelMemoryEntries, conversations: convTable, conversationSentinels, sentinels } = await import("../../drizzle/schema");
+        const { eq, desc, and, sql: sqlFn } = await import("drizzle-orm");
+        const db2 = await getDb();
+        if (!db2) { res.status(503).json({ error: "DB unavailable" }); return; }
+        const memories = await db2.select().from(sentinelMemoryEntries)
+          .where(and(eq(sentinelMemoryEntries.userId, user.id), eq(sentinelMemoryEntries.isActive, 1)))
+          .orderBy(desc(sentinelMemoryEntries.importance), desc(sentinelMemoryEntries.createdAt))
+          .limit(30);
+        const sentinelUsage = await db2.select({ sentinelId: conversationSentinels.sentinelId, count: sqlFn<number>`count(*)`.as("count") })
+          .from(conversationSentinels)
+          .innerJoin(convTable, eq(convTable.id, conversationSentinels.conversationId))
+          .where(eq(convTable.userId, user.id))
+          .groupBy(conversationSentinels.sentinelId)
+          .orderBy(desc(sqlFn`count(*)`)).limit(1);
+        let topSentinel = null;
+        if (sentinelUsage.length > 0) {
+          const rows = await db2.select().from(sentinels).where(eq(sentinels.id, sentinelUsage[0].sentinelId)).limit(1);
+          if (rows.length > 0) topSentinel = rows[0];
+        }
+        const recentConvs = await db2.select({ id: convTable.id, title: convTable.title, createdAt: convTable.createdAt })
+          .from(convTable).where(eq(convTable.userId, user.id)).orderBy(desc(convTable.createdAt)).limit(10);
+        const parsedMemories = memories.map((m: any) => ({ ...m, tags: m.tags ? JSON.parse(m.tags) : [] }));
+        console.log(`[Checkin/Context] Fetched context for user ${user.id}: ${parsedMemories.length} memories`);
+        res.json({ userId: user.id, memories: parsedMemories, topSentinel, recentConversations: recentConvs });
+        return;
+      }
 
       if (!nudge || typeof nudge !== "string" || nudge.length < 5) {
         res.status(400).json({ error: "nudge text is required" });
