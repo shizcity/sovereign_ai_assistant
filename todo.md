@@ -1736,3 +1736,28 @@
 - [x] RoundTable.tsx: tag filter chips bar above session list — clickable, active filter highlighted in cyan
 - [x] RoundTable.tsx: filter logic applies both text search and active tag filter simultaneously
 - [x] Zero TypeScript errors confirmed
+
+## GUI Enhancement — Visual Depth & Polish
+- [x] index.css: aurora animated background (.aurora-bg) with 22s shift cycle
+- [x] index.css: text glow utilities (.text-glow-cyan, .text-glow-white)
+- [x] index.css: card shimmer highlight (.card-shimmer) — top-edge inner light
+- [x] index.css: deep card surface (.card-deep) — richer glass with depth shadows
+- [x] index.css: sentinel glow ring classes (cyan, purple, blue, amber, teal, rose)
+- [x] index.css: hero grid lines (.hero-grid) — perspective grid with radial mask
+- [x] index.css: spotlight radial (.spotlight) — centered top-edge glow
+- [x] index.css: badge-glow utility, enhanced scrollbar with gradient thumb
+- [x] Landing.tsx: aurora-bg + spotlight layers behind hero
+- [x] Landing.tsx: hero-grid overlay (60px grid with radial mask)
+- [x] Landing.tsx: hero headline uses text-glow-white + text-glow-cyan
+- [x] Landing.tsx: hero Sentinel cards upgraded to card-deep + card-shimmer + sentinel-ring-* classes
+- [x] Landing.tsx: feature, testimonial, Sentinel, FAQ cards upgraded to card-deep + card-shimmer
+- [x] Landing.tsx: section headings use text-glow-white / text-glow-cyan
+- [x] Landing.tsx: final CTA headline split with text-glow-cyan on "your thinking?"
+- [x] Chat.tsx: XpLevelIndicator upgraded to card-deep with glowing XP bar
+- [x] Chat.tsx: sidebar has subtle top aurora accent gradient
+- [x] Chat.tsx: New Conversation button has enhanced cyan shadow
+- [x] Chat.tsx: chat header has gradient glass treatment
+- [x] Chat.tsx: textarea uses input-glow on focus
+- [x] Chat.tsx: send button uses button-press + enhanced cyan glow shadow
+- [x] Chat.tsx: empty state "Welcome to Glow" uses text-glow-cyan + enhanced icon shadow
+- [x] Zero TypeScript errors confirmed

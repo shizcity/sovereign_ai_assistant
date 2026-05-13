@@ -42,25 +42,25 @@ function XpLevelIndicator() {
   if (!progress) return null;
   return (
     <Link href="/achievements">
-      <div className="mx-4 mb-2 px-3 py-2 rounded-xl border border-white/8 bg-white/4 hover:bg-white/8 transition-all cursor-pointer group">
+      <div className="mx-4 mb-2 px-3 py-2.5 rounded-xl card-deep hover:border-cyan-500/25 transition-all cursor-pointer group">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5">
-            <Trophy className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-xs font-semibold text-white/80">{progress.levelTitle}</span>
+            <Trophy className="w-3.5 h-3.5 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
+            <span className="text-xs font-semibold text-white/90 group-hover:text-cyan-200 transition-colors">{progress.levelTitle}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-cyan-400 font-medium">
             <Zap className="w-3 h-3" />
             {progress.xp.toLocaleString()} XP
           </div>
         </div>
-        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500"
-            style={{ width: `${Math.min(progress.progressPct, 100)}%` }}
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-blue-400 to-cyan-400 transition-all duration-700"
+            style={{ width: `${Math.min(progress.progressPct, 100)}%`, boxShadow: '0 0 8px oklch(0.72 0.18 200 / 0.5)' }}
           />
         </div>
         {progress.levelDescription && (
-          <div className="text-[10px] text-slate-500 mt-0.5 italic leading-tight">{progress.levelDescription}</div>
+          <div className="text-[10px] text-slate-400/70 mt-1 italic leading-tight">{progress.levelDescription}</div>
         )}
         {progress.streak > 0 && (
           <div className="text-[10px] text-orange-400 mt-1 flex items-center gap-1">
@@ -923,8 +923,10 @@ export default function Chat() {
       )}
       {/* Sidebar */}
       <div className="w-80 flex flex-col sidebar-glass overflow-hidden relative z-10">
+        {/* Subtle top aurora accent */}
+        <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{ background: 'linear-gradient(180deg, oklch(0.55 0.18 200 / 0.06) 0%, transparent 100%)' }} />
         {/* Header */}
-        <div className="px-5 py-5 border-b border-white/8 flex-shrink-0">
+        <div className="px-5 py-5 border-b border-white/8 flex-shrink-0 relative">
           <GlowLogo size="md" showWordmark showTagline />
         </div>
 
@@ -966,7 +968,7 @@ export default function Chat() {
         <div className="px-4 py-3 border-b border-white/8 space-y-2 flex-shrink-0">
           <Button
             onClick={() => createConversation.mutate({ title: "New Conversation", defaultModel: selectedModel })}
-            className="button-lift w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-md shadow-cyan-500/20 transition-all duration-200 font-semibold"
+            className="button-lift w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-200 font-semibold"
             disabled={createConversation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -1256,7 +1258,7 @@ export default function Chat() {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="border-b border-white/10 backdrop-blur-xl bg-black/20 p-4">
+            <div className="border-b border-white/10 backdrop-blur-xl p-4" style={{ background: 'linear-gradient(180deg, oklch(0.10 0.014 268 / 0.85) 0%, oklch(0.08 0.012 268 / 0.60) 100%)' }}>
               <div className="max-w-4xl mx-auto flex items-center justify-between">
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-white">{selectedConv?.title}</h2>
@@ -1678,7 +1680,7 @@ export default function Chat() {
                       }
                     }}
                     placeholder="Type your message... (⏎ to send, ⇧⏎ for new line)"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200 hover:bg-white/10 overflow-y-auto"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none resize-none transition-all duration-200 hover:bg-white/8 overflow-y-auto input-glow"
                     rows={3}
                     style={{ minHeight: '80px', maxHeight: '288px' }}
                     disabled={sendMessage.isPending}
@@ -1686,7 +1688,7 @@ export default function Chat() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || sendMessage.isPending}
-                    className="button-lift bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed px-6"
+                    className="button-lift button-press bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-cyan-500/40 hover:shadow-cyan-500/60 disabled:opacity-50 disabled:cursor-not-allowed px-6"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
@@ -1700,11 +1702,11 @@ export default function Chat() {
               {/* Hero */}
               <div className="text-center mb-8">
                 <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", boxShadow: "0 8px 32px rgba(139,92,246,0.4)" }}
+                  style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", boxShadow: "0 8px 40px rgba(139,92,246,0.5), 0 0 80px rgba(6,182,212,0.15)" }}
                 >
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2 text-glow-cyan">
                   Welcome to Glow
                 </h2>
                 <p className="text-white/50 text-sm leading-relaxed">

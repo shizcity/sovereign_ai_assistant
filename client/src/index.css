@@ -612,3 +612,197 @@
 *, *::before, *::after {
   transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
 }
+
+/* ===== NOISE TEXTURE OVERLAY ===== */
+/* Adds a subtle grain to any surface — apply as a pseudo-element */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+}
+
+/* ===== AURORA BACKGROUND ANIMATION ===== */
+@keyframes auroraShift {
+  0%   { background-position: 0% 50%, 100% 50%, 50% 0%; }
+  33%  { background-position: 60% 20%, 40% 80%, 80% 60%; }
+  66%  { background-position: 100% 80%, 0% 20%, 20% 100%; }
+  100% { background-position: 0% 50%, 100% 50%, 50% 0%; }
+}
+
+.aurora-bg {
+  background-image:
+    radial-gradient(ellipse 90% 70% at 15% 25%, oklch(0.50 0.22 260 / 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 75%, oklch(0.48 0.24 290 / 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 55% 5%,  oklch(0.58 0.20 200 / 0.14) 0%, transparent 55%);
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  animation: auroraShift 22s ease-in-out infinite;
+}
+
+/* ===== TEXT GLOW UTILITIES ===== */
+.text-glow-cyan {
+  text-shadow:
+    0 0 20px oklch(0.72 0.18 200 / 0.6),
+    0 0 60px oklch(0.72 0.18 200 / 0.25),
+    0 0 120px oklch(0.72 0.18 200 / 0.10);
+}
+
+.text-glow-white {
+  text-shadow:
+    0 0 30px oklch(1 0 0 / 0.25),
+    0 0 80px oklch(1 0 0 / 0.10);
+}
+
+/* ===== CARD SHIMMER HIGHLIGHT ===== */
+/* Top-edge inner highlight that simulates light hitting a glass surface */
+.card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.card-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.12) 30%,
+    oklch(1 0 0 / 0.22) 50%,
+    oklch(1 0 0 / 0.12) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* ===== DEEP CARD SURFACE ===== */
+/* Richer glass card with depth — replaces flat bg-card */
+.card-deep {
+  background: linear-gradient(
+    145deg,
+    oklch(0.13 0.016 268 / 0.92) 0%,
+    oklch(0.10 0.012 265 / 0.96) 100%
+  );
+  border: 1px solid oklch(0.24 0.018 265 / 0.55);
+  box-shadow:
+    0 4px 24px oklch(0 0 0 / 0.35),
+    0 1px 0 oklch(1 0 0 / 0.06) inset,
+    0 -1px 0 oklch(0 0 0 / 0.15) inset;
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* ===== SENTINEL GLOW RINGS ===== */
+.sentinel-ring-cyan {
+  box-shadow: 0 0 0 2px oklch(0.72 0.18 200 / 0.5), 0 0 20px oklch(0.72 0.18 200 / 0.3), 0 0 50px oklch(0.72 0.18 200 / 0.12);
+}
+.sentinel-ring-purple {
+  box-shadow: 0 0 0 2px oklch(0.68 0.22 300 / 0.5), 0 0 20px oklch(0.68 0.22 300 / 0.3), 0 0 50px oklch(0.68 0.22 300 / 0.12);
+}
+.sentinel-ring-blue {
+  box-shadow: 0 0 0 2px oklch(0.65 0.22 260 / 0.5), 0 0 20px oklch(0.65 0.22 260 / 0.3), 0 0 50px oklch(0.65 0.22 260 / 0.12);
+}
+.sentinel-ring-amber {
+  box-shadow: 0 0 0 2px oklch(0.78 0.18 60 / 0.5), 0 0 20px oklch(0.78 0.18 60 / 0.3), 0 0 50px oklch(0.78 0.18 60 / 0.12);
+}
+.sentinel-ring-teal {
+  box-shadow: 0 0 0 2px oklch(0.72 0.18 175 / 0.5), 0 0 20px oklch(0.72 0.18 175 / 0.3), 0 0 50px oklch(0.72 0.18 175 / 0.12);
+}
+.sentinel-ring-rose {
+  box-shadow: 0 0 0 2px oklch(0.68 0.22 15 / 0.5), 0 0 20px oklch(0.68 0.22 15 / 0.3), 0 0 50px oklch(0.68 0.22 15 / 0.12);
+}
+
+/* ===== SECTION GRADIENT DIVIDERS ===== */
+.section-fade-top {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 12%);
+}
+.section-fade-bottom {
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, black 12%);
+  mask-image: linear-gradient(to top, transparent 0%, black 12%);
+}
+
+/* ===== SPOTLIGHT RADIAL ===== */
+/* Centered radial spotlight for hero sections */
+.spotlight {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    oklch(0.72 0.18 200 / 0.12) 0%,
+    transparent 70%
+  );
+}
+
+/* ===== ENHANCED SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, oklch(0.30 0.016 265), oklch(0.22 0.012 265));
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, oklch(0.45 0.018 200 / 0.8), oklch(0.35 0.014 265));
+}
+
+/* ===== HERO GRID LINES ===== */
+/* Subtle perspective grid for hero backgrounds */
+.hero-grid {
+  background-image:
+    linear-gradient(oklch(0.72 0.18 200 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.72 0.18 200 / 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+}
+
+/* ===== BADGE GLOW ===== */
+.badge-glow {
+  box-shadow: 0 0 12px oklch(0.72 0.18 200 / 0.4), 0 0 30px oklch(0.72 0.18 200 / 0.15);
+}
+
+/* ===== LIGHT MODE OVERRIDES for new utilities ===== */
+:root:not(.dark) .card-deep {
+  background: linear-gradient(
+    145deg,
+    oklch(0.99 0.003 260 / 0.95) 0%,
+    oklch(0.97 0.005 265 / 0.98) 100%
+  );
+  border: 1px solid oklch(0.88 0.006 260 / 0.7);
+  box-shadow:
+    0 4px 24px oklch(0 0 0 / 0.06),
+    0 1px 0 oklch(1 0 0 / 0.8) inset;
+}
+
+:root:not(.dark) .aurora-bg {
+  background-image:
+    radial-gradient(ellipse 90% 70% at 15% 25%, oklch(0.52 0.20 200 / 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 75%, oklch(0.55 0.22 260 / 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 55% 5%,  oklch(0.52 0.20 200 / 0.07) 0%, transparent 55%);
+}
+
+:root:not(.dark) .text-glow-cyan {
+  text-shadow:
+    0 0 20px oklch(0.52 0.20 200 / 0.35),
+    0 0 60px oklch(0.52 0.20 200 / 0.15);
+}
+
+:root:not(.dark) .hero-grid {
+  background-image:
+    linear-gradient(oklch(0.52 0.20 200 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.52 0.20 200 / 0.06) 1px, transparent 1px);
+}
+
+:root:not(.dark) .spotlight {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    oklch(0.52 0.20 200 / 0.08) 0%,
+    transparent 70%
+  );
+}

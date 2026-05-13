@@ -147,6 +147,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-white overflow-hidden relative">
+      {/* Deep background layers */}
+      <div className="fixed inset-0 aurora-bg pointer-events-none" />
+      <div className="fixed inset-0 spotlight pointer-events-none" />
       {/* JSON-LD Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{
         __html: JSON.stringify({
@@ -177,6 +180,8 @@ export default function Landing() {
       }} />
       {/* Mesh Gradient Background */}
       <div className="fixed inset-0 mesh-gradient-bg pointer-events-none" />
+      {/* Hero grid lines */}
+      <div className="fixed inset-0 hero-grid pointer-events-none opacity-60" />
       {/* Particle Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {particles.map((particle, i) => (
@@ -303,9 +308,9 @@ export default function Landing() {
             {/* Left: Content */}
             <div className="space-y-8">
               {/* Status Badge */}
-              <div 
-                ref={heroStatusRef.ref}
-                className={`inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 backdrop-blur-sm transition-all duration-700 ${
+                <div 
+                  ref={heroStatusRef.ref}
+                  className={`inline-flex items-center gap-3 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 backdrop-blur-sm badge-glow transition-all duration-700 ${
                   heroStatusRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'
                 }`}
               >
@@ -326,11 +331,11 @@ export default function Landing() {
                 }`}
               >
                 <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-[0.88] tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  <span className="bg-gradient-to-r from-white via-cyan-100 to-indigo-200 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-white via-cyan-100 to-indigo-200 bg-clip-text text-transparent text-glow-white">
                     Your AI
                   </span>
                   <br />
-                  <span className="bg-gradient-to-r from-cyan-300 via-white to-white bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-300 via-cyan-100 to-white bg-clip-text text-transparent text-glow-cyan">
                     Your Rules
                   </span>
                 </h1>
@@ -389,7 +394,7 @@ export default function Landing() {
               {/* Floating Sentinel Cards */}
               <div className="relative h-[500px] lg:h-[600px]">
                 {/* Card 1 - Front */}
-                <Card className="absolute top-0 left-1/2 -translate-x-1/2 w-80 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-cyan-500/20 hover:scale-105 transition-transform duration-300 animate-float">
+                <Card className="absolute top-0 left-1/2 -translate-x-1/2 w-80 card-deep card-shimmer sentinel-ring-cyan p-6 hover:scale-105 transition-transform duration-300 animate-float">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center">
                       <Brain className="w-6 h-6 text-white" />
@@ -405,7 +410,7 @@ export default function Landing() {
                 </Card>
 
                 {/* Card 2 - Left */}
-                <Card className="absolute top-32 left-0 w-72 bg-gradient-to-br from-purple-500/20 to-pink-600/20 border-purple-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-purple-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1s' }}>
+                <Card className="absolute top-32 left-0 w-72 card-deep card-shimmer sentinel-ring-purple p-6 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1s' }}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
                       <Sparkles className="w-6 h-6 text-white" />
@@ -421,7 +426,7 @@ export default function Landing() {
                 </Card>
 
                 {/* Card 3 - Right */}
-                <Card className="absolute top-32 right-0 w-72 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border-blue-500/30 backdrop-blur-xl p-6 shadow-2xl shadow-blue-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '2s' }}>
+                <Card className="absolute top-32 right-0 w-72 card-deep card-shimmer sentinel-ring-blue p-6 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '2s' }}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                       <Zap className="w-6 h-6 text-white" />
@@ -437,7 +442,7 @@ export default function Landing() {
                 </Card>
 
                 {/* Card 4 - Creator highlight (bottom center) */}
-                <Card className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-amber-500/40 backdrop-blur-xl p-5 shadow-2xl shadow-amber-500/20 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1.5s' }}>
+                <Card className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 card-deep card-shimmer sentinel-ring-amber p-5 hover:scale-105 transition-transform duration-300 animate-float" style={{ animationDelay: '1.5s' }}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                       <Wand2 className="w-5 h-5 text-white" />
@@ -528,7 +533,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
               <Zap className="w-3 h-3" /> Platform Capabilities
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Built for Deep Thinking</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Built for Deep Thinking</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Every feature is designed to help you think more clearly, explore more broadly, and decide more confidently.
             </p>
@@ -541,7 +546,7 @@ export default function Landing() {
                 <Card
                   key={idx}
                   ref={feature.ref.ref}
-                  className={`group relative bg-black/40 border-white/8 backdrop-blur-xl p-8 hover:border-cyan-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-500 overflow-hidden ${
+                  className={`group relative card-deep card-shimmer p-8 hover:border-cyan-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/15 transition-all duration-500 overflow-hidden ${
                     feature.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                   } ${feature.delay}`}
                 >
@@ -590,7 +595,7 @@ export default function Landing() {
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight">
               Don't ask one AI.<br />
-              <span className="bg-gradient-to-r from-indigo-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent text-glow-cyan">
                 Convene a council.
               </span>
             </h2>
@@ -699,7 +704,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold uppercase tracking-widest mb-6">
               <Sparkles className="w-3 h-3" /> The Council
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Meet Your Sentinels</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Meet Your Sentinels</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Six specialized AI personalities. Each thinks differently. Together, they think better.
             </p>
@@ -710,7 +715,7 @@ export default function Landing() {
               <Card
                 key={idx}
                 ref={sentinel.ref.ref}
-                className={`group relative bg-black/40 border-white/8 backdrop-blur-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-500 ${
+                className={`group relative card-deep card-shimmer overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-500 ${
                   sentinel.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 } ${sentinel.delay}`}
                 style={{ '--sentinel-color': sentinel.color } as React.CSSProperties}
@@ -794,7 +799,7 @@ export default function Landing() {
               <Card
                 key={i}
                 ref={t.ref.ref}
-                className={`group relative bg-black/40 border-white/8 backdrop-blur-xl p-8 hover:border-white/20 hover:-translate-y-1 transition-all duration-500 overflow-hidden ${t.delay} ${
+                className={`group relative card-deep card-shimmer p-8 hover:border-white/20 hover:-translate-y-1 transition-all duration-500 overflow-hidden ${t.delay} ${
                   t.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
@@ -838,7 +843,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
               <TrendingUp className="w-3 h-3" /> Pricing
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Choose Your Path</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Choose Your Path</h2>
             <p className="text-xl text-gray-400">
               Start free. Upgrade when you need more power.
             </p>
@@ -848,7 +853,7 @@ export default function Landing() {
             {/* Free Plan */}
             <Card 
               ref={pricingCard1Ref.ref}
-              className={`bg-black/50 border-white/10 backdrop-blur-xl p-8 hover:scale-105 hover:border-white/30 transition-all duration-700 delay-0 ${
+              className={`card-deep card-shimmer p-8 hover:scale-105 hover:border-white/30 transition-all duration-700 delay-0 ${
                 pricingCard1Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
@@ -939,7 +944,7 @@ export default function Landing() {
             {/* Creator Plan */}
             <Card
               ref={pricingCard3Ref.ref}
-              className={`bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/40 backdrop-blur-xl p-6 sm:p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-all duration-700 delay-200 ${
+              className={`card-shimmer bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/40 backdrop-blur-xl p-6 sm:p-8 relative hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.30)] transition-all duration-700 delay-200 ${
                 pricingCard3Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
@@ -1050,7 +1055,7 @@ export default function Landing() {
             }`}
           >
             <Accordion type="single" collapsible className="space-y-3">
-              <AccordionItem value="item-1" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-1" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What are Sentinels and how do they work?
                 </AccordionTrigger>
@@ -1059,7 +1064,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-2" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-2" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What's the difference between Free and Pro?
                 </AccordionTrigger>
@@ -1068,7 +1073,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-3" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-3" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   How does Multi-Sentinel conversation work?
                 </AccordionTrigger>
@@ -1077,7 +1082,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-4" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-4" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Is my data private and secure?
                 </AccordionTrigger>
@@ -1086,7 +1091,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-5" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-5" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Can I cancel my Pro subscription anytime?
                 </AccordionTrigger>
@@ -1095,7 +1100,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-6" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-6" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   What is Voice-First Mode?
                 </AccordionTrigger>
@@ -1104,7 +1109,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-7" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-7" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   Do Sentinels remember past conversations?
                 </AccordionTrigger>
@@ -1113,7 +1118,7 @@ export default function Landing() {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="item-8" className="bg-black/40 border-white/8 backdrop-blur-xl rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
+              <AccordionItem value="item-8" className="card-deep rounded-xl px-6 data-[state=open]:border-cyan-500/30 data-[state=open]:bg-cyan-500/5 transition-colors">
                 <AccordionTrigger className="text-base font-semibold hover:text-cyan-400 transition-colors py-5">
                   How do I get started?
                 </AccordionTrigger>
@@ -1129,8 +1134,8 @@ export default function Landing() {
       {/* Email Capture CTA */}
       <section className="relative z-10 py-40 px-6 border-t border-white/10 overflow-hidden">
         {/* Radial glow behind headline */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[600px] h-[400px] rounded-full" style={{ background: 'radial-gradient(ellipse, oklch(0.55 0.18 200 / 0.12) 0%, transparent 70%)' }} />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-[800px] h-[500px] rounded-full" style={{ background: 'radial-gradient(ellipse, oklch(0.55 0.18 200 / 0.18) 0%, oklch(0.48 0.20 260 / 0.08) 50%, transparent 70%)' }} />
         </div>
         <div 
           ref={ctaRef.ref}
@@ -1141,7 +1146,7 @@ export default function Landing() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-8">
             <Sparkles className="w-3 h-3" /> Get Started Free
           </div>
-          <h2 className="text-5xl sm:text-6xl font-black mb-6 leading-tight">Ready to illuminate<br />your thinking?</h2>
+          <h2 className="text-5xl sm:text-6xl font-black mb-6 leading-tight text-glow-white">Ready to illuminate<br /><span className="bg-gradient-to-r from-cyan-300 to-cyan-100 bg-clip-text text-transparent text-glow-cyan">your thinking?</span></h2>
           <p className="text-xl text-gray-400 mb-4 max-w-xl mx-auto">
             Join thousands experiencing multi-perspective AI conversations.
           </p>
