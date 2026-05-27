@@ -1778,3 +1778,19 @@
 - [x] client/src/pages/Chat.tsx: auto-TTS and per-message TTS both consume vox.prosody (pitch/rate/volume)
 - [x] client/src/pages/Settings.tsx: Style Bank section in Voice & Audio card — all 6 Sentinels with named presets
 - [x] Zero TypeScript errors confirmed
+
+## Mobile Audit & Performance Sprint
+- [x] Landing.tsx: hero Sentinel card stack hidden on mobile (lg:hidden), compact 2x2 grid shown instead
+- [x] Landing.tsx: background listening buttons hidden on mobile (hidden md:flex)
+- [x] Landing.tsx: stats grid already 2-col on mobile, pricing table already overflow-x-auto
+- [x] Chat.tsx: sidebar hidden by default on mobile (hidden md:flex), mobileSidebarOpen state added
+- [x] Chat.tsx: mobile hamburger toggle in chat header (Menu icon, opens sidebar overlay)
+- [x] Chat.tsx: mobile header in empty state (hamburger + 'Conversations' label)
+- [x] Chat.tsx: background listening fixed buttons hidden on mobile (hidden md:flex)
+- [ ] RoundTable.tsx: fix mobile layout (sidebar + main panel stacking) — deferred
+- [ ] Sentinels.tsx: fix comparison table horizontal scroll on mobile — deferred
+- [x] Performance: all secondary routes lazy-loaded via React.lazy + Suspense in App.tsx (Settings, Analytics, Templates, TemplateGallery, CategoryGallery, Sentinels, Memories, Insights, VoiceChat, MySentinels, RoundTable, Achievements, Referrals, SharedSession)
+- [x] Performance: Suspense fallback is a cyan spinner on dark background
+- [ ] Performance: lazy-load D3 memory graph component — deferred
+- [ ] OG image: verify og:image URL resolves on glow.manus.space — deferred (requires live domain)
+- [x] Zero TypeScript errors confirmed (exit 0)

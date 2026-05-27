@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift } from "lucide-react";
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -113,6 +113,7 @@ export default function Chat() {
 
   // Welcome screen Sentinel card interaction state
   const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [creatingForSentinelId, setCreatingForSentinelId] = useState<number | null>(null);
 
   // Intelligent auto-routing state
@@ -864,6 +865,13 @@ export default function Chat() {
 
   return (
     <div className="h-screen flex relative overflow-hidden">
+      {/* Mobile sidebar overlay backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
       {/* Animated gradient background */}
       <div 
         className="absolute inset-0 animate-gradient" 
@@ -889,7 +897,7 @@ export default function Chat() {
       </div>
       {/* Background Listening Indicator */}
       {isBackgroundListening && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
+        <div className="hidden md:flex fixed top-4 right-4 z-50 items-center gap-2 px-3 py-2 rounded-full bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
           <div className="relative">
             <Mic className="w-4 h-4 text-green-400" />
             <div className="absolute inset-0 animate-ping">
@@ -917,7 +925,7 @@ export default function Chat() {
         <Button
           variant="outline"
           size="sm"
-          className="fixed top-4 right-4 z-50 border-white/20 bg-black/40 backdrop-blur-sm hover:bg-white/10"
+          className="hidden md:flex fixed top-4 right-4 z-50 border-white/20 bg-black/40 backdrop-blur-sm hover:bg-white/10"
           onClick={() => {
             setBackgroundListeningEnabled(true);
             localStorage.setItem('backgroundWakePhrase', 'true');
@@ -929,7 +937,7 @@ export default function Chat() {
         </Button>
       )}
       {/* Sidebar */}
-      <div className="w-80 flex flex-col sidebar-glass overflow-hidden relative z-10">
+      <div className={`w-80 flex-shrink-0 flex flex-col sidebar-glass overflow-hidden relative z-30 transition-transform duration-300 md:translate-x-0 md:relative md:z-10 ${mobileSidebarOpen ? 'translate-x-0 fixed inset-y-0 left-0' : '-translate-x-full fixed inset-y-0 left-0 md:translate-x-0 md:static'}`}>
         {/* Subtle top aurora accent */}
         <div className="absolute inset-x-0 top-0 h-40 pointer-events-none" style={{ background: 'linear-gradient(180deg, oklch(0.55 0.18 200 / 0.06) 0%, transparent 100%)' }} />
         {/* Header */}
@@ -1266,8 +1274,16 @@ export default function Chat() {
           <>
             {/* Chat Header */}
             <div className="border-b border-white/10 backdrop-blur-xl p-4" style={{ background: 'linear-gradient(180deg, oklch(0.10 0.014 268 / 0.85) 0%, oklch(0.08 0.012 268 / 0.60) 100%)' }}>
-              <div className="max-w-4xl mx-auto flex items-center justify-between">
-                <div className="flex-1">
+              <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                {/* Mobile sidebar toggle */}
+                <button
+                  className="md:hidden flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open sidebar"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                <div className="flex-1 min-w-0">
                   <h2 className="text-xl font-semibold text-white">{selectedConv?.title}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     {conversationTags.map((tag) => (
@@ -1712,7 +1728,19 @@ export default function Chat() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+          <div className="flex-1 flex flex-col overflow-y-auto">
+            {/* Mobile header for empty state */}
+            <div className="md:hidden flex items-center px-4 py-3 border-b border-white/10">
+              <button
+                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                onClick={() => setMobileSidebarOpen(true)}
+                aria-label="Open sidebar"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <span className="ml-3 text-sm font-semibold text-white/70">Conversations</span>
+            </div>
+            <div className="flex-1 flex items-center justify-center p-6">
             <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-4 duration-600">
               {/* Hero */}
               <div className="text-center mb-8">
@@ -1857,6 +1885,7 @@ export default function Chat() {
               <p className="text-center text-white/20 text-xs mt-4">
                 You can switch Sentinels at any time during the conversation.
               </p>
+            </div>
             </div>
           </div>
         )}

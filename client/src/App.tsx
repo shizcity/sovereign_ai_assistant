@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { UsageWarningBanner } from "@/components/UsageWarningBanner";
 import { UsageWarningModal } from "@/components/UsageWarningModal";
 import { LimitReachedOverlay } from "@/components/LimitReachedOverlay";
@@ -13,27 +13,34 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+// Critical routes — eager loaded
 import Chat from "./pages/Chat";
-import Settings from "./pages/Settings";
-import Analytics from "./pages/Analytics";
-import Templates from "@/pages/Templates";
-import TemplateGallery from "@/pages/TemplateGallery";
-import CategoryGallery from "@/pages/CategoryGallery";
-import Sentinels from "@/pages/Sentinels";
-import Memories from "@/pages/Memories";
-import Insights from "@/pages/Insights";
-import VoiceChat from "@/pages/VoiceChat";
 import Landing from "@/pages/Landing";
-import MySentinels from "@/pages/MySentinels";
-import RoundTable from "@/pages/RoundTable";
-import Achievements from "@/pages/Achievements";
-import Referrals from "@/pages/Referrals";
-import SharedSession from "@/pages/SharedSession";
+// Secondary routes — lazy loaded for bundle splitting
+const Settings = lazy(() => import("./pages/Settings"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Templates = lazy(() => import("@/pages/Templates"));
+const TemplateGallery = lazy(() => import("@/pages/TemplateGallery"));
+const CategoryGallery = lazy(() => import("@/pages/CategoryGallery"));
+const Sentinels = lazy(() => import("@/pages/Sentinels"));
+const Memories = lazy(() => import("@/pages/Memories"));
+const Insights = lazy(() => import("@/pages/Insights"));
+const VoiceChat = lazy(() => import("@/pages/VoiceChat"));
+const MySentinels = lazy(() => import("@/pages/MySentinels"));
+const RoundTable = lazy(() => import("@/pages/RoundTable"));
+const Achievements = lazy(() => import("@/pages/Achievements"));
+const Referrals = lazy(() => import("@/pages/Referrals"));
+const SharedSession = lazy(() => import("@/pages/SharedSession"));
 
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin" />
+      </div>
+    }>
     <Switch>
       <Route path={"/"} component={Landing} />
       <Route path={"/chat"} component={Chat} />
@@ -56,6 +63,7 @@ function Router() {
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 

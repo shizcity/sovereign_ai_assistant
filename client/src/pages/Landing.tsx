@@ -391,8 +391,8 @@ export default function Landing() {
                 heroTerminalRef.isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'
               }`}
             >
-              {/* Floating Sentinel Cards */}
-              <div className="relative h-[500px] lg:h-[600px]">
+              {/* Floating Sentinel Cards — desktop only */}
+              <div className="hidden lg:block relative h-[500px] lg:h-[600px]">
                 {/* Card 1 - Front */}
                 <Card className="absolute top-0 left-1/2 -translate-x-1/2 w-80 card-deep card-shimmer sentinel-ring-cyan p-6 hover:scale-105 transition-transform duration-300 animate-float">
                   <div className="flex items-center gap-3 mb-4">
@@ -489,6 +489,25 @@ export default function Landing() {
                     </linearGradient>
                   </defs>
                 </svg>
+              </div>
+              {/* Mobile compact Sentinel grid */}
+              <div className="lg:hidden grid grid-cols-2 gap-3 mt-2">
+                {[
+                  { emoji: '🦊', name: 'Vixen\'s Den', color: 'from-red-400 to-red-600', specialty: 'Practical Strategy' },
+                  { emoji: '🎭', name: 'Mischief.EXE', color: 'from-teal-400 to-teal-600', specialty: 'Creative Chaos' },
+                  { emoji: '🌙', name: 'Lunaris.Vault', color: 'from-cyan-300 to-cyan-500', specialty: 'Deep Analysis' },
+                  { emoji: '⚡', name: 'Rift.EXE', color: 'from-orange-400 to-orange-600', specialty: 'Disruption' },
+                ].map((s, i) => (
+                  <div key={i} className="card-deep p-4 rounded-xl flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${s.color} flex items-center justify-center text-lg flex-shrink-0`}>
+                      {s.emoji}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{s.name}</p>
+                      <p className="text-gray-400 text-xs truncate">{s.specialty}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
