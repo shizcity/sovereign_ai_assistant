@@ -1,0 +1,1 @@
+ALTER TABLE `userSettings` ADD `monthlySpendingLimitCents` int DEFAULT 0;

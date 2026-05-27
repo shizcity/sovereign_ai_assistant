@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, MessageSquare, Calendar, Users, TrendingUp, Sparkles, Crown, Loader2 } from "lucide-react";
 import { APP_TITLE } from "@/const";
+import { isProOrAbove } from "../../../shared/tier";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function Analytics() {
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
+  const isPro = isProOrAbove(user?.subscriptionTier);
 
   // Fetch analytics data
   const { data: overview, isLoading: overviewLoading } = trpc.analytics.getOverview.useQuery(undefined, {

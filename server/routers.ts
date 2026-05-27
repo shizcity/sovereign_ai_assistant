@@ -321,6 +321,9 @@ export const appRouter = router({
         const { routeLLMRequest } = await import("./llm-router");
         const { calculateCost, formatCost } = await import("./cost-calculator");
         const { DEFAULT_SYSTEM_PROMPT } = await import("./default-system-prompt");
+        const { injectUpInstruction } = await import("./up-prompt-injection");
+        const { extractUtterancePlan, mapEmotionToProsody } = await import("./utterance-plan");
+        const { resolvePreset, sentinelNameToSlug } = await import("./style-bank");
         
         // Check usage limits for free tier users
         const { checkMessageLimit } = await import("./usage-tracking");
@@ -387,10 +390,12 @@ export const appRouter = router({
           } catch (relErr) {
             console.error("[RelationshipEngine] context injection error:", relErr);
           }
+          // Inject VOX UP instruction so LLM emits prosody metadata
+          systemPrompt = injectUpInstruction(systemPrompt);
         } else {
           // Fall back to user's custom system prompt or default
           const userSettings = await getUserSettings(ctx.user.id);
-          systemPrompt = userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+          systemPrompt = injectUpInstruction(userSettings?.systemPrompt || DEFAULT_SYSTEM_PROMPT);
         }
         
         // Save user message
@@ -418,6 +423,15 @@ export const appRouter = router({
         
         // Route to appropriate LLM provider based on selected model
         const response = await routeLLMRequest(llmMessages, input.model);
+
+        // ── VOX Phase 1: Extract Utterance Plan from LLM response ──────────────
+        const { plan: utterancePlan, cleanText } = extractUtterancePlan(response.content);
+        const sentinelSlugForVox = primarySentinel ? sentinelNameToSlug(primarySentinel.sentinelName || "") : undefined;
+        const stylePreset = resolvePreset(utterancePlan?.stylePreset, sentinelSlugForVox);
+        const resolvedEmotion = utterancePlan?.emotion ?? stylePreset.defaultEmotion;
+        const resolvedIntent = utterancePlan?.intent ?? stylePreset.defaultIntent;
+        const resolvedProsody = mapEmotionToProsody(resolvedEmotion, resolvedIntent, stylePreset.base);
+        // ───────────────────────────────────────────────────────────────────────
         
         // Calculate cost
         const costBreakdown = calculateCost(input.model, response.usage || {
@@ -426,11 +440,11 @@ export const appRouter = router({
           totalTokens: 0,
         });
         
-        // Save assistant message with cost tracking and Sentinel attribution
+        // Save assistant message — store cleanText (UP tag stripped) so users never see the metadata
         const messageId = await createMessage({
           conversationId: input.conversationId,
           role: "assistant",
-          content: response.content,
+          content: cleanText,
           model: response.model,
           provider: response.provider,
           sentinelId: activeSentinel?.sentinelId || null, // Track which Sentinel responded
@@ -547,7 +561,7 @@ export const appRouter = router({
 
         return {
           id: messageId,
-          content: response.content,
+          content: cleanText,
           model: response.model,
           provider: response.provider,
           usage: response.usage,
@@ -559,6 +573,13 @@ export const appRouter = router({
           newAchievements: xpResult.newAchievements.map((a) => ({ id: a.id, title: a.title, emoji: a.emoji, tier: a.tier })),
           relationshipLeveledUp,
           newRelationshipLevel,
+          // VOX Phase 1: resolved prosody for TTS
+          vox: {
+            intent: resolvedIntent,
+            emotion: resolvedEmotion,
+            prosody: resolvedProsody,
+            stylePresetId: stylePreset.id,
+          },
         };
       }),
 
@@ -737,6 +758,7 @@ export const appRouter = router({
         systemPrompt: z.string().max(10000).optional(),
         emailDigestFrequency: z.enum(["weekly", "monthly", "both", "off"]).optional(),
         ttsEnabled: z.boolean().optional(),
+        monthlySpendingLimitCents: z.number().int().min(0).max(100000).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { upsertUserSettings } = await import("./db");

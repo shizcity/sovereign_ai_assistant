@@ -105,12 +105,6 @@ export function getMaxCustomSentinels(tier: string): number {
 
 /**
  * Check if a tier includes Pro-level features (Pro or Creator)
+ * Re-exported from shared/tier.ts — single source of truth.
  */
-export function isProOrAbove(tier: string): boolean {
-  const t = tier.toLowerCase();
-  return t === "pro" || t === "creator";
-}
-
-export function isCreatorOrAbove(tier: string): boolean {
-  return tier.toLowerCase() === "creator";
-}
+export { isProOrAbove, isCreatorOrAbove, getTierLabel, getNextTier } from "../shared/tier";

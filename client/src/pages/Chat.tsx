@@ -517,8 +517,15 @@ export default function Chat() {
         // This respects the user's persisted preference from Settings
         if (ttsEnabled && activeSentinel && data.content) {
           setPlayingMessageId(null); // clear any previous playing state
+          // VOX Phase 1: use resolved prosody from Utterance Plan if available
+          const voxProsody = (data as any).vox?.prosody;
           voiceService.speak(data.content, {
             sentinelName: activeSentinel.name,
+            ...(voxProsody ? {
+              pitch: voxProsody.pitch,
+              rate: voxProsody.rate,
+              volume: voxProsody.volume,
+            } : {}),
             onEnd: () => setPlayingMessageId(null),
           });
         }
@@ -1514,8 +1521,16 @@ export default function Chat() {
                                     voiceService.stopSpeaking();
                                   }
                                   setPlayingMessageId(message.id);
+                                  // VOX Phase 1: use stored prosody metadata if available
+                                  const msgVoxProsody = (message as any).voxProsody;
+                                  const msgSentinel = allSentinels.find((s: any) => s.id === (message as any).sentinelId) ?? activeSentinel;
                                   voiceService.speak(message.content, {
-                                    sentinelName: (allSentinels.find((s: any) => s.id === (message as any).sentinelId) ?? activeSentinel)?.name,
+                                    sentinelName: msgSentinel?.name,
+                                    ...(msgVoxProsody ? {
+                                      pitch: msgVoxProsody.pitch,
+                                      rate: msgVoxProsody.rate,
+                                      volume: msgVoxProsody.volume,
+                                    } : {}),
                                     onEnd: () => setPlayingMessageId(null),
                                   });
                                 }

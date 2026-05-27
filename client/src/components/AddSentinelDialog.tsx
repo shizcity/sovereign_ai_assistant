@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 import { Plus, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { isProOrAbove } from "../../../shared/tier";
 
 interface AddSentinelDialogProps {
   conversationId: number;
@@ -21,7 +22,7 @@ interface AddSentinelDialogProps {
 export function AddSentinelDialog({ conversationId, onSentinelAdded }: AddSentinelDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
+  const isPro = isProOrAbove(user?.subscriptionTier);
 
   const { data: allSentinels, isLoading: sentinelsLoading } = trpc.sentinels.list.useQuery();
   const { data: conversationSentinels } = trpc.conversations.listSentinels.useQuery(

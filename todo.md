@@ -1761,3 +1761,20 @@
 - [x] Chat.tsx: send button uses button-press + enhanced cyan glow shadow
 - [x] Chat.tsx: empty state "Welcome to Glow" uses text-glow-cyan + enhanced icon shadow
 - [x] Zero TypeScript errors confirmed
+
+## Open Items — Production Completion Sprint
+- [x] Settings page: system prompt editor (textarea, save button, character count, reset to default)
+- [x] shared/tier.ts: isProOrAbove(), isCreatorOrAbove(), getTierLabel() utilities — consolidate all tier checks
+- [x] Spending limits UI: monthly cap input in Settings, toast + banner when 80%/100% of cap reached
+- [ ] Mobile audit: test all major pages on 375px viewport, fix overflow/layout issues
+- [ ] Performance: lazy-load D3 memory graph, lazy-load RoundTable page, reduce LCP on landing page
+- [ ] OG image: verify og:image URL resolves correctly on live domain
+
+## VOX Phase 1 — Utterance Plan Layer
+- [x] server/utterance-plan.ts: UtterancePlan schema, extractUtterancePlan() parser, mapEmotionToProsody() mapper
+- [x] server/style-bank.ts: 12 named presets across 6 Sentinels, sentinelNameToSlug(), resolvePreset()
+- [x] server/up-prompt-injection.ts: UP_INSTRUCTION block, injectUpInstruction() helper (idempotent)
+- [x] server/routers.ts messages.send: UP injected into all system prompt paths, <up> tag stripped from stored text, vox prosody returned to client
+- [x] client/src/pages/Chat.tsx: auto-TTS and per-message TTS both consume vox.prosody (pitch/rate/volume)
+- [x] client/src/pages/Settings.tsx: Style Bank section in Voice & Audio card — all 6 Sentinels with named presets
+- [x] Zero TypeScript errors confirmed

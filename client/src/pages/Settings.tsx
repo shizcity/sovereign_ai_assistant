@@ -10,7 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Save, RotateCcw, Volume2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save, RotateCcw, Volume2, Terminal, DollarSign, AlertTriangle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -33,6 +35,11 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [spendingLimit, setSpendingLimit] = useState("");
+
+  const DEFAULT_SYSTEM_PROMPT_PLACEHOLDER = `You are a helpful AI assistant. You are thoughtful, precise, and direct. You help the user think clearly, make better decisions, and develop their craft.`;
+
 
   const utils = trpc.useUtils();
 
@@ -69,11 +76,19 @@ export default function Settings() {
     if (settings) {
       setDefaultModel(settings.defaultModel || "gpt-4");
       setTtsEnabled(settings.ttsEnabled ?? false);
+      setSystemPrompt((settings as any).systemPrompt || "");
+      setSpendingLimit((settings as any).monthlySpendingLimitCents ? String(((settings as any).monthlySpendingLimitCents / 100).toFixed(2)) : "");
     }
   }, [settings]);
 
   const handleSave = () => {
-    updateSettings.mutate({ defaultModel, ttsEnabled });
+    const limitCents = spendingLimit ? Math.round(parseFloat(spendingLimit) * 100) : undefined;
+    updateSettings.mutate({
+      defaultModel,
+      ttsEnabled,
+      systemPrompt: systemPrompt || undefined,
+      ...(limitCents !== undefined ? { monthlySpendingLimitCents: limitCents } : {}),
+    } as any);
   };
 
   if (authLoading || settingsLoading) {
@@ -144,6 +159,91 @@ export default function Settings() {
           {/* Email Preferences */}
           <EmailPreferences />
 
+          {/* System Prompt Editor */}
+          <Card className="bg-card text-card-foreground border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-primary" />
+                System Prompt
+              </CardTitle>
+              <CardDescription>
+                Customise the base instructions given to your AI before every conversation. This shapes tone, focus, and behaviour across all Sentinels when no Sentinel system prompt overrides it.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                placeholder={DEFAULT_SYSTEM_PROMPT_PLACEHOLDER}
+                rows={8}
+                maxLength={10000}
+                className="font-mono text-sm resize-y bg-white/5 border-white/10 focus:border-cyan-500/50 placeholder:text-muted-foreground/40"
+              />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{systemPrompt.length.toLocaleString()} / 10,000 characters</span>
+                <button
+                  type="button"
+                  onClick={() => setSystemPrompt("")}
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  Reset to default
+                </button>
+              </div>
+              <Button
+                onClick={() => updateSettings.mutate({ systemPrompt: systemPrompt || undefined } as any)}
+                disabled={updateSettings.isPending}
+                size="sm"
+                variant="outline"
+              >
+                {updateSettings.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Save System Prompt
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Spending Limits */}
+          <Card className="bg-card text-card-foreground border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Spending Limit
+              </CardTitle>
+              <CardDescription>
+                Set a monthly cap on AI usage costs. You'll receive a warning at 80% and a hard stop at 100%. Leave blank for no limit.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground text-sm">$</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  placeholder="e.g. 10.00"
+                  value={spendingLimit}
+                  onChange={(e) => setSpendingLimit(e.target.value)}
+                  className="w-40 bg-white/5 border-white/10 focus:border-cyan-500/50"
+                />
+                <span className="text-muted-foreground text-sm">per month</span>
+              </div>
+              {spendingLimit && parseFloat(spendingLimit) > 0 && (
+                <div className="flex items-center gap-2 text-xs text-amber-400">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Warning at ${(parseFloat(spendingLimit) * 0.8).toFixed(2)} · Hard stop at ${parseFloat(spendingLimit).toFixed(2)}
+                </div>
+              )}
+              <Button
+                onClick={handleSave}
+                disabled={updateSettings.isPending}
+                size="sm"
+                variant="outline"
+              >
+                {updateSettings.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Save Limit
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* AI Model Preferences Card */}
           <Card className="bg-card text-card-foreground border-border">
             <CardHeader>
@@ -201,10 +301,11 @@ export default function Settings() {
                 Voice & Audio
               </CardTitle>
               <CardDescription>
-                Control how Glow reads AI responses aloud
+                Control how Glow reads AI responses aloud and configure each Sentinel's voice style
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Auto-read toggle */}
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label htmlFor="tts-toggle" className="text-base font-medium">Auto-read responses</Label>
@@ -220,6 +321,62 @@ export default function Settings() {
                     updateSettings.mutate({ ttsEnabled: checked });
                   }}
                 />
+              </div>
+
+              {/* VOX Style Bank */}
+              <div className="border-t border-white/10 pt-5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">Sentinel Voice Styles</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Each Sentinel has named voice presets that shape how they sound — pace, pitch, and affect. The active Sentinel's style is automatically selected based on the conversation context, but you can preview each preset below.
+                  </p>
+                </div>
+                <div className="grid gap-3">
+                  {[
+                    { sentinel: "Nyx", slug: "nyx", presets: [
+                      { id: "nyx.v1", label: "Sovereign", desc: "Soft, enigmatic, deliberate" },
+                      { id: "nyx.litany", label: "Litany", desc: "Slower, ceremonial, reflective" },
+                    ]},
+                    { sentinel: "Vixen's Den", slug: "vixens-den", presets: [
+                      { id: "vixen.steady", label: "Steady", desc: "Grounded, authoritative, measured" },
+                      { id: "vixen.command", label: "Command", desc: "Sharper, decisive, high-stakes" },
+                    ]},
+                    { sentinel: "Mischief.EXE", slug: "mischief-exe", presets: [
+                      { id: "mischief.spark", label: "Spark", desc: "Energetic, playful, fast" },
+                      { id: "mischief.hype", label: "Hype", desc: "Maximum energy, creative breakthroughs" },
+                    ]},
+                    { sentinel: "Lunaris.Vault", slug: "lunaris-vault", presets: [
+                      { id: "lunaris.deep", label: "Deep", desc: "Low, slow, contemplative" },
+                      { id: "lunaris.whisper", label: "Whisper", desc: "Quiet, intimate, confessional" },
+                    ]},
+                    { sentinel: "Aetheris.Flow", slug: "aetheris-flow", presets: [
+                      { id: "aetheris.flow", label: "Flow", desc: "Smooth, adaptive, natural" },
+                      { id: "aetheris.wonder", label: "Wonder", desc: "Curious, exploratory, speculative" },
+                    ]},
+                    { sentinel: "Rift.EXE", slug: "rift-exe", presets: [
+                      { id: "rift.bold", label: "Bold", desc: "Intense, urgent, forward-leaning" },
+                      { id: "rift.challenge", label: "Challenge", desc: "Sharp, confrontational, devil's advocate" },
+                    ]},
+                  ].map(({ sentinel, presets }) => (
+                    <div key={sentinel} className="rounded-lg bg-white/5 border border-white/10 p-3">
+                      <p className="text-xs font-semibold text-cyan-400 mb-2">{sentinel}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {presets.map((preset) => (
+                          <div
+                            key={preset.id}
+                            className="flex flex-col gap-0.5 px-3 py-2 rounded-md bg-white/5 border border-white/10 text-xs"
+                          >
+                            <span className="font-medium text-foreground">{preset.label}</span>
+                            <span className="text-muted-foreground">{preset.desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground/60 italic">
+                  Voice styles are automatically applied based on the Utterance Plan emitted by each Sentinel. Manual preset selection per Sentinel will be available in a future update.
+                </p>
               </div>
             </CardContent>
           </Card>
