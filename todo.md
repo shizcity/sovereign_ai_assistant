@@ -1787,7 +1787,13 @@
 - [x] Chat.tsx: mobile hamburger toggle in chat header (Menu icon, opens sidebar overlay)
 - [x] Chat.tsx: mobile header in empty state (hamburger + 'Conversations' label)
 - [x] Chat.tsx: background listening fixed buttons hidden on mobile (hidden md:flex)
-- [ ] RoundTable.tsx: fix mobile layout (sidebar + main panel stacking) — deferred
+- [x] RoundTable.tsx: mobile tab bar upgraded (taller touch targets, emoji labels, active bg highlight)
+- [x] RoundTable.tsx: center panel px-3 sm:px-6 (was px-6 flat, cramped at 375px)
+- [x] RoundTable.tsx: deliberation mode grid grid-cols-1 sm:grid-cols-3 (was 3-col always)
+- [x] RoundTable.tsx: Sentinel selector grid grid-cols-1 sm:grid-cols-2 (was 2-col always)
+- [x] RoundTable.tsx: ResultsView action buttons flex-col sm:flex-row on mobile
+- [x] RoundTable.tsx: OrbitalDiagram size capped to window.innerWidth-32 on mobile
+- [x] RoundTable.tsx: ConsensusGauge size reduced to 130 (was 150) for tighter panels column
 - [ ] Sentinels.tsx: fix comparison table horizontal scroll on mobile — deferred
 - [x] Performance: all secondary routes lazy-loaded via React.lazy + Suspense in App.tsx (Settings, Analytics, Templates, TemplateGallery, CategoryGallery, Sentinels, Memories, Insights, VoiceChat, MySentinels, RoundTable, Achievements, Referrals, SharedSession)
 - [x] Performance: Suspense fallback is a cyan spinner on dark background

@@ -606,7 +606,7 @@ function ResultsView({
           </Button>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             onClick={onReset}
             variant="outline"
@@ -616,7 +616,7 @@ function ResultsView({
             New Session
           </Button>
           <Link href="/chat">
-            <Button variant="ghost" className="text-white/50 hover:text-white/80">
+            <Button variant="ghost" className="w-full sm:w-auto text-white/50 hover:text-white/80">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Chat
             </Button>
@@ -1126,13 +1126,13 @@ export default function RoundTable() {
           <button
             key={tab}
             onClick={() => setMobileTab(tab)}
-            className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+            className={`flex-1 py-3.5 text-xs font-bold uppercase tracking-widest transition-colors ${
               mobileTab === tab
-                ? "text-cyan-400 border-b-2 border-cyan-500"
-                : "text-white/35 hover:text-white/60"
+                ? "text-cyan-400 border-b-2 border-cyan-500 bg-cyan-500/5"
+                : "text-white/45 hover:text-white/70"
             }`}
           >
-            {tab === "history" ? "History" : tab === "table" ? "Table" : "Panels"}
+            {tab === "history" ? "📋 History" : tab === "table" ? "⚡ Table" : "🔭 Panels"}
           </button>
         ))}
       </div>
@@ -1249,7 +1249,7 @@ export default function RoundTable() {
 
         {/* ── CENTER: Main form / results ── */}
         <div className={`flex-1 overflow-y-auto ${mobileTab !== "table" ? "hidden sm:block" : ""}`}>
-          <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
+          <div className="max-w-2xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
             {result ? (
               <ResultsView result={result} onReset={handleReset} />
@@ -1310,7 +1310,7 @@ export default function RoundTable() {
                       </span>
                     )}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {DELIBERATION_MODES.map((mode) => {
                       const locked = mode.creatorOnly && !isCreator;
                       const active = deliberationMode === mode.id;
@@ -1363,7 +1363,7 @@ export default function RoundTable() {
                     <label className="text-sm font-semibold text-white/70">Sentinels</label>
                     <span className="text-xs text-white/35">{selectedIds.length}/6 selected (min 2)</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {sentinelList?.map((s) => (
                       <SentinelSelectCard
                         key={s.id}
@@ -1520,12 +1520,14 @@ export default function RoundTable() {
           {/* Orbital diagram */}
           <div className="flex flex-col items-center pt-6 pb-2 px-4 border-b border-white/6">
             {orbitalNodes.length >= 2 ? (
-              <OrbitalDiagram
-                sentinels={orbitalNodes}
-                activeName={isRunning ? activeSentinelName : null}
-                deliveringSentinelName={result?.finalSentinelName ?? null}
-                size={220}
-              />
+              <div className="w-full flex justify-center">
+                <OrbitalDiagram
+                  sentinels={orbitalNodes}
+                  activeName={isRunning ? activeSentinelName : null}
+                  deliveringSentinelName={result?.finalSentinelName ?? null}
+                  size={Math.min(220, typeof window !== 'undefined' ? window.innerWidth - 32 : 220)}
+                />
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-3 py-8">
                 <div className="w-16 h-16 rounded-full border border-dashed border-white/15 flex items-center justify-center">
@@ -1543,7 +1545,7 @@ export default function RoundTable() {
             <ConsensusGauge
               score={liveConsensus}
               isRunning={isRunning}
-              size={150}
+              size={130}
             />
             {result && (
               <div className="flex items-center gap-3 mt-2 text-xs text-white/35">
