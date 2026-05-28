@@ -1794,7 +1794,7 @@
 - [x] RoundTable.tsx: ResultsView action buttons flex-col sm:flex-row on mobile
 - [x] RoundTable.tsx: OrbitalDiagram size capped to window.innerWidth-32 on mobile
 - [x] RoundTable.tsx: ConsensusGauge size reduced to 130 (was 150) for tighter panels column
-- [ ] Sentinels.tsx: fix comparison table horizontal scroll on mobile — deferred
+- [x] Sentinels.tsx: Track Record table — min-w-[520px] on table, overflow-x-auto wrapper confirmed, mobile scroll hint added (← Scroll to see all columns →, hidden on sm+)
 - [x] Performance: all secondary routes lazy-loaded via React.lazy + Suspense in App.tsx (Settings, Analytics, Templates, TemplateGallery, CategoryGallery, Sentinels, Memories, Insights, VoiceChat, MySentinels, RoundTable, Achievements, Referrals, SharedSession)
 - [x] Performance: Suspense fallback is a cyan spinner on dark background
 - [ ] Performance: lazy-load D3 memory graph component — deferred

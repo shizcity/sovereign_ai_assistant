@@ -479,8 +479,12 @@ export default function Sentinels() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/3 backdrop-blur">
-              <table className="w-full text-sm">
+            {/* Mobile scroll hint */}
+            <p className="text-xs text-white/25 mb-2 sm:hidden flex items-center gap-1">
+              <span>←</span> Scroll to see all columns <span>→</span>
+            </p>
+            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/3 backdrop-blur -mx-1 px-1">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead>
                   <tr className="border-b border-white/8">
                     <th className="text-left px-5 py-3.5 text-xs font-semibold text-white/40 uppercase tracking-wider">Sentinel</th>
