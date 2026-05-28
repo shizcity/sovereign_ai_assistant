@@ -98,7 +98,7 @@ describe("Voice Features", () => {
           audio: sampleAudio,
           mimeType: "audio/webm",
         })
-      ).rejects.toThrow("Voice features are only available for Pro users");
+      ).rejects.toThrow("Voice features are only available for Pro and Creator users");
     });
 
     it("should return FORBIDDEN code (not BAD_REQUEST) for free-tier transcription", async () => {
@@ -171,7 +171,7 @@ describe("Voice Features", () => {
           text: "Hello, this is a test.",
           voice: "alloy",
         })
-      ).rejects.toThrow("Voice features are only available for Pro users");
+      ).rejects.toThrow("Voice features are only available for Pro and Creator users");
     });
 
     it("should return FORBIDDEN code for free-tier TTS", async () => {

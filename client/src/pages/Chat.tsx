@@ -29,6 +29,7 @@ import { GlowLogo } from "@/components/GlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { OnboardingChecklist, loadOnboardingSteps, saveOnboardingStep, isOnboardingDismissed, dismissOnboarding, isOnboardingComplete, type OnboardingStepState } from "@/components/OnboardingChecklist";
 import { voiceService } from "@/lib/voice";
+import { streamingVoicePlayer } from "@/lib/streamingVoice";
 import { toast } from "sonner";
 import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
@@ -520,7 +521,7 @@ export default function Chat() {
           setPlayingMessageId(null); // clear any previous playing state
           // VOX Phase 1: use resolved prosody from Utterance Plan if available
           const voxProsody = (data as any).vox?.prosody;
-          voiceService.speak(data.content, {
+          streamingVoicePlayer.playSentences(data.content, {
             sentinelName: activeSentinel.name,
             ...(voxProsody ? {
               pitch: voxProsody.pitch,
@@ -1235,7 +1236,7 @@ export default function Chat() {
                     prev ? { ...prev, ttsEnabled: next } : prev
                   );
                   updateTtsEnabled.mutate({ ttsEnabled: next });
-                  if (!next) voiceService.stopSpeaking();
+                  if (!next) { streamingVoicePlayer.stop(); voiceService.stopSpeaking(); }
                 }}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                   ttsEnabled ? "bg-cyan-600" : "bg-white/15"
@@ -1529,18 +1530,20 @@ export default function Chat() {
                             <button
                               onClick={() => {
                                 if (playingMessageId === message.id) {
+                                  streamingVoicePlayer.stop();
                                   voiceService.stopSpeaking();
                                   setPlayingMessageId(null);
                                 } else {
                                   // Stop any currently playing message first
                                   if (playingMessageId !== null) {
+                                    streamingVoicePlayer.stop();
                                     voiceService.stopSpeaking();
                                   }
                                   setPlayingMessageId(message.id);
                                   // VOX Phase 1: use stored prosody metadata if available
                                   const msgVoxProsody = (message as any).voxProsody;
                                   const msgSentinel = allSentinels.find((s: any) => s.id === (message as any).sentinelId) ?? activeSentinel;
-                                  voiceService.speak(message.content, {
+                                  streamingVoicePlayer.playSentences(message.content, {
                                     sentinelName: msgSentinel?.name,
                                     ...(msgVoxProsody ? {
                                       pitch: msgVoxProsody.pitch,

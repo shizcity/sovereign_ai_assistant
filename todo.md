@@ -1800,3 +1800,12 @@
 - [ ] Performance: lazy-load D3 memory graph component — deferred
 - [ ] OG image: verify og:image URL resolves on glow.manus.space — deferred (requires live domain)
 - [x] Zero TypeScript errors confirmed (exit 0)
+
+## VOX Phase 2 — WebSocket Streaming TTS
+- [ ] server: /api/tts/stream endpoint — accepts text + voiceId + prosody, streams MP3 chunks via SSE or chunked HTTP
+- [ ] server: sentence-boundary chunker — splits LLM output into speakable sentences before sending to TTS API
+- [ ] client/src/lib/streamingVoice.ts: StreamingVoicePlayer class — Web Audio API queue, plays chunks as they arrive
+- [ ] client/src/lib/streamingVoice.ts: graceful fallback to Web Speech API if streaming fails
+- [ ] Chat.tsx: replace voiceService.speak() with StreamingVoicePlayer for auto-TTS and per-message playback
+- [ ] Chat.tsx: show streaming audio indicator (animated waveform) while chunks are playing
+- [ ] Zero TypeScript errors confirmed

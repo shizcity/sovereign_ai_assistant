@@ -243,6 +243,92 @@ async function startServer() {
     });
   });
 
+  // ─── Streaming TTS ──────────────────────────────────────────────────────────
+  // POST /api/tts/stream
+  // Accepts { text, voice, speed } and streams the TTS audio bytes directly to
+  // the client as audio/mpeg with Transfer-Encoding: chunked. No S3 upload —
+  // bytes flow straight from the TTS API to the browser for ≤180ms first-chunk.
+  app.post("/api/tts/stream", voiceLimiter, async (req, res) => {
+    try {
+      const { sdk } = await import("./sdk");
+      const user = await sdk.authenticateRequest(req);
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+      const { text, voice, speed } = req.body as {
+        text?: string;
+        voice?: string;
+        speed?: number;
+      };
+
+      if (!text || typeof text !== "string" || text.trim().length === 0) {
+        res.status(400).json({ error: "text is required" });
+        return;
+      }
+
+      const cleanText = text.slice(0, 4096); // TTS API hard limit
+
+      const { ENV } = await import("./env");
+      if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
+        res.status(503).json({ error: "TTS service not configured" });
+        return;
+      }
+
+      const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
+      const ttsUrl = new URL("v1/audio/speech", baseUrl).toString();
+
+      const ttsResponse = await fetch(ttsUrl, {
+        method: "POST",
+        headers: {
+          "authorization": `Bearer ${ENV.forgeApiKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "tts-1",
+          input: cleanText,
+          voice: voice || "alloy",
+          speed: speed || 1.0,
+          response_format: "mp3",
+        }),
+      });
+
+      if (!ttsResponse.ok || !ttsResponse.body) {
+        const errText = await ttsResponse.text().catch(() => "");
+        res.status(502).json({ error: `TTS API error: ${ttsResponse.status} ${errText}` });
+        return;
+      }
+
+      // Stream audio bytes directly to client
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Transfer-Encoding", "chunked");
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("X-Accel-Buffering", "no");
+
+      const reader = ttsResponse.body.getReader();
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { res.end(); break; }
+            const canContinue = res.write(Buffer.from(value));
+            if (!canContinue) {
+              // Back-pressure: wait for drain before reading more
+              await new Promise<void>(resolve => res.once("drain", resolve));
+            }
+          }
+        } catch (err) {
+          console.error("[TTS Stream] Pipe error:", err);
+          res.end();
+        }
+      };
+
+      req.on("close", () => reader.cancel().catch(() => {}));
+      pump();
+    } catch (err) {
+      console.error("[TTS Stream] Unexpected error:", err);
+      if (!res.headersSent) res.status(500).json({ error: String(err) });
+    }
+  });
+
   // ─── Scheduled Task: Sentinel Check-in ───────────────────────────────────────
   // POST /api/scheduled/checkin
   // Called by the Manus scheduled task agent. Accepts a user_id + nudge message
