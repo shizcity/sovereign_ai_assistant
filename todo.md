@@ -1815,3 +1815,16 @@
 - [x] VOX: inline speed slider (0.7×–1.3×) + mute toggle in Chat input area — visible when TTS is enabled, session-local state, wired into auto-TTS and per-message playback
 - [x] VOX: voxSpeed multiplied into both streaming speed and Web Speech rate; voxMuted blocks auto-TTS and zeroes volume on per-message play
 - [x] Zero TypeScript errors confirmed (exit 0)
+
+## VOX Persistence & Now Playing Sprint
+- [x] DB: added voxSpeed FLOAT column to userSettings table (ALTER TABLE + schema.ts + float import)
+- [x] API: settings.update input schema extended with voxSpeed (z.number().min(0.5).max(2.0))
+- [x] API: settings.get default object now includes voxSpeed: 1.0
+- [x] Chat.tsx: voxSpeed initialised from userSettings on load (useEffect sync)
+- [x] Chat.tsx: slider onChange debounces DB write 600ms via updateVoxSpeed mutation
+- [x] Chat.tsx: isAutoPlaying state added; set true on auto-TTS start, false on onEnd
+- [x] VoxEqualiser component: 3-bar CSS keyframe equaliser, shown when isAutoPlaying || playingMessageId !== null
+- [x] index.css: vox-bar @keyframes added (scaleY 0.2 → 1, alternating, each bar different delay)
+- [x] Chat header: VoxEqualiser placed inline next to conversation title
+- [x] Zero TypeScript errors confirmed (exit 0)
+- [x] 28/30 test files passing (2 pre-existing infrastructure failures)

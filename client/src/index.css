@@ -547,6 +547,12 @@
   animation: msgFadeIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ===== VOX EQUALISER BARS ===== */
+@keyframes vox-bar {
+  from { transform: scaleY(0.2); opacity: 0.6; }
+  to   { transform: scaleY(1);   opacity: 1;   }
+}
+
 /* ===== GLOW RING on focused inputs ===== */
 .input-glow:focus {
   box-shadow: 0 0 0 2px oklch(0.72 0.18 200 / 0.35), 0 0 16px oklch(0.72 0.18 200 / 0.12);

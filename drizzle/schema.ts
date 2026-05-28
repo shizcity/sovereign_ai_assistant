@@ -1,4 +1,4 @@
-import { boolean, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, float, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -87,6 +87,7 @@ export const userSettings = mysqlTable("userSettings", {
   emailDigestFrequency: varchar("emailDigestFrequency", { length: 20 }).default("weekly"), // 'weekly' | 'monthly' | 'both' | 'off'
   lastDigestSent: timestamp("lastDigestSent"),
   ttsEnabled: boolean("ttsEnabled").default(false),
+  voxSpeed: float("voxSpeed").default(1.0), // TTS playback speed: 0.7–1.3×
   monthlySpendingLimitCents: int("monthlySpendingLimitCents").default(0), // 0 = no limit
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

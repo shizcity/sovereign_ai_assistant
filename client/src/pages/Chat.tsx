@@ -35,6 +35,7 @@ import { useBackgroundWakePhrase } from "@/hooks/useBackgroundWakePhrase";
 import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
+import { VoxEqualiser } from "@/components/VoxEqualiser";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
@@ -112,9 +113,12 @@ export default function Chat() {
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
 
-  // VOX inline controls — session-local (not persisted)
-  const [voxSpeed, setVoxSpeed] = useState(1.0);   // 0.7–1.3×
-  const [voxMuted, setVoxMuted] = useState(false);  // per-session mute
+  // VOX inline controls — speed persisted to DB, mute is session-local
+  const [voxSpeed, setVoxSpeed] = useState(1.0);   // 0.7–1.3× (synced from userSettings on load)
+  const [voxMuted, setVoxMuted] = useState(false);  // per-session mute (not persisted)
+  const voxSpeedSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks whether auto-TTS (not per-message) is currently streaming audio
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   // Welcome screen Sentinel card interaction state
   const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
@@ -241,6 +245,17 @@ export default function Chat() {
     setRoutingSuggestion(null);
     setRoutingDismissed(false);
   }, [conversationSentinels]);
+
+  // Sync voxSpeed from DB on first load
+  useEffect(() => {
+    if (userSettings?.voxSpeed != null) {
+      setVoxSpeed(userSettings.voxSpeed);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userSettings?.voxSpeed !== undefined]);
+
+  // VOX speed persist mutation
+  const updateVoxSpeed = trpc.settings.update.useMutation();
 
   // TTS quick-toggle mutation (persists to DB)
   const updateTtsEnabled = trpc.settings.update.useMutation({
@@ -526,6 +541,7 @@ export default function Chat() {
           // VOX Phase 1: use resolved prosody from Utterance Plan if available
           const voxProsody = (data as any).vox?.prosody;
           if (!voxMuted) {
+            setIsAutoPlaying(true);
             streamingVoicePlayer.playSentences(data.content, {
               sentinelName: activeSentinel.name,
               speed: voxSpeed,
@@ -534,7 +550,8 @@ export default function Chat() {
                 rate: voxProsody.rate * voxSpeed,
                 volume: voxProsody.volume,
               } : {}),
-              onEnd: () => setPlayingMessageId(null),
+              onStart: () => setIsAutoPlaying(true),
+              onEnd: () => { setIsAutoPlaying(false); setPlayingMessageId(null); },
             });
           }
         }
@@ -1292,7 +1309,11 @@ export default function Chat() {
                   <Menu className="w-5 h-5" />
                 </button>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-semibold text-white">{selectedConv?.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-white">{selectedConv?.title}</h2>
+                    {/* VOX Now Playing indicator — shown while auto-TTS or per-message audio is streaming */}
+                    <VoxEqualiser active={isAutoPlaying || playingMessageId !== null} />
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     {conversationTags.map((tag) => (
                       <span
@@ -1692,7 +1713,15 @@ export default function Chat() {
                         max={1.3}
                         step={0.05}
                         value={voxSpeed}
-                        onChange={(e) => setVoxSpeed(parseFloat(e.target.value))}
+                        onChange={(e) => {
+                          const next = parseFloat(e.target.value);
+                          setVoxSpeed(next);
+                          // Debounce DB write — only persist after 600ms of no slider movement
+                          if (voxSpeedSaveTimer.current) clearTimeout(voxSpeedSaveTimer.current);
+                          voxSpeedSaveTimer.current = setTimeout(() => {
+                            updateVoxSpeed.mutate({ voxSpeed: next });
+                          }, 600);
+                        }}
                         className="flex-1 h-1 accent-cyan-400 cursor-pointer"
                         title={`Playback speed: ${voxSpeed.toFixed(2)}×`}
                       />
