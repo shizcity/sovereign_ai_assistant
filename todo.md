@@ -1809,3 +1809,9 @@
 - [ ] Chat.tsx: replace voiceService.speak() with StreamingVoicePlayer for auto-TTS and per-message playback
 - [ ] Chat.tsx: show streaming audio indicator (animated waveform) while chunks are playing
 - [ ] Zero TypeScript errors confirmed
+
+## Bundle & UX Polish Sprint
+- [x] Performance: lazy-load D3 MemoryGraph in Memories.tsx via React.lazy + Suspense — cyan spinner fallback while D3 chunk loads
+- [x] VOX: inline speed slider (0.7×–1.3×) + mute toggle in Chat input area — visible when TTS is enabled, session-local state, wired into auto-TTS and per-message playback
+- [x] VOX: voxSpeed multiplied into both streaming speed and Web Speech rate; voxMuted blocks auto-TTS and zeroes volume on per-message play
+- [x] Zero TypeScript errors confirmed (exit 0)

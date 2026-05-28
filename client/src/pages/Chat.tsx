@@ -112,6 +112,10 @@ export default function Chat() {
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
 
+  // VOX inline controls — session-local (not persisted)
+  const [voxSpeed, setVoxSpeed] = useState(1.0);   // 0.7–1.3×
+  const [voxMuted, setVoxMuted] = useState(false);  // per-session mute
+
   // Welcome screen Sentinel card interaction state
   const [hoveredSentinelId, setHoveredSentinelId] = useState<number | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -521,15 +525,18 @@ export default function Chat() {
           setPlayingMessageId(null); // clear any previous playing state
           // VOX Phase 1: use resolved prosody from Utterance Plan if available
           const voxProsody = (data as any).vox?.prosody;
-          streamingVoicePlayer.playSentences(data.content, {
-            sentinelName: activeSentinel.name,
-            ...(voxProsody ? {
-              pitch: voxProsody.pitch,
-              rate: voxProsody.rate,
-              volume: voxProsody.volume,
-            } : {}),
-            onEnd: () => setPlayingMessageId(null),
-          });
+          if (!voxMuted) {
+            streamingVoicePlayer.playSentences(data.content, {
+              sentinelName: activeSentinel.name,
+              speed: voxSpeed,
+              ...(voxProsody ? {
+                pitch: voxProsody.pitch,
+                rate: voxProsody.rate * voxSpeed,
+                volume: voxProsody.volume,
+              } : {}),
+              onEnd: () => setPlayingMessageId(null),
+            });
+          }
         }
       },
     });
@@ -1545,11 +1552,14 @@ export default function Chat() {
                                   const msgSentinel = allSentinels.find((s: any) => s.id === (message as any).sentinelId) ?? activeSentinel;
                                   streamingVoicePlayer.playSentences(message.content, {
                                     sentinelName: msgSentinel?.name,
+                                    speed: voxSpeed,
                                     ...(msgVoxProsody ? {
                                       pitch: msgVoxProsody.pitch,
-                                      rate: msgVoxProsody.rate,
-                                      volume: msgVoxProsody.volume,
-                                    } : {}),
+                                      rate: msgVoxProsody.rate * voxSpeed,
+                                      volume: voxMuted ? 0 : msgVoxProsody.volume,
+                                    } : {
+                                      volume: voxMuted ? 0 : 1.0,
+                                    }),
                                     onEnd: () => setPlayingMessageId(null),
                                   });
                                 }
@@ -1646,6 +1656,61 @@ export default function Chat() {
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {/* VOX Inline Controls — shown when TTS is enabled */}
+                {ttsEnabled && (
+                  <div className="flex items-center gap-3 px-1 py-1 rounded-xl bg-white/4 border border-white/8 backdrop-blur-sm">
+                    {/* Mute toggle */}
+                    <button
+                      onClick={() => {
+                        const next = !voxMuted;
+                        setVoxMuted(next);
+                        if (next) {
+                          streamingVoicePlayer.stop();
+                          voiceService.stopSpeaking();
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        voxMuted
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/25"
+                      }`}
+                      title={voxMuted ? "Voice muted — click to unmute" : "Voice on — click to mute"}
+                    >
+                      {voxMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      <span>{voxMuted ? "Muted" : "Voice on"}</span>
+                    </button>
+
+                    {/* Speed slider */}
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-xs text-white/40 shrink-0">Speed</span>
+                      <input
+                        type="range"
+                        min={0.7}
+                        max={1.3}
+                        step={0.05}
+                        value={voxSpeed}
+                        onChange={(e) => setVoxSpeed(parseFloat(e.target.value))}
+                        className="flex-1 h-1 accent-cyan-400 cursor-pointer"
+                        title={`Playback speed: ${voxSpeed.toFixed(2)}×`}
+                      />
+                      <span className="text-xs text-white/55 font-mono w-9 text-right shrink-0">
+                        {voxSpeed.toFixed(2)}×
+                      </span>
+                    </div>
+
+                    {/* Reset speed */}
+                    {voxSpeed !== 1.0 && (
+                      <button
+                        onClick={() => setVoxSpeed(1.0)}
+                        className="text-xs text-white/30 hover:text-white/60 transition-colors px-1"
+                        title="Reset to 1×"
+                      >
+                        Reset
+                      </button>
+                    )}
                   </div>
                 )}
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Edit, Plus, Search, Brain, Sparkles, List, Network } from "lucide-react";
-import MemoryGraph from "@/components/MemoryGraph";
+// MemoryGraph is D3-heavy (~40 KB) — lazy-load so it only lands in the bundle
+// when the user switches to graph view.
+const MemoryGraph = lazy(() => import("@/components/MemoryGraph"));
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import {
   Dialog,
@@ -351,10 +353,17 @@ export default function Memories() {
           <div className="mb-8">
             <Card className="bg-slate-800/50 border-slate-700 p-2 overflow-hidden" style={{ height: 560 }}>
               {graphData && graphData.nodes.length > 0 ? (
-                <MemoryGraph
-                  data={graphData}
-                  onNodeClick={(node) => setSelectedGraphNode(node)}
-                />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full text-slate-400 gap-3">
+                    <div className="w-5 h-5 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+                    <span className="text-sm">Loading memory graph…</span>
+                  </div>
+                }>
+                  <MemoryGraph
+                    data={graphData}
+                    onNodeClick={(node) => setSelectedGraphNode(node)}
+                  />
+                </Suspense>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <Network className="w-12 h-12 mb-3 opacity-30" />
