@@ -37,6 +37,7 @@ import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
 import { VoxEqualiser } from "@/components/VoxEqualiser";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 
 function XpLevelIndicator() {
@@ -1453,38 +1454,25 @@ export default function Chat() {
                     <MultiSentinelManager conversationId={selectedConversation} />
                   )}
                   
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExportPDF}
-                      className="text-gray-400 hover:text-white"
-                      title="Export as PDF"
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      PDF
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExportJSON}
-                      className="text-gray-400 hover:text-white"
-                      title="Export as JSON"
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      JSON
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleExportMarkdown}
-                      className="text-gray-400 hover:text-white"
-                      title="Export as Markdown"
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      MD
-                    </Button>
-                  </div>
+                  {/* Export dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white px-2" title="Export conversation">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-gray-900 border-white/10">
+                      <DropdownMenuItem onClick={handleExportPDF} className="text-gray-300 hover:text-white cursor-pointer">
+                        <Download className="w-3.5 h-3.5 mr-2" /> Export as PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportJSON} className="text-gray-300 hover:text-white cursor-pointer">
+                        <Download className="w-3.5 h-3.5 mr-2" /> Export as JSON
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportMarkdown} className="text-gray-300 hover:text-white cursor-pointer">
+                        <Download className="w-3.5 h-3.5 mr-2" /> Export as Markdown
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
@@ -1508,7 +1496,7 @@ export default function Chat() {
                       className={`max-w-[78%] rounded-2xl p-4 ${
                         message.role === "user"
                           ? "chat-bubble-user text-white"
-                          : "chat-bubble-assistant text-white/90"
+                          : "chat-bubble-assistant text-white/90 border-l-2 border-cyan-500/30"
                       }`}
                     >
                       {editingMessageId === message.id ? (
@@ -1565,11 +1553,11 @@ export default function Chat() {
                       )}
                       {message.role === "assistant" && (
                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-400">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <SentinelBadge sentinelId={(message as any).sentinelId} />
-                            {message.model && <span>Model: {message.model}</span>}
-                            {message.totalTokens && <span>{message.totalTokens} tokens</span>}
-                            {message.costUsd && <span>${message.costUsd}</span>}
+                            {message.model && <span className="opacity-60">{message.model}</span>}
+                            {message.totalTokens && <span className="opacity-50">{message.totalTokens}t</span>}
+                            {message.costUsd && <span className="opacity-50">${message.costUsd}</span>}
                           </div>
                           <div className="flex items-center gap-2">
                             {/* Per-message TTS speaker button — always visible, works independently of global toggle */}
@@ -1828,7 +1816,7 @@ export default function Chat() {
                       }
                     }}
                     placeholder="Type your message... (⏎ to send, ⇧⏎ for new line)"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none resize-none transition-all duration-200 hover:bg-white/8 overflow-y-auto input-glow"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 resize-none transition-all duration-200 hover:bg-white/8 overflow-y-auto"
                     rows={3}
                     style={{ minHeight: '80px', maxHeight: '288px' }}
                     disabled={sendMessage.isPending}
@@ -1836,7 +1824,7 @@ export default function Chat() {
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || sendMessage.isPending}
-                    className="button-lift button-press bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-cyan-500/40 hover:shadow-cyan-500/60 disabled:opacity-50 disabled:cursor-not-allowed px-6"
+                    className="button-lift button-press bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-cyan-500/30 hover:shadow-[0_0_24px_rgba(6,182,212,0.6)] disabled:opacity-50 disabled:cursor-not-allowed px-6 transition-all duration-200"
                   >
                     <Send className="w-4 h-4" />
                   </Button>

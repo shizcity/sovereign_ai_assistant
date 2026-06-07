@@ -552,7 +552,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
               <Zap className="w-3 h-3" /> Platform Capabilities
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Built for Deep Thinking</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 heading-gradient">Built for Deep Thinking</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Every feature is designed to help you think more clearly, explore more broadly, and decide more confidently.
             </p>
@@ -565,7 +565,7 @@ export default function Landing() {
                 <Card
                   key={idx}
                   ref={feature.ref.ref}
-                  className={`group relative card-deep card-shimmer p-8 hover:border-cyan-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/15 transition-all duration-500 overflow-hidden ${
+                  className={`group relative card-deep card-shimmer card-interactive p-8 overflow-hidden ${
                     feature.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                   } ${feature.delay}`}
                 >
@@ -723,7 +723,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-xs font-semibold uppercase tracking-widest mb-6">
               <Sparkles className="w-3 h-3" /> The Council
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Meet Your Sentinels</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 heading-gradient">Meet Your Sentinels</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Six specialized AI personalities. Each thinks differently. Together, they think better.
             </p>
@@ -788,7 +788,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold uppercase tracking-widest mb-6">
               <MessageSquare className="w-3 h-3" /> User Stories
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Trusted by Innovators</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 heading-gradient">Trusted by Innovators</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               See what people are saying about their Glow experience.
             </p>
@@ -818,7 +818,7 @@ export default function Landing() {
               <Card
                 key={i}
                 ref={t.ref.ref}
-                className={`group relative card-deep card-shimmer p-8 hover:border-white/20 hover:-translate-y-1 transition-all duration-500 overflow-hidden ${t.delay} ${
+                className={`group relative card-deep card-shimmer card-interactive p-8 overflow-hidden ${t.delay} ${
                   t.ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
@@ -862,7 +862,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-6">
               <TrendingUp className="w-3 h-3" /> Pricing
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-glow-white">Choose Your Path</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 heading-gradient">Choose Your Path</h2>
             <p className="text-xl text-gray-400">
               Start free. Upgrade when you need more power.
             </p>
@@ -911,16 +911,20 @@ export default function Landing() {
             {/* Pro Plan */}
             <Card 
               ref={pricingCard2Ref.ref}
-              className={`bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/50 backdrop-blur-xl p-6 sm:p-8 relative hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-700 delay-100 ${
+              className={`relative p-6 sm:p-8 overflow-hidden transition-all duration-700 delay-100 hover:scale-[1.03] hover:shadow-[0_0_50px_rgba(6,182,212,0.35)] ${
                 pricingCard2Ref.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
+              {/* Pro card glow layers */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/12 to-blue-600/12 rounded-[inherit] pointer-events-none" />
+              <div className="absolute inset-0 rounded-[inherit] ring-1 ring-cyan-500/50 pointer-events-none" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent pointer-events-none" />
               <div className="absolute top-4 right-4">
-                <span className="bg-cyan-500 text-black text-xs font-bold px-3 py-1 rounded-full">
-                  POPULAR
+                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-cyan-500/30">
+                  MOST POPULAR
                 </span>
               </div>
-              <div className="mb-6">
+              <div className="relative mb-6">
                 <h3 className="text-2xl font-bold mb-2">Pro</h3>
                 <div className="text-4xl font-bold mb-4">
                   $19<span className="text-lg text-gray-400">/month</span>
@@ -953,8 +957,8 @@ export default function Landing() {
                   <span>Priority support</span>
                 </li>
               </ul>
-              <a href="/chat">
-                <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold">
+              <a href="/chat" className="relative block">
+                <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-black font-bold shadow-lg shadow-cyan-500/25">
                   Upgrade to Pro
                 </Button>
               </a>
@@ -1061,7 +1065,7 @@ export default function Landing() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-gray-300 text-xs font-semibold uppercase tracking-widest mb-6">
               <Brain className="w-3 h-3" /> FAQ
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 heading-gradient">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-400">
               Everything you need to know about Glow.
             </p>
@@ -1165,7 +1169,10 @@ export default function Landing() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-8">
             <Sparkles className="w-3 h-3" /> Get Started Free
           </div>
-          <h2 className="text-5xl sm:text-6xl font-black mb-6 leading-tight text-glow-white">Ready to illuminate<br /><span className="bg-gradient-to-r from-cyan-300 to-cyan-100 bg-clip-text text-transparent text-glow-cyan">your thinking?</span></h2>
+          <h2 className="text-5xl sm:text-6xl font-black mb-6 leading-[1.05] tracking-tight">
+            <span className="heading-gradient">Ready to illuminate</span><br />
+            <span className="bg-gradient-to-r from-cyan-300 via-cyan-200 to-white bg-clip-text text-transparent text-glow-cyan">your thinking?</span>
+          </h2>
           <p className="text-xl text-gray-400 mb-4 max-w-xl mx-auto">
             Join thousands experiencing multi-perspective AI conversations.
           </p>

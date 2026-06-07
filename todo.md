@@ -1843,3 +1843,9 @@
 - [x] Chat.tsx: visibility listener also resets isAutoPlaying and playingMessageId to hide equaliser
 - [x] Zero TypeScript errors confirmed (exit 0)
 - [x] 28/30 test files passing (2 pre-existing infrastructure failures)
+
+## UI/UX Polish Sprint
+- [x] Global foundations — CSS variable polish, heading-gradient, card-interactive, improved focus rings
+- [x] Landing page — section headings upgraded to heading-gradient, feature/testimonial cards use card-interactive, Pro pricing card stronger glow + MOST POPULAR badge, final CTA headline improved
+- [x] Chat interface — export buttons collapsed into dropdown, assistant bubbles get left cyan accent border, metadata row tightened, send button stronger hover glow, textarea focus ring upgraded
+- [x] Settings — Voice & Audio card gets top accent line + cyan icon, voxSpeed slider row added with live readout and Reset

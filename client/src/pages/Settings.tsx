@@ -36,6 +36,7 @@ export default function Settings() {
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [voxMuted, setVoxMuted] = useState(false);
+  const [voxSpeed, setVoxSpeed] = useState(1.0);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [spendingLimit, setSpendingLimit] = useState("");
 
@@ -78,6 +79,7 @@ export default function Settings() {
       setDefaultModel(settings.defaultModel || "gpt-4");
       setTtsEnabled(settings.ttsEnabled ?? false);
       setVoxMuted((settings as any).voxMuted ?? false);
+      setVoxSpeed((settings as any).voxSpeed ?? 1.0);
       setSystemPrompt((settings as any).systemPrompt || "");
       setSpendingLimit((settings as any).monthlySpendingLimitCents ? String(((settings as any).monthlySpendingLimitCents / 100).toFixed(2)) : "");
     }
@@ -296,10 +298,12 @@ export default function Settings() {
           </Card>
 
           {/* Voice & TTS Settings Card */}
-          <Card className="bg-card text-card-foreground border-border">
+          <Card className="bg-card text-card-foreground border-border overflow-hidden">
+            {/* Subtle top accent line */}
+            <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Volume2 className="h-5 w-5 text-primary" />
+                <Volume2 className="h-5 w-5 text-cyan-400" />
                 Voice & Audio
               </CardTitle>
               <CardDescription>
@@ -344,6 +348,40 @@ export default function Settings() {
                     updateSettings.mutate({ voxMuted: checked } as any);
                   }}
                 />
+              </div>
+
+              {/* VOX Speed */}
+              <div className="flex items-center justify-between border-t border-white/10 pt-5">
+                <div className="space-y-1 flex-1 mr-6">
+                  <Label className="text-base font-medium">Default playback speed</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Sets the starting speed for voice playback. You can also adjust it live in the chat toolbar.
+                  </p>
+                  <div className="flex items-center gap-3 mt-3">
+                    <input
+                      type="range"
+                      min={0.7}
+                      max={1.3}
+                      step={0.05}
+                      value={voxSpeed}
+                      onChange={(e) => {
+                        const next = parseFloat(e.target.value);
+                        setVoxSpeed(next);
+                        updateSettings.mutate({ voxSpeed: next } as any);
+                      }}
+                      className="flex-1 h-1.5 accent-cyan-400 cursor-pointer"
+                    />
+                    <span className="text-sm font-mono text-cyan-400 w-12 text-right">{voxSpeed.toFixed(2)}×</span>
+                    {voxSpeed !== 1.0 && (
+                      <button
+                        onClick={() => { setVoxSpeed(1.0); updateSettings.mutate({ voxSpeed: 1.0 } as any); }}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* VOX Style Bank */}
