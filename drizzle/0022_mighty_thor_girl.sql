@@ -1,0 +1,1 @@
+ALTER TABLE `userSettings` ADD `voxMuted` boolean DEFAULT false;

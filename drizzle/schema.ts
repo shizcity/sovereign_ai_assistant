@@ -88,6 +88,7 @@ export const userSettings = mysqlTable("userSettings", {
   lastDigestSent: timestamp("lastDigestSent"),
   ttsEnabled: boolean("ttsEnabled").default(false),
   voxSpeed: float("voxSpeed").default(1.0), // TTS playback speed: 0.7–1.3×
+  voxMuted: boolean("voxMuted").default(false), // persistent default mute for TTS
   monthlySpendingLimitCents: int("monthlySpendingLimitCents").default(0), // 0 = no limit
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -1828,3 +1828,18 @@
 - [x] Chat header: VoxEqualiser placed inline next to conversation title
 - [x] Zero TypeScript errors confirmed (exit 0)
 - [x] 28/30 test files passing (2 pre-existing infrastructure failures)
+
+## VOX Mute Persistence & Tab-Visibility Sprint
+- [x] DB: added voxMuted BOOLEAN column to userSettings table (ALTER TABLE + schema.ts)
+- [x] API: settings.update input schema extended with voxMuted (z.boolean().optional())
+- [x] API: settings.get default object now includes voxMuted: false
+- [x] Chat.tsx: voxMuted initialised from userSettings on load (useEffect sync alongside voxSpeed)
+- [x] Chat.tsx: mute toggle onClick now calls updateVoxMuted.mutate({ voxMuted: next }) immediately
+- [x] Chat.tsx: mute toggle also calls setIsAutoPlaying(false) to clear equaliser on mute
+- [x] Settings.tsx: VolumeX icon imported from lucide-react
+- [x] Settings.tsx: voxMuted state added, synced from settings in useEffect
+- [x] Settings.tsx: "Default mute" Switch added below Auto-read toggle in Voice & Audio card
+- [x] Chat.tsx: document.visibilitychange listener stops streamingVoicePlayer + voiceService when tab is hidden
+- [x] Chat.tsx: visibility listener also resets isAutoPlaying and playingMessageId to hide equaliser
+- [x] Zero TypeScript errors confirmed (exit 0)
+- [x] 28/30 test files passing (2 pre-existing infrastructure failures)

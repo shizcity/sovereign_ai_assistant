@@ -741,6 +741,7 @@ export const appRouter = router({
           lastDigestSent: null,
           ttsEnabled: false,
           voxSpeed: 1.0,
+          voxMuted: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -760,6 +761,7 @@ export const appRouter = router({
         emailDigestFrequency: z.enum(["weekly", "monthly", "both", "off"]).optional(),
         ttsEnabled: z.boolean().optional(),
         voxSpeed: z.number().min(0.5).max(2.0).optional(),
+        voxMuted: z.boolean().optional(),
         monthlySpendingLimitCents: z.number().int().min(0).max(100000).optional(),
       }))
       .mutation(async ({ ctx, input }) => {

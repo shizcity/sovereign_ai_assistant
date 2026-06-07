@@ -113,9 +113,9 @@ export default function Chat() {
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
 
-  // VOX inline controls — speed persisted to DB, mute is session-local
+  // VOX inline controls — both speed and mute persisted to DB
   const [voxSpeed, setVoxSpeed] = useState(1.0);   // 0.7–1.3× (synced from userSettings on load)
-  const [voxMuted, setVoxMuted] = useState(false);  // per-session mute (not persisted)
+  const [voxMuted, setVoxMuted] = useState(false);  // persisted default mute
   const voxSpeedSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Tracks whether auto-TTS (not per-message) is currently streaming audio
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
@@ -246,16 +246,34 @@ export default function Chat() {
     setRoutingDismissed(false);
   }, [conversationSentinels]);
 
-  // Sync voxSpeed from DB on first load
+  // Stop all TTS audio when the browser tab loses focus (tab switch / minimize)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        streamingVoicePlayer.stop();
+        voiceService.stopSpeaking();
+        setIsAutoPlaying(false);
+        setPlayingMessageId(null);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  // Sync voxSpeed and voxMuted from DB on first load
   useEffect(() => {
     if (userSettings?.voxSpeed != null) {
       setVoxSpeed(userSettings.voxSpeed);
     }
+    if (userSettings?.voxMuted != null) {
+      setVoxMuted(userSettings.voxMuted);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userSettings?.voxSpeed !== undefined]);
+  }, [userSettings?.voxSpeed !== undefined, userSettings?.voxMuted !== undefined]);
 
-  // VOX speed persist mutation
+  // VOX speed and mute persist mutations
   const updateVoxSpeed = trpc.settings.update.useMutation();
+  const updateVoxMuted = trpc.settings.update.useMutation();
 
   // TTS quick-toggle mutation (persists to DB)
   const updateTtsEnabled = trpc.settings.update.useMutation({
@@ -1688,9 +1706,11 @@ export default function Chat() {
                       onClick={() => {
                         const next = !voxMuted;
                         setVoxMuted(next);
+                        updateVoxMuted.mutate({ voxMuted: next });
                         if (next) {
                           streamingVoicePlayer.stop();
                           voiceService.stopSpeaking();
+                          setIsAutoPlaying(false);
                         }
                       }}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${

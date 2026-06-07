@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Save, RotateCcw, Volume2, Terminal, DollarSign, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Save, RotateCcw, Volume2, VolumeX, Terminal, DollarSign, AlertTriangle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -35,6 +35,7 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [voxMuted, setVoxMuted] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [spendingLimit, setSpendingLimit] = useState("");
 
@@ -76,6 +77,7 @@ export default function Settings() {
     if (settings) {
       setDefaultModel(settings.defaultModel || "gpt-4");
       setTtsEnabled(settings.ttsEnabled ?? false);
+      setVoxMuted((settings as any).voxMuted ?? false);
       setSystemPrompt((settings as any).systemPrompt || "");
       setSpendingLimit((settings as any).monthlySpendingLimitCents ? String(((settings as any).monthlySpendingLimitCents / 100).toFixed(2)) : "");
     }
@@ -319,6 +321,27 @@ export default function Settings() {
                   onCheckedChange={(checked) => {
                     setTtsEnabled(checked);
                     updateSettings.mutate({ ttsEnabled: checked });
+                  }}
+                />
+              </div>
+
+              {/* Default mute toggle */}
+              <div className="flex items-center justify-between border-t border-white/10 pt-5">
+                <div className="space-y-1">
+                  <Label htmlFor="vox-muted-toggle" className="text-base font-medium flex items-center gap-2">
+                    {voxMuted ? <VolumeX className="h-4 w-4 text-red-400" /> : <Volume2 className="h-4 w-4 text-cyan-400" />}
+                    Default mute
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Start every session with voice muted. You can still unmute per-session using the toolbar in chat.
+                  </p>
+                </div>
+                <Switch
+                  id="vox-muted-toggle"
+                  checked={voxMuted}
+                  onCheckedChange={(checked) => {
+                    setVoxMuted(checked);
+                    updateSettings.mutate({ voxMuted: checked } as any);
                   }}
                 />
               </div>
