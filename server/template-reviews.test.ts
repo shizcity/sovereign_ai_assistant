@@ -297,28 +297,33 @@ describe("template reviews", () => {
       rating: 5,
     });
 
-    // Fetch featured templates
-    const featured = await caller.templates.getFeatured({ limit: 100 }); // Increase limit to catch all featured
+    // Fetch featured templates with a high limit to ensure our test templates are included
+    // even when many other featured templates already exist in the DB
+    const featured = await caller.templates.getFeatured({ limit: 10000 });
 
     // Verify results
     expect(featured).toBeInstanceOf(Array);
-    
+
+    // Filter to only the templates created in this test run
+    const testTemplateIds = new Set([template1.id, template2.id, template3.id]);
+    const testFeatured = featured.filter(t => testTemplateIds.has(t.id));
+
     // Template1 and Template2 should be featured (4+ stars, 3+ reviews)
-    const featuredIds = featured.map(t => t.id);
-    expect(featuredIds).toContain(template1.id);
-    expect(featuredIds).toContain(template2.id);
-    
+    const testFeaturedIds = testFeatured.map(t => t.id);
+    expect(testFeaturedIds).toContain(template1.id);
+    expect(testFeaturedIds).toContain(template2.id);
+
     // Template3 should NOT be featured (only 2 reviews)
-    expect(featuredIds).not.toContain(template3.id);
+    expect(testFeaturedIds).not.toContain(template3.id);
 
     // Verify rating data is included for template1
-    const template1Featured = featured.find(t => t.id === template1.id);
+    const template1Featured = testFeatured.find(t => t.id === template1.id);
     expect(template1Featured).toBeDefined();
     expect(template1Featured?.averageRating).toBeGreaterThanOrEqual(4.0);
     expect(template1Featured?.reviewCount).toBeGreaterThanOrEqual(3);
-    
+
     // Verify template2 also has correct ratings
-    const template2Featured = featured.find(t => t.id === template2.id);
+    const template2Featured = testFeatured.find(t => t.id === template2.id);
     expect(template2Featured).toBeDefined();
     expect(template2Featured?.averageRating).toBeGreaterThanOrEqual(4.0);
     expect(template2Featured?.reviewCount).toBeGreaterThanOrEqual(3);

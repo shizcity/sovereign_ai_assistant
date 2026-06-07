@@ -159,7 +159,7 @@ describe("Memory Suggestions System", () => {
       expect(Array.isArray(suggestions)).toBe(true);
       // Should limit to top 3 even if more are detected
       expect(suggestions.length).toBeLessThanOrEqual(3);
-    });
+    }, 15000); // Allow up to 15s for LLM-backed detection
   });
 
   describe("Importance Scoring", () => {

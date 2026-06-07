@@ -1,21 +1,25 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { appRouter } from "./routers";
-import { db } from "./db";
+import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 describe("Subscription Management", () => {
   let proUserId: number;
   let freeUserId: number;
+  const ts = Date.now();
 
   beforeAll(async () => {
-    // Create test Pro user with Stripe customer ID
+    const db = await getDb();
+    if (!db) throw new Error("Database connection failed");
+
+    // Create test Pro user with Stripe customer ID — unique openId per run
     const [proUser] = await db
       .insert(users)
       .values({
-        openId: `test-pro-mgmt-${Date.now()}`,
+        openId: `test-pro-mgmt-${ts}`,
         name: "Pro Management Test",
-        email: `pro-mgmt-${Date.now()}@example.com`,
+        email: `pro-mgmt-${ts}@example.com`,
         loginMethod: "google",
         subscriptionTier: "pro",
         subscriptionStatus: "active",
@@ -29,9 +33,9 @@ describe("Subscription Management", () => {
     const [freeUser] = await db
       .insert(users)
       .values({
-        openId: `test-free-mgmt-${Date.now()}`,
+        openId: `test-free-mgmt-${ts}`,
         name: "Free Management Test",
-        email: `free-mgmt-${Date.now()}@example.com`,
+        email: `free-mgmt-${ts}@example.com`,
         loginMethod: "google",
         subscriptionTier: "free",
         subscriptionStatus: "active",
@@ -40,10 +44,20 @@ describe("Subscription Management", () => {
     freeUserId = freeUser.id;
   });
 
+  afterAll(async () => {
+    // Clean up test users to keep the DB tidy across runs
+    const db = await getDb();
+    if (!db) return;
+    if (proUserId) await db.delete(users).where(eq(users.id, proUserId));
+    if (freeUserId) await db.delete(users).where(eq(users.id, freeUserId));
+  });
+
   describe("Customer Portal Access", () => {
     it("should allow Pro users with Stripe customer ID to create portal session", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
+
       const caller = appRouter.createCaller({
         user: proUser,
         req: { headers: { origin: "http://localhost:3000" } } as any,
@@ -52,14 +66,11 @@ describe("Subscription Management", () => {
 
       try {
         const result = await caller.subscription.createPortalSession();
-        
-        // Should return portal URL
         expect(result).toHaveProperty("url");
         expect(typeof result.url).toBe("string");
         expect(result.url).toMatch(/^https:\/\/billing\.stripe\.com/);
       } catch (error: any) {
         // If Stripe API is unavailable in test, that's okay
-        // We're mainly testing the procedure exists and has proper auth
         if (!error.message.includes("No active subscription")) {
           expect(true).toBe(true);
         } else {
@@ -69,8 +80,10 @@ describe("Subscription Management", () => {
     });
 
     it("should block Free users from creating portal session", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
       const freeUser = await db.select().from(users).where(eq(users.id, freeUserId)).then(r => r[0]);
-      
+
       const caller = appRouter.createCaller({
         user: freeUser,
         req: { headers: { origin: "http://localhost:3000" } } as any,
@@ -85,8 +98,10 @@ describe("Subscription Management", () => {
 
   describe("Subscription Status Display", () => {
     it("should return correct status for Pro user", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
       const proUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
+
       const caller = appRouter.createCaller({
         user: proUser,
         req: {} as any,
@@ -94,14 +109,15 @@ describe("Subscription Management", () => {
       });
 
       const status = await caller.subscription.getStatus();
-      
       expect(status.tier).toBe("pro");
       expect(status.status).toBe("active");
     });
 
     it("should return correct status for Free user", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
       const freeUser = await db.select().from(users).where(eq(users.id, freeUserId)).then(r => r[0]);
-      
+
       const caller = appRouter.createCaller({
         user: freeUser,
         req: {} as any,
@@ -109,7 +125,6 @@ describe("Subscription Management", () => {
       });
 
       const status = await caller.subscription.getStatus();
-      
       expect(status.tier).toBe("free");
       expect(status.status).toBe("active");
     });
@@ -117,74 +132,61 @@ describe("Subscription Management", () => {
 
   describe("Downgrade Flow", () => {
     it("should handle subscription cancellation", async () => {
-      // Simulate subscription canceled webhook
-      const testUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
-      // Update user to canceled status
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
       await db
         .update(users)
-        .set({
-          subscriptionStatus: "canceled",
-          subscriptionTier: "free",
-        })
+        .set({ subscriptionStatus: "canceled", subscriptionTier: "free" })
         .where(eq(users.id, proUserId));
 
-      // Verify downgrade
       const updatedUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
       expect(updatedUser.subscriptionTier).toBe("free");
       expect(updatedUser.subscriptionStatus).toBe("canceled");
 
-      // Restore for other tests
+      // Restore
       await db
         .update(users)
-        .set({
-          subscriptionStatus: "active",
-          subscriptionTier: "pro",
-        })
+        .set({ subscriptionStatus: "active", subscriptionTier: "pro" })
         .where(eq(users.id, proUserId));
     });
 
     it("should preserve user data after downgrade", async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
       const beforeDowngrade = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
-      // Simulate downgrade
+
       await db
         .update(users)
-        .set({
-          subscriptionTier: "free",
-        })
+        .set({ subscriptionTier: "free" })
         .where(eq(users.id, proUserId));
 
       const afterDowngrade = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
-      // User data should be preserved
       expect(afterDowngrade.email).toBe(beforeDowngrade.email);
       expect(afterDowngrade.name).toBe(beforeDowngrade.name);
       expect(afterDowngrade.stripeCustomerId).toBe(beforeDowngrade.stripeCustomerId);
-      
+
       // Restore
       await db
         .update(users)
-        .set({
-          subscriptionTier: "pro",
-        })
+        .set({ subscriptionTier: "pro" })
         .where(eq(users.id, proUserId));
     });
   });
 
   describe("Usage Limits After Downgrade", () => {
     it("should enforce Free tier limits after downgrade", async () => {
-      // Temporarily downgrade Pro user
+      const db = await getDb();
+      if (!db) throw new Error("Database connection failed");
+
       await db
         .update(users)
-        .set({
-          subscriptionTier: "free",
-        })
+        .set({ subscriptionTier: "free" })
         .where(eq(users.id, proUserId));
 
       const downgradedUser = await db.select().from(users).where(eq(users.id, proUserId)).then(r => r[0]);
-      
+
       const caller = appRouter.createCaller({
         user: downgradedUser,
         req: {} as any,
@@ -192,16 +194,12 @@ describe("Subscription Management", () => {
       });
 
       const usage = await caller.subscription.getUsage();
-      
-      // Should have Free tier limit
       expect(usage.limit).toBe(50);
-      
+
       // Restore
       await db
         .update(users)
-        .set({
-          subscriptionTier: "pro",
-        })
+        .set({ subscriptionTier: "pro" })
         .where(eq(users.id, proUserId));
     });
   });

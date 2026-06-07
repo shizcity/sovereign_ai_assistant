@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { getWarningState, getUsageStats } from "./usage-tracking";
 import { getDb } from "./db";
 import { users, conversations, messages } from "../drizzle/schema";
@@ -7,18 +7,19 @@ import { eq } from "drizzle-orm";
 describe("Usage Warning System", () => {
   let testUserId: number;
   let testConversationId: number;
+  const uniqueSuffix = Date.now();
 
   beforeAll(async () => {
     const db = await getDb();
     if (!db) throw new Error("Database connection failed");
 
-    // Create test user with free tier
+    // Create test user with free tier — unique openId to prevent duplicate entry on repeated runs
     const [user] = await db
       .insert(users)
       .values({
-        openId: "test_warning_user",
+        openId: `test_warning_user_${uniqueSuffix}`,
         name: "Test Warning User",
-        email: "warning@test.com",
+        email: `warning_${uniqueSuffix}@test.com`,
         loginMethod: "google",
         subscriptionTier: "free",
         subscriptionStatus: "active",
@@ -148,5 +149,18 @@ describe("Usage Warning System", () => {
     expect(result.level).toBe("none");
     expect(result.limit).toBe(-1); // Unlimited
     expect(result.remaining).toBe(-1);
+  });
+
+  afterAll(async () => {
+    const db = await getDb();
+    if (!db) return;
+    // Clean up test data to keep the DB tidy across runs
+    if (testConversationId) {
+      await db.delete(messages).where(eq(messages.conversationId, testConversationId));
+      await db.delete(conversations).where(eq(conversations.id, testConversationId));
+    }
+    if (testUserId) {
+      await db.delete(users).where(eq(users.id, testUserId));
+    }
   });
 });
