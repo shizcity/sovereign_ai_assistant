@@ -544,6 +544,10 @@ export default function Sentinels() {
                           className={`border-b border-white/5 transition-colors hover:bg-white/4 ${
                             i === 0 ? "bg-gradient-to-r from-yellow-500/5 to-transparent" : ""
                           }`}
+                          style={{
+                            animation: `rowSlideIn 0.4s ease both`,
+                            animationDelay: `${i * 60}ms`,
+                          }}
                         >
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
@@ -605,6 +609,46 @@ export default function Sentinels() {
             <p className="text-xs text-white/25 mt-3 text-center">Sorted by average confidence · Only Sentinels used in Round Table sessions appear here</p>
           </div>
         )}
+
+        {/* Round Table CTA */}
+        <div className="mt-16">
+          <div className="relative overflow-hidden rounded-2xl border border-purple-500/25 p-8 md:p-12 text-center"
+            style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(6,182,212,0.06) 50%, rgba(139,92,246,0.08) 100%)" }}
+          >
+            {/* Ambient glow blobs */}
+            <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)" }} />
+            <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)" }} />
+
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-300 text-xs font-semibold mb-5 tracking-wide uppercase">
+                <span>⚡</span> Multi-Sentinel Feature
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                Put them in a room together
+              </h2>
+              <p className="text-slate-300 text-lg max-w-xl mx-auto mb-8 leading-relaxed">
+                Round Table lets multiple Sentinels debate a single question simultaneously — surfacing angles, contradictions, and insights no single AI can match.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a
+                  href="/round-table"
+                  className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl font-semibold text-base text-white transition-all duration-200 shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, #8b5cf6, #6366f1)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, #7c3aed, #4f46e5)"; }}
+                >
+                  Start a Round Table →
+                </a>
+                <a
+                  href="/chat"
+                  className="inline-flex items-center gap-2 px-6 py-4 rounded-xl font-medium text-base text-white/70 hover:text-white border border-white/10 hover:border-white/25 transition-all duration-200"
+                >
+                  Or chat one-on-one
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Getting Started Section */}
         <div className="mt-16 text-center">
