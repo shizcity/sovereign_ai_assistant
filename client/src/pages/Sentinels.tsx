@@ -21,6 +21,7 @@ export default function Sentinels() {
 
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
   const { data: sentinelStats } = trpc.sentinels.stats.useQuery(undefined, { enabled: !!user });
+  const { data: allRelationships } = trpc.sentinels.getAllRelationships.useQuery(undefined, { enabled: !!user });
 
   // Pro-only Sentinels are shown as locked cards for free users
   // We fetch all 6 for the gallery display (the backend filters for chat use)
@@ -392,6 +393,41 @@ export default function Sentinels() {
                         </a>
                       </div>
                     )}
+
+                    {/* Relationship depth bar */}
+                    {(() => {
+                      if (!user || isLocked) return null;
+                      const rel = allRelationships?.find(r => r.sentinelId === sentinel.id);
+                      const interactions = rel?.totalInteractions ?? 0;
+                      if (interactions === 0) return null;
+                      // Compute progress 0-100 toward next level
+                      const progress = interactions >= 200 ? 100
+                        : interactions >= 50  ? Math.round(((interactions - 50) / 150) * 100)
+                        : interactions >= 10  ? Math.round(((interactions - 10) / 40) * 100)
+                        : Math.round((interactions / 10) * 100);
+                      const levelLabel = interactions >= 200 ? "Partner"
+                        : interactions >= 50 ? "Trusted Advisor"
+                        : interactions >= 10 ? "Colleague"
+                        : "Acquaintance";
+                      return (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: `${sentinel.primaryColor}90` }}>Rapport</span>
+                            <span className="text-[10px] text-white/40">{levelLabel}</span>
+                          </div>
+                          <div className="h-1 rounded-full bg-white/8 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{
+                                width: `${progress}%`,
+                                background: `linear-gradient(90deg, ${sentinel.primaryColor}80, ${sentinel.primaryColor})`,
+                                boxShadow: `0 0 8px ${sentinel.primaryColor}50`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Hover radial glow */}
                     {!isLocked && (

@@ -1799,28 +1799,42 @@ export default function Chat() {
                       </SelectContent>
                     </Select>
                   )}
-                  <textarea
-                    ref={messageInputRef}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      // Enter: Send message (Shift+Enter for new line)
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                      // Cmd/Ctrl+Enter: Also send message
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="Type your message... (⏎ to send, ⇧⏎ for new line)"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 resize-none transition-all duration-200 hover:bg-white/8 overflow-y-auto"
-                    rows={3}
-                    style={{ minHeight: '80px', maxHeight: '288px' }}
-                    disabled={sendMessage.isPending}
-                  />
+                  <div className="flex-1 flex flex-col">
+                    <textarea
+                      ref={messageInputRef}
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        // Enter: Send message (Shift+Enter for new line)
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                        // Cmd/Ctrl+Enter: Also send message
+                        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Type your message…"
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 resize-none transition-all duration-200 hover:bg-white/8 overflow-y-auto"
+                      rows={3}
+                      style={{ minHeight: '80px', maxHeight: '288px' }}
+                      disabled={sendMessage.isPending}
+                    />
+                    {/* Keyboard shortcut hint — desktop only */}
+                    <div className="hidden md:flex items-center justify-end gap-3 mt-1.5 pr-1">
+                      <span className="text-[10px] text-white/20 select-none">
+                        <kbd className="font-sans bg-white/8 border border-white/12 rounded px-1 py-0.5 text-[10px] text-white/30">⏎</kbd>
+                        {" "}to send
+                      </span>
+                      <span className="text-white/15 text-[10px]">·</span>
+                      <span className="text-[10px] text-white/20 select-none">
+                        <kbd className="font-sans bg-white/8 border border-white/12 rounded px-1 py-0.5 text-[10px] text-white/30">⇧⏎</kbd>
+                        {" "}new line
+                      </span>
+                    </div>
+                  </div>
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || sendMessage.isPending}
