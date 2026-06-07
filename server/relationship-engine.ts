@@ -37,6 +37,7 @@ export interface RelationshipData {
   topicSummary: string | null;
   lastInteraction: Date | null;
   collaborationAreas: string[];
+  currentStreak: number; // Consecutive days chatted with this Sentinel
 }
 
 // ─── Level computation ────────────────────────────────────────────────────────
@@ -139,10 +140,31 @@ export async function updateRelationship(
     const newLevel = computeRelationshipLevel(newCount);
     const leveledUp = newLevel !== prevLevel;
 
+    // Compute daily streak
+    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const lastStreakDate: string | null = existing?.lastStreakDate ?? null;
+    const prevStreak: number = existing?.currentStreak ?? 0;
+    let newStreak = prevStreak;
+    if (lastStreakDate === null) {
+      // First interaction ever
+      newStreak = 1;
+    } else if (lastStreakDate === todayStr) {
+      // Already interacted today — streak unchanged
+      newStreak = prevStreak;
+    } else {
+      // Check if yesterday
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().slice(0, 10);
+      newStreak = lastStreakDate === yesterdayStr ? prevStreak + 1 : 1;
+    }
+
     const updates: Record<string, any> = {
       totalInteractions: newCount,
       lastInteraction: new Date(),
       relationshipLevel: newLevel,
+      currentStreak: newStreak,
+      lastStreakDate: todayStr,
     };
 
     // Build/refresh user model every 10 interactions (async, non-blocking)
@@ -402,5 +424,6 @@ function parseRelationshipRow(row: any): RelationshipData {
     topicSummary: row.topicSummary || null,
     lastInteraction: row.lastInteraction ? new Date(row.lastInteraction) : null,
     collaborationAreas,
+    currentStreak: row.currentStreak ?? 0,
   };
 }

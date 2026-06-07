@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE sentinelMemory ADD COLUMN currentStreak INT NOT NULL DEFAULT 0; ALTER TABLE sentinelMemory ADD COLUMN lastStreakDate VARCHAR(10) NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute ALTER TABLE sentinelMemory ADD COLUMN currentStreak INT NOT NULL DEFAULT 0; ALTER TABLE sentinelMemory ADD COLUMN lastStreakDate VARCHAR(10) NULL;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 701
+}

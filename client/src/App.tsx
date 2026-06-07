@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense, useCallback } from "react";
+import { CommandPalette } from "@/components/CommandPalette";
 import { UsageWarningBanner } from "@/components/UsageWarningBanner";
 import { UsageWarningModal } from "@/components/UsageWarningModal";
 import { LimitReachedOverlay } from "@/components/LimitReachedOverlay";
@@ -77,6 +78,20 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [location] = useLocation();
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
+
+  // Global ⌘K / Ctrl+K shortcut to open command palette
+  const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      setCmdPaletteOpen(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [handleGlobalKeyDown]);
 
   // Referral claim logic — store ?ref= code on landing, claim once user is authenticated
   const claimReferral = trpc.referral.claim.useMutation();
@@ -143,6 +158,8 @@ function App() {
           <OnboardingModal open={showOnboarding} onComplete={handleOnboardingComplete} />
           {/* What's New Modal */}
           <WhatsNewModal open={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
+          {/* Global ⌘K Command Palette */}
+          <CommandPalette open={cmdPaletteOpen} onClose={() => setCmdPaletteOpen(false)} />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

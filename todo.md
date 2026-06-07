@@ -1849,3 +1849,21 @@
 - [x] Landing page — section headings upgraded to heading-gradient, feature/testimonial cards use card-interactive, Pro pricing card stronger glow + MOST POPULAR badge, final CTA headline improved
 - [x] Chat interface — export buttons collapsed into dropdown, assistant bubbles get left cyan accent border, metadata row tightened, send button stronger hover glow, textarea focus ring upgraded
 - [x] Settings — Voice & Audio card gets top accent line + cyan icon, voxSpeed slider row added with live readout and Reset
+
+## Streak Indicator & ⌘K Command Palette Sprint
+- [x] DB: added currentStreak INT and lastStreakDate VARCHAR(10) columns to sentinelMemory table
+- [x] Schema: currentStreak + lastStreakDate added to sentinelMemory in schema.ts
+- [x] relationship-engine.ts: streak logic — increment on consecutive days, reset on gap, unchanged if same day
+- [x] relationship-engine.ts: RelationshipData interface extended with currentStreak field
+- [x] relationship-engine.ts: parseRelationshipRow maps currentStreak from DB row
+- [x] Sentinels.tsx: 🔥 streak indicator shown on rapport bar when streak >= 2 (orange, "{N}d" label)
+- [x] useDebounce hook created at client/src/hooks/useDebounce.ts
+- [x] CommandPalette component created — floating modal, shadcn Command, 250ms debounced search
+- [x] CommandPalette: uses trpc.conversations.search query (enabled when query >= 2 chars)
+- [x] CommandPalette: shows conversationTitle + snippet + date for each result
+- [x] CommandPalette: navigate to /chat/{id} on select, ESC to close, keyboard nav
+- [x] App.tsx: global ⌘K / Ctrl+K shortcut opens/closes CommandPalette
+- [x] App.tsx: CommandPalette rendered at global level (above Router)
+- [x] Chat.tsx: removed local ⌘K → focus search handler (global palette takes over)
+- [x] Zero TypeScript errors confirmed
+- [x] 28/30 test files passing (2 pre-existing infrastructure failures, unrelated)

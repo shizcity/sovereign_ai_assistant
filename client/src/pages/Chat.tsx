@@ -324,12 +324,6 @@ export default function Chat() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl+K: Focus search
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-      
       // Cmd/Ctrl+N: New conversation
       if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();

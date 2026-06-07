@@ -409,11 +409,19 @@ export default function Sentinels() {
                         : interactions >= 50 ? "Trusted Advisor"
                         : interactions >= 10 ? "Colleague"
                         : "Acquaintance";
+                      const streak = rel?.currentStreak ?? 0;
                       return (
                         <div className="mt-3">
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: `${sentinel.primaryColor}90` }}>Rapport</span>
-                            <span className="text-[10px] text-white/40">{levelLabel}</span>
+                            <div className="flex items-center gap-2">
+                              {streak >= 2 && (
+                                <span className="text-[10px] text-orange-400/80 flex items-center gap-0.5">
+                                  🔥 <span className="font-semibold">{streak}d</span>
+                                </span>
+                              )}
+                              <span className="text-[10px] text-white/40">{levelLabel}</span>
+                            </div>
                           </div>
                           <div className="h-1 rounded-full bg-white/8 overflow-hidden">
                             <div

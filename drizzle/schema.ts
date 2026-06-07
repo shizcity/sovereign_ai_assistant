@@ -242,6 +242,8 @@ export const sentinelMemory = mysqlTable("sentinel_memory", {
   userModel: text("userModel"), // JSON: { preferences, communicationStyle, recurringThemes, decisionPatterns }
   topicSummary: text("topicSummary"), // Short human-readable summary of collaboration areas
   roundTableCount: int("roundTableCount").default(0), // How many Round Table sessions included this Sentinel
+  currentStreak: int("currentStreak").default(0).notNull(), // Consecutive days chatted with this Sentinel
+  lastStreakDate: varchar("lastStreakDate", { length: 10 }), // YYYY-MM-DD of last streak increment
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
