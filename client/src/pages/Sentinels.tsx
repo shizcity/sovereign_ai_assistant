@@ -227,17 +227,17 @@ export default function Sentinels() {
               return (
                 <Card
                   key={sentinel.id}
-                  className={`group relative overflow-hidden border-2 transition-all duration-300 ${
+                  className={`group relative overflow-hidden border transition-all duration-300 card-interactive ${
                     isLocked
-                      ? "border-yellow-500/20 cursor-pointer opacity-70 hover:opacity-90 hover:border-yellow-500/40"
+                      ? "border-yellow-500/20 cursor-pointer opacity-75 hover:opacity-95 hover:border-yellow-500/40"
                       : selectedSentinel === sentinel.id
-                      ? "border-purple-400 shadow-2xl shadow-purple-500/50 scale-105 cursor-pointer"
-                      : "border-slate-700 hover:border-slate-500 hover:shadow-xl cursor-pointer"
+                      ? "border-purple-400/70 shadow-2xl shadow-purple-500/40 scale-[1.02] cursor-pointer"
+                      : "border-white/10 hover:border-white/25 cursor-pointer"
                   }`}
                   style={{
                     background: isLocked
-                      ? `linear-gradient(135deg, ${sentinel.primaryColor}08 0%, ${sentinel.primaryColor}03 100%)`
-                      : `linear-gradient(135deg, ${sentinel.primaryColor}15 0%, ${sentinel.primaryColor}05 100%)`,
+                      ? `linear-gradient(135deg, ${sentinel.primaryColor}08 0%, rgba(15,15,25,0.95) 100%)`
+                      : `linear-gradient(135deg, ${sentinel.primaryColor}18 0%, rgba(15,15,25,0.95) 100%)`,
                   }}
                   onClick={() => {
                     if (isLocked) {
@@ -269,9 +269,10 @@ export default function Sentinels() {
                     {/* Icon and Name */}
                     <div className="flex items-center gap-3 mb-4">
                       <div
-                        className="text-4xl flex items-center justify-center w-16 h-16 rounded-full"
+                        className="text-4xl flex items-center justify-center w-16 h-16 rounded-full ring-2 ring-offset-2 ring-offset-transparent transition-all duration-300 group-hover:ring-4"
                         style={{
                           background: `linear-gradient(135deg, ${sentinel.primaryColor}40, ${sentinel.primaryColor}20)`,
+                          boxShadow: `0 0 0 2px ${sentinel.primaryColor}35, 0 0 16px ${sentinel.primaryColor}15`,
                         }}
                       >
                         {sentinel.symbolEmoji}
@@ -342,12 +343,41 @@ export default function Sentinels() {
                       </div>
                     )}
 
-                    {/* Hover Effect */}
+                    {/* Chat CTA — shown for unlocked Sentinels */}
+                    {!isLocked && (
+                      <div className="mt-4 pt-4 border-t border-white/8">
+                        <a
+                          href="/chat"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-200"
+                          style={{
+                            background: `linear-gradient(135deg, ${sentinel.primaryColor}30, ${sentinel.primaryColor}15)`,
+                            border: `1px solid ${sentinel.primaryColor}40`,
+                            color: sentinel.primaryColor,
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLAnchorElement).style.background = `linear-gradient(135deg, ${sentinel.primaryColor}50, ${sentinel.primaryColor}30)`;
+                            (e.currentTarget as HTMLAnchorElement).style.borderColor = `${sentinel.primaryColor}70`;
+                            (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 20px ${sentinel.primaryColor}25`;
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLAnchorElement).style.background = `linear-gradient(135deg, ${sentinel.primaryColor}30, ${sentinel.primaryColor}15)`;
+                            (e.currentTarget as HTMLAnchorElement).style.borderColor = `${sentinel.primaryColor}40`;
+                            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+                          }}
+                        >
+                          <span style={{ fontSize: "1rem" }}>{sentinel.symbolEmoji}</span>
+                          Chat with {sentinel.name}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Hover radial glow */}
                     {!isLocked && (
                       <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"
                         style={{
-                          background: `radial-gradient(circle at center, ${sentinel.primaryColor}, transparent)`,
+                          background: `radial-gradient(circle at 30% 30%, ${sentinel.primaryColor}, transparent 70%)`,
                         }}
                       />
                     )}

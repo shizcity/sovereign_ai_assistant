@@ -909,13 +909,13 @@ export default function Chat() {
 
   return (
     <div className="h-screen flex relative overflow-hidden">
-      {/* Mobile sidebar overlay backdrop */}
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile sidebar overlay backdrop — always mounted so opacity can transition in/out */}
+      <div
+        className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300 ${
+          mobileSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileSidebarOpen(false)}
+      />
       {/* Animated gradient background */}
       <div 
         className="absolute inset-0 animate-gradient" 
