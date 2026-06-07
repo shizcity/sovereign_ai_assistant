@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, TrendingDown, Clock } from "lucide-react";
+import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, TrendingDown, Clock, CheckCircle2, MessageSquare, Users } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { ShareNudgeCard } from "@/components/ShareNudgeCard";
@@ -39,6 +39,10 @@ export default function Sentinels() {
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
   const [showShareNudge, setShowShareNudge] = useState(false);
+  const [ctaVisible, setCtaVisible] = useState(false);
+  const [gettingStartedVisible, setGettingStartedVisible] = useState(false);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const gettingStartedRef = useRef<HTMLDivElement>(null);
   const [previewSentinel, setPreviewSentinel] = useState<{
     id: number; slug: string; name: string; archetype: string; primaryFunction: string;
     symbolEmoji: string; primaryColor: string; personalityTraits: string[]; specialties: string[];
@@ -47,6 +51,23 @@ export default function Sentinels() {
 
   useEffect(() => {
     document.title = "Meet the Sentinels - Glow";
+  }, []);
+
+  // Scroll-triggered entrance animations
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+    const observe = (ref: React.RefObject<HTMLDivElement | null>, setter: (v: boolean) => void) => {
+      if (!ref.current) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) { setter(true); obs.disconnect(); } },
+        { threshold: 0.15 }
+      );
+      obs.observe(ref.current);
+      observers.push(obs);
+    };
+    observe(ctaRef, setCtaVisible);
+    observe(gettingStartedRef, setGettingStartedVisible);
+    return () => observers.forEach(o => o.disconnect());
   }, []);
 
   // Detect post-upgrade redirect from Stripe and show celebration
@@ -610,8 +631,13 @@ export default function Sentinels() {
           </div>
         )}
 
-        {/* Round Table CTA */}
-        <div className="mt-16">
+        {/* Round Table CTA — scroll-triggered entrance */}
+        <div
+          ref={ctaRef}
+          className={`mt-16 transition-all duration-700 ease-out ${
+            ctaVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
           <div className="relative overflow-hidden rounded-2xl border border-purple-500/25 p-8 md:p-12 text-center"
             style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(6,182,212,0.06) 50%, rgba(139,92,246,0.08) 100%)" }}
           >
@@ -650,18 +676,105 @@ export default function Sentinels() {
           </div>
         </div>
 
-        {/* Getting Started Section */}
-        <div className="mt-16 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Begin?</h2>
-          <p className="text-lg text-slate-300 mb-8">
-            Start a new conversation and select a Sentinel to guide your journey.
-          </p>
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/50"
-          >
-            Start Chatting
-          </a>
+        {/* Getting Started — two-column quick-start layout */}
+        <div
+          ref={gettingStartedRef}
+          className={`mt-16 transition-all duration-700 ease-out delay-100 ${
+            gettingStartedVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold heading-gradient mb-3">Ready to Begin?</h2>
+            <p className="text-slate-400 text-lg">Three steps to your first insight.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Left: Quick-start checklist */}
+            <div className="space-y-0">
+              {[
+                { icon: <Users className="w-5 h-5" />, step: "01", title: "Pick a Sentinel", desc: "Choose the AI personality that matches your goal — analytical, creative, strategic, or disruptive.", color: "#22d3ee", href: "/sentinels" },
+                { icon: <MessageSquare className="w-5 h-5" />, step: "02", title: "Ask a question", desc: "Start a one-on-one conversation. Your Sentinel adapts its tone and depth to your message.", color: "#a78bfa", href: "/chat" },
+                { icon: <CheckCircle2 className="w-5 h-5" />, step: "03", title: "Start a Round Table", desc: "Bring multiple Sentinels into one debate to surface contradictions and deeper insights.", color: "#34d399", href: "/round-table" },
+              ].map((item, i) => (
+                <a key={i} href={item.href} className="group flex gap-5 p-4 rounded-xl hover:bg-white/4 transition-colors duration-200">
+                  {/* Step indicator + connector */}
+                  <div className="flex flex-col items-center shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-transform duration-200 group-hover:scale-110"
+                      style={{ background: `${item.color}20`, border: `1.5px solid ${item.color}50`, color: item.color }}
+                    >
+                      {item.step}
+                    </div>
+                    {i < 2 && (
+                      <div className="w-px flex-1 mt-1 mb-1" style={{ background: `linear-gradient(to bottom, ${item.color}40, transparent)`, minHeight: "28px" }} />
+                    )}
+                  </div>
+                  {/* Content */}
+                  <div className="pt-1.5 pb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span style={{ color: item.color }}>{item.icon}</span>
+                      <h3 className="font-semibold text-white group-hover:text-white/90">{item.title}</h3>
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            {/* Right: Animated preview card */}
+            <div className="relative">
+              <div
+                className="rounded-2xl border border-white/10 overflow-hidden"
+                style={{ background: "linear-gradient(135deg, rgba(15,15,30,0.95) 0%, rgba(10,10,25,0.98) 100%)" }}
+              >
+                {/* Card header */}
+                <div className="px-5 py-3.5 border-b border-white/8 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-base" style={{ background: "rgba(34,211,238,0.15)", border: "1px solid rgba(34,211,238,0.3)" }}>🧠</div>
+                  <div>
+                    <div className="text-sm font-semibold text-white">Lunaris.Vault</div>
+                    <div className="text-xs text-slate-500">Strategic Analyst</div>
+                  </div>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs text-emerald-400/70">Online</span>
+                  </div>
+                </div>
+                {/* Mock conversation */}
+                <div className="p-5 space-y-4">
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm text-white" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.7), rgba(79,70,229,0.8))" }}>
+                      What's the core risk in my strategy?
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5" style={{ background: "rgba(34,211,238,0.12)", border: "1px solid rgba(34,211,238,0.2)" }}>🧠</div>
+                    <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-sm text-sm text-slate-200" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      Three hidden assumptions are load-bearing. Let me surface them…
+                      <span className="inline-block w-1.5 h-3.5 ml-1 bg-cyan-400/70 rounded-sm animate-pulse align-middle" />
+                    </div>
+                  </div>
+                </div>
+                {/* Ambient glow */}
+                <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(34,211,238,0.12) 0%, transparent 70%)" }} />
+              </div>
+              {/* CTA below preview */}
+              <div className="mt-5 flex gap-3">
+                <a
+                  href="/chat"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 4px 20px rgba(124,58,237,0.3)" }}
+                >
+                  Start Chatting →
+                </a>
+                <a
+                  href="/round-table"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-white/70 hover:text-white border border-white/10 hover:border-white/25 transition-all duration-200"
+                >
+                  Round Table
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
