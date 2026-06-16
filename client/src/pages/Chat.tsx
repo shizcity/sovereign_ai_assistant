@@ -36,6 +36,7 @@ import { useUpgradeToast } from "@/hooks/useUpgradeToast";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
 import { VoxEqualiser } from "@/components/VoxEqualiser";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
@@ -1448,6 +1449,9 @@ export default function Chat() {
                     <MultiSentinelManager conversationId={selectedConversation} />
                   )}
                   
+                  {/* Notification Bell */}
+                  <NotificationBell />
+
                   {/* Export dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

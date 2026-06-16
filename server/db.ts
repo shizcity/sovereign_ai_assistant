@@ -1,4 +1,4 @@
-import { eq, and, inArray, gt } from "drizzle-orm";
+import { eq, and, inArray, gt, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -8,7 +8,11 @@ import {
   messages,
   InsertMessage,
   userSettings,
-  InsertUserSettings
+  InsertUserSettings,
+  notifications,
+  InsertNotification,
+  sentinelCustomisations,
+  InsertSentinelCustomisation
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -263,5 +267,77 @@ export async function upsertUserSettings(userId: number, data: Partial<InsertUse
       .where(eq(userSettings.userId, userId));
   } else {
     await db.insert(userSettings).values({ userId, ...data });
+  }
+}
+
+// ─── Notification helpers ─────────────────────────────────────────────────────
+
+export async function createNotification(data: Omit<InsertNotification, "id" | "createdAt" | "read">): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(notifications).values({ ...data, read: false });
+}
+
+export async function getNotifications(userId: number, limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+export async function getUnreadNotificationCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
+  return rows.length;
+}
+
+export async function markNotificationRead(id: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ read: true })
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+}
+
+export async function markAllNotificationsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(notifications).set({ read: true })
+    .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
+}
+
+// ─── Sentinel Customisation helpers ──────────────────────────────────────────
+
+export async function getSentinelCustomisation(userId: number, sentinelId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(sentinelCustomisations)
+    .where(and(eq(sentinelCustomisations.userId, userId), eq(sentinelCustomisations.sentinelId, sentinelId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertSentinelCustomisation(
+  userId: number,
+  sentinelId: number,
+  data: { customTone?: string | null; customFocus?: string | null }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getSentinelCustomisation(userId, sentinelId);
+  if (existing) {
+    await db.update(sentinelCustomisations)
+      .set({ customTone: data.customTone ?? null, customFocus: data.customFocus ?? null })
+      .where(and(eq(sentinelCustomisations.userId, userId), eq(sentinelCustomisations.sentinelId, sentinelId)));
+  } else {
+    await db.insert(sentinelCustomisations).values({
+      userId,
+      sentinelId,
+      customTone: data.customTone ?? null,
+      customFocus: data.customFocus ?? null,
+    });
   }
 }

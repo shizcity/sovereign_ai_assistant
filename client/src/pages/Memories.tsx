@@ -11,7 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Edit, Plus, Search, Brain, Sparkles, List, Network } from "lucide-react";
+import { Trash2, Pencil, Plus, Search, Brain, Sparkles, List, Network, Check, X as XIcon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 // MemoryGraph is D3-heavy (~40 KB) — lazy-load so it only lands in the bundle
 // when the user switches to graph view.
 const MemoryGraph = lazy(() => import("@/components/MemoryGraph"));
@@ -45,6 +56,8 @@ export default function Memories() {
   const [selectedSentinel, setSelectedSentinel] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingMemory, setEditingMemory] = useState<any>(null);
+  const [inlineEditId, setInlineEditId] = useState<number | null>(null);
+  const [inlineEditContent, setInlineEditContent] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "graph">("list");
   const [selectedGraphNode, setSelectedGraphNode] = useState<any>(null);
@@ -97,9 +110,23 @@ export default function Memories() {
   }, {} as Record<number, any[]>);
 
   const handleDeleteMemory = (memoryId: number) => {
-    if (confirm("Are you sure you want to delete this memory?")) {
-      deleteMemoryMutation.mutate({ memoryId });
-    }
+    deleteMemoryMutation.mutate({ memoryId });
+  };
+
+  const startInlineEdit = (memory: any) => {
+    setInlineEditId(memory.id);
+    setInlineEditContent(memory.content);
+  };
+
+  const saveInlineEdit = (memoryId: number) => {
+    if (!inlineEditContent.trim()) return;
+    updateMemoryMutation.mutate({ memoryId, content: inlineEditContent.trim() });
+    setInlineEditId(null);
+  };
+
+  const cancelInlineEdit = () => {
+    setInlineEditId(null);
+    setInlineEditContent("");
   };
 
   const handleUpdateMemory = (memoryId: number, updates: any) => {
@@ -414,57 +441,120 @@ export default function Memories() {
                   </Badge>
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {memories.map((memory) => (
                     <Card
                       key={memory.id}
-                      className="bg-slate-800/50 border-slate-700 p-6 hover:border-purple-500/50 transition-colors"
+                      className="bg-slate-800/50 border-slate-700 p-4 hover:border-purple-500/50 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge className={categoryColors[memory.category as MemoryCategory]}>
                               {memory.category}
                             </Badge>
-                            <Badge variant="outline" className="text-gray-400">
-                              Importance: {memory.importance}
+                            <Badge variant="outline" className="text-gray-400 text-[10px]">
+                              {memory.importance}% importance
                             </Badge>
                             <span className="text-xs text-gray-500">
                               {new Date(memory.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-gray-200 mb-2">{memory.content}</p>
+
+                          {/* Inline edit mode */}
+                          {inlineEditId === memory.id ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={inlineEditContent}
+                                onChange={(e) => setInlineEditContent(e.target.value)}
+                                className="bg-slate-700/60 border-cyan-500/40 text-white text-sm resize-none min-h-[70px] focus:border-cyan-500/70"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveInlineEdit(memory.id);
+                                  if (e.key === "Escape") cancelInlineEdit();
+                                }}
+                              />
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveInlineEdit(memory.id)}
+                                  disabled={updateMemoryMutation.isPending}
+                                  className="h-7 px-3 text-xs bg-cyan-600 hover:bg-cyan-500 text-black"
+                                >
+                                  <Check className="w-3 h-3 mr-1" /> Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={cancelInlineEdit}
+                                  className="h-7 px-3 text-xs text-gray-400 hover:text-white"
+                                >
+                                  <XIcon className="w-3 h-3 mr-1" /> Cancel
+                                </Button>
+                                <span className="text-[10px] text-white/25">⌘↵ to save · Esc to cancel</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-200 text-sm mb-2 leading-relaxed">{memory.content}</p>
+                          )}
+
                           {memory.context && (
-                            <p className="text-sm text-gray-400 italic mb-2">Context: {memory.context}</p>
+                            <p className="text-xs text-gray-400 italic mb-2">Context: {memory.context}</p>
                           )}
                           {memory.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5">
                               {memory.tags.map((tag: string, idx: number) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
+                                <Badge key={idx} variant="secondary" className="text-[10px] px-1.5 py-0">
                                   {tag}
                                 </Badge>
                               ))}
                             </div>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditingMemory(memory)}
-                            className="hover:bg-slate-700"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteMemory(memory.id)}
-                            className="hover:bg-red-900/50 hover:text-red-400"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+
+                        {/* Action buttons — hidden while inline editing */}
+                        {inlineEditId !== memory.id && (
+                          <div className="flex gap-1 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => startInlineEdit(memory)}
+                              className="w-7 h-7 hover:bg-slate-700 text-gray-400 hover:text-cyan-400"
+                              title="Edit memory"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="w-7 h-7 hover:bg-red-900/50 text-gray-400 hover:text-red-400"
+                                  title="Delete memory"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-slate-900 border-white/10">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-white">Delete this memory?</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-400">
+                                    This will permanently remove the memory from this Sentinel. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="bg-transparent border-white/10 text-gray-300 hover:text-white">Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteMemory(memory.id)}
+                                    className="bg-red-600 hover:bg-red-500 text-white"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   ))}

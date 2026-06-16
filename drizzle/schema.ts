@@ -470,3 +470,37 @@ export const referrals = mysqlTable("referrals", {
 });
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = typeof referrals.$inferInsert;
+
+/**
+ * Notifications - in-app alerts for rapport level-ups, Round Table completions, etc.
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  /** e.g. "rapport_levelup" | "roundtable_complete" | "achievement_unlocked" */
+  type: varchar("type", { length: 64 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  read: boolean("read").default(false).notNull(),
+  /** Optional JSON payload (sentinelId, sessionId, etc.) */
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Sentinel Customisations — Pro users can adjust tone and focus per Sentinel
+ */
+export const sentinelCustomisations = mysqlTable("sentinel_customisations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  /** e.g. "more concise, less formal, use bullet points" */
+  customTone: text("customTone"),
+  /** e.g. "focus on Python, data engineering, and system design" */
+  customFocus: text("customFocus"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SentinelCustomisation = typeof sentinelCustomisations.$inferSelect;
+export type InsertSentinelCustomisation = typeof sentinelCustomisations.$inferInsert;

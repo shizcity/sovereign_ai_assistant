@@ -390,6 +390,23 @@ export const appRouter = router({
           } catch (relErr) {
             console.error("[RelationshipEngine] context injection error:", relErr);
           }
+          // Inject Pro Sentinel customisation (tone + focus)
+          try {
+            const tier = (ctx.user as any).subscriptionTier ?? "free";
+            if (tier !== "free") {
+              const { getSentinelCustomisation } = await import("./db");
+              const custom = await getSentinelCustomisation(ctx.user.id, primarySentinel.sentinelId);
+              if (custom?.customTone || custom?.customFocus) {
+                const customBlock = [
+                  custom.customTone ? `\n\n## Communication Style\n${custom.customTone}` : "",
+                  custom.customFocus ? `\n\n## Focus Areas\n${custom.customFocus}` : "",
+                ].join("");
+                systemPrompt = systemPrompt + customBlock;
+              }
+            }
+          } catch (customErr) {
+            console.error("[SentinelCustomisation] injection error:", customErr);
+          }
           // Inject VOX UP instruction so LLM emits prosody metadata
           systemPrompt = injectUpInstruction(systemPrompt);
         } else {
@@ -2837,7 +2854,58 @@ export const appRouter = router({
       return { entries, currentUserRank };
     }),
   }),
+  sentinelCustomisation: router({
+    get: protectedProcedure
+      .input(z.object({ sentinelId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getSentinelCustomisation } = await import("./db");
+        return getSentinelCustomisation(ctx.user.id, input.sentinelId);
+      }),
+    save: protectedProcedure
+      .input(z.object({
+        sentinelId: z.number(),
+        customTone: z.string().max(1000).optional().nullable(),
+        customFocus: z.string().max(1000).optional().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Pro gate
+        const tier = (ctx.user as any).subscriptionTier ?? "free";
+        if (tier === "free") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sentinel customisation is a Pro feature. Upgrade to unlock." });
+        }
+        const { upsertSentinelCustomisation } = await import("./db");
+        await upsertSentinelCustomisation(ctx.user.id, input.sentinelId, {
+          customTone: input.customTone,
+          customFocus: input.customFocus,
+        });
+        return { success: true };
+      }),
+  }),
+  notifications: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        const { getNotifications } = await import("./db");
+        return getNotifications(ctx.user.id, input?.limit ?? 30);
+      }),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const { getUnreadNotificationCount } = await import("./db");
+      const count = await getUnreadNotificationCount(ctx.user.id);
+      return { count };
+    }),
+    markRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { markNotificationRead } = await import("./db");
+        await markNotificationRead(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const { markAllNotificationsRead } = await import("./db");
+      await markAllNotificationsRead(ctx.user.id);
+      return { success: true };
+    }),
+  }),
 });
-
 export type AppRouter = typeof appRouter;
 

@@ -35,12 +35,16 @@ import {
   Download,
   Search,
   X,
+  Mic,
+  MicOff,
 } from "lucide-react";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { Streamdown } from "streamdown";
 import { showAchievementToasts } from "@/hooks/useAchievementToast";
 import OrbitalDiagram from "@/components/OrbitalDiagram";
 import ConsensusGauge from "@/components/ConsensusGauge";
 import { ROUND_TABLE_PRESETS, type RoundTablePreset } from "@/lib/roundTablePresets";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1021,6 +1025,7 @@ export default function RoundTable() {
   // Mobile tab state
   const [mobileTab, setMobileTab] = useState<"history" | "table" | "panels">("table");
   const [sessionSearch, setSessionSearch] = useState("");
+  const [showRtVoice, setShowRtVoice] = useState(false);
   // Session tag filter
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   // Inline tag editing state: sessionId -> current draft tags
@@ -1343,7 +1348,23 @@ export default function RoundTable() {
 
                 {/* Question */}
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-white/70">Question for the Table</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-white/70">Question for the Table</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowRtVoice((v) => !v)}
+                      disabled={isRunning}
+                      title={showRtVoice ? "Hide voice input" : "Speak your question"}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                        showRtVoice
+                          ? "bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30"
+                          : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20"
+                      } disabled:opacity-40`}
+                    >
+                      {showRtVoice ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                      {showRtVoice ? "Close mic" : "Speak"}
+                    </button>
+                  </div>
                   <Textarea
                     id="rt-question"
                     value={question}
@@ -1352,6 +1373,21 @@ export default function RoundTable() {
                     className="bg-white/4 border-white/12 text-white placeholder:text-white/25 resize-none min-h-[100px] focus:border-cyan-500/50 focus:ring-cyan-500/20"
                     disabled={isRunning}
                   />
+                  {showRtVoice && !isRunning && (
+                    <div className="rounded-xl border border-cyan-500/20 bg-white/3 p-3">
+                      <p className="text-xs text-cyan-400/70 mb-2 flex items-center gap-1.5">
+                        <Mic className="w-3 h-3" />
+                        Record your question — it will be inserted into the field above
+                      </p>
+                      <VoiceRecorder
+                        onTranscriptionComplete={(text) => {
+                          setQuestion((prev) => prev ? `${prev} ${text}` : text);
+                          setShowRtVoice(false);
+                        }}
+                        disabled={isRunning}
+                      />
+                    </div>
+                  )}
                   <p className="text-xs text-white/30">
                     {question.trim().length < 10 ? `${10 - question.trim().length} more characters needed` : `${question.trim().length} characters`}
                   </p>

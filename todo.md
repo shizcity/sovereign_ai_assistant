@@ -1867,3 +1867,46 @@
 - [x] Chat.tsx: removed local ⌘K → focus search handler (global palette takes over)
 - [x] Zero TypeScript errors confirmed
 - [x] 28/30 test files passing (2 pre-existing infrastructure failures, unrelated)
+
+## OG Image Fix
+- [x] Verify og:image meta tag exists in client/index.html with correct absolute URL
+- [x] Confirm og:image resolves correctly on glow.manus.space (200 response, correct dimensions)
+- [x] Fix og:title, og:description, og:url meta tags to reflect Glow branding
+- [x] Add Twitter card meta tags (twitter:card, twitter:title, twitter:description, twitter:image)
+
+## Round Table Voice Input (STT)
+- [x] Add microphone button to Round Table question input area
+- [x] Reuse MediaRecorder + transcription pipeline from Chat.tsx voice input
+- [x] Show pulsing recording indicator while mic is active
+- [x] Insert transcribed text into the Round Table question textarea
+- [x] Handle browser permission denied and unsupported browser gracefully
+- [x] Test STT in Round Table on desktop and mobile
+
+## In-App Notification System
+- [x] Create notifications table (id, userId, type, title, body, read, createdAt, metadata JSON)
+- [x] Add DB helper and tRPC procedures: notifications.list, notifications.markRead, notifications.markAllRead, notifications.unreadCount
+- [x] Trigger rapport level-up notification in relationship-engine.ts when rapport crosses a threshold
+- [x] Trigger Round Table completion notification in roundtable.ts when deliberation finishes
+- [x] Build NotificationBell component in nav — badge shows unread count, dropdown lists recent notifications
+- [x] Add NotificationBell to Chat header and RoundTable header
+- [x] Mark notifications read on dropdown open
+- [x] Test notification creation and read/unread state
+
+## Memory Management UI
+- [x] Add memories.update tRPC mutation (edit memory text by id, ownership check)
+- [x] Add memories.delete tRPC mutation (delete memory by id, ownership check)
+- [x] Update Memories.tsx page: add Edit (pencil) and Delete (trash) icon buttons to each memory row
+- [x] Inline edit mode: clicking Edit replaces memory text with a textarea + Save/Cancel buttons
+- [x] Confirm dialog before delete (shadcn AlertDialog)
+- [x] Optimistic update on delete (remove from list immediately, rollback on error)
+- [x] Show empty state per-Sentinel when all memories are deleted
+- [x] Test memory CRUD operations
+
+## Sentinel Customisation (Pro)
+- [x] Add sentinelCustomisations table (id, userId, sentinelId, customTone TEXT, customFocus TEXT, updatedAt)
+- [x] Add tRPC procedures: sentinels.getCustomisation, sentinels.saveCustomisation
+- [x] Inject customTone + customFocus into Sentinel system prompt in messages.send (Pro users only)
+- [x] Build SentinelCustomise page/modal: tone textarea (e.g. "more concise, less formal"), focus textarea (e.g. "focus on Python and data engineering")
+- [x] Add "Customise" button to each Sentinel card in Sentinels.tsx (Pro badge gated)
+- [x] Show lock icon + upgrade prompt for free users
+- [x] Test customisation injection into LLM prompts

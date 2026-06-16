@@ -176,6 +176,24 @@ export async function updateRelationship(
 
     await upsertRawMemory(userId, sentinelId, updates);
 
+    // Fire rapport level-up notification (non-blocking)
+    if (leveledUp && newLevel) {
+      const { createNotification } = await import("./db");
+      const levelLabels: Record<string, string> = {
+        acquaintance: "Acquaintance",
+        colleague: "Colleague",
+        trusted_advisor: "Trusted Advisor",
+        partner: "Partner",
+      };
+      createNotification({
+        userId,
+        type: "rapport_levelup",
+        title: `Rapport with ${sentinelName} increased`,
+        body: `Your relationship with ${sentinelName} has reached ${levelLabels[newLevel] ?? newLevel} level.`,
+        metadata: { sentinelId, sentinelName, newLevel },
+      }).catch((e) => console.error("[Notifications] rapport_levelup error:", e));
+    }
+
     return { level: newLevel, leveledUp, newLevel: leveledUp ? newLevel : undefined };
   } catch (e) {
     console.error("[RelationshipEngine] updateRelationship error:", e);

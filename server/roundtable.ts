@@ -839,6 +839,19 @@ export async function runRoundTable(
       })
       .where(eq(roundTableSessions.id, sessionId));
 
+    // Fire Round Table completion notification (non-blocking)
+    {
+      const { createNotification } = await import("./db");
+      const sentinelNames = selectedSentinels.map((s: any) => s.name).join(", ");
+      createNotification({
+        userId,
+        type: "roundtable_complete",
+        title: "Round Table deliberation complete",
+        body: `Your council (${sentinelNames}) has finished deliberating on: "${question.slice(0, 80)}${question.length > 80 ? "…" : ""}". Consensus: ${Math.round(judgment.consensusScore * 100)}%.`,
+        metadata: { sessionId, consensusScore: judgment.consensusScore },
+      }).catch((e) => console.error("[Notifications] roundtable_complete error:", e));
+    }
+
     // Emit completion event
     emitStreamEvent(streamId, "complete", {
       sessionId,

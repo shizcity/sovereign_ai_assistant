@@ -3,11 +3,12 @@ import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, TrendingDown, Clock, CheckCircle2, MessageSquare, Users } from "lucide-react";
+import { Loader2, LayoutGrid, Table, Crown, Lock, PartyPopper, BarChart3, Zap, TrendingDown, Clock, CheckCircle2, MessageSquare, Users, Sliders } from "lucide-react";
 import { SentinelComparison } from "@/components/SentinelComparison";
 import { SentinelPreviewModal } from "@/components/SentinelPreviewModal";
 import { ShareNudgeCard } from "@/components/ShareNudgeCard";
 import { SentinelRelationshipCard } from "@/components/SentinelRelationshipCard";
+import { SentinelCustomiseModal } from "@/components/SentinelCustomiseModal";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -18,6 +19,7 @@ const PRO_ONLY_SENTINEL_SLUGS = ["aetheris-flow", "rift-exe", "nyx"];
 export default function Sentinels() {
   const { user } = useAuth();
   const isPro = user?.subscriptionTier === "pro" || user?.subscriptionTier === "creator";
+  const [customiseTarget, setCustomiseTarget] = useState<{ id: number; name: string; emoji?: string } | null>(null);
 
   const { data: sentinels, isLoading } = trpc.sentinels.list.useQuery();
   const { data: sentinelStats } = trpc.sentinels.stats.useQuery(undefined, { enabled: !!user });
@@ -367,7 +369,25 @@ export default function Sentinels() {
 
                     {/* Chat CTA — shown for unlocked Sentinels */}
                     {!isLocked && (
-                      <div className="mt-4 pt-4 border-t border-white/8">
+                      <div className="mt-4 pt-4 border-t border-white/8 space-y-2">
+                        {/* Customise button — Pro feature */}
+                        {user && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCustomiseTarget({ id: sentinel.id, name: sentinel.name, emoji: sentinel.symbolEmoji });
+                            }}
+                            className={`flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg text-xs font-medium transition-all border ${
+                              isPro
+                                ? "border-white/10 text-white/50 hover:text-cyan-400 hover:border-cyan-500/30 hover:bg-cyan-500/5"
+                                : "border-white/6 text-white/25 cursor-default"
+                            }`}
+                          >
+                            <Sliders className="w-3 h-3" />
+                            Customise
+                            {!isPro && <span className="ml-1 text-[9px] text-white/20">Pro</span>}
+                          </button>
+                        )}
                         <a
                           href="/chat"
                           onClick={(e) => e.stopPropagation()}
@@ -833,6 +853,17 @@ export default function Sentinels() {
         isPro={isPro || user?.subscriptionTier === "creator"}
         onUpgrade={() => createCheckout.mutate({ tier: "pro" })}
       />
+
+      {/* Sentinel Customise Modal */}
+      {customiseTarget && (
+        <SentinelCustomiseModal
+          sentinelId={customiseTarget.id}
+          sentinelName={customiseTarget.name}
+          sentinelEmoji={customiseTarget.emoji}
+          open={!!customiseTarget}
+          onClose={() => setCustomiseTarget(null)}
+        />
+      )}
 
       {/* Share nudge card — appears 3s after post-upgrade confetti */}
       {showShareNudge && (
