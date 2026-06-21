@@ -887,15 +887,15 @@
 - [ ] Improve error messages to be user-friendly (not technical)
 - [ ] Add retry mechanisms for failed API calls
 - [ ] Implement offline detection and messaging
-- [ ] Add loading skeletons for better perceived performance
+- [x] Add loading skeletons for better perceived performance
 - [ ] Create custom 404 page
 - [ ] Add network error recovery UI
 - [ ] Log errors to monitoring service (optional: Sentry integration)
 - [ ] Test error scenarios and recovery flows
 
 ### Performance Optimization
-- [ ] Implement code splitting for routes
-- [ ] Add lazy loading for heavy components (Analytics charts, Voice Mode)
+- [x] Implement code splitting for routes
+- [x] Add lazy loading for heavy components (Analytics charts, Voice Mode)
 - [ ] Optimize images (compress, use WebP format)
 - [ ] Implement virtual scrolling for long conversation lists
 - [ ] Add pagination for message history
@@ -906,8 +906,8 @@
 - [ ] Run Lighthouse audit and fix issues
 
 ### Polish & Final Touches
-- [ ] Add loading states for all async operations
-- [ ] Implement skeleton screens for better UX
+- [x] Add loading states for all async operations
+- [x] Implement skeleton screens for better UX
 - [ ] Add empty states with helpful guidance
 - [ ] Improve mobile responsiveness across all pages
 - [ ] Add animations and transitions (subtle, not distracting)
