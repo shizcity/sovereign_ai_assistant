@@ -79,7 +79,7 @@ const emailDigestAgent: AgentTemplate = {
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "model": "manus",
         "messages": {
           "values": [
             {
@@ -174,7 +174,7 @@ const socialMonitorAgent: AgentTemplate = {
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
+        "model": "manus",
         "messages": {
           "values": [
             {

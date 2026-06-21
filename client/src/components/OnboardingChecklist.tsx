@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, X, Sparkles, MessageSquare, Mic, Brain } from "lucide-react";
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, X, Sparkles, MessageSquare, Mic, Brain, Globe, Code2 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type OnboardingStep = "pick_sentinel" | "send_message" | "try_voice" | "explore_memory";
+export type OnboardingStep = "pick_sentinel" | "send_message" | "try_voice" | "explore_memory" | "visit_marketplace" | "build_agent";
 
 export interface OnboardingStepState {
   pick_sentinel: boolean;
   send_message: boolean;
   try_voice: boolean;
   explore_memory: boolean;
+  visit_marketplace: boolean;
+  build_agent: boolean;
 }
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
@@ -20,10 +22,10 @@ const DISMISSED_KEY = "glow_onboarding_dismissed";
 export function loadOnboardingSteps(): OnboardingStepState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { pick_sentinel: false, send_message: false, try_voice: false, explore_memory: false };
+    if (!raw) return { pick_sentinel: false, send_message: false, try_voice: false, explore_memory: false, visit_marketplace: false, build_agent: false };
     return JSON.parse(raw) as OnboardingStepState;
   } catch {
-    return { pick_sentinel: false, send_message: false, try_voice: false, explore_memory: false };
+    return { pick_sentinel: false, send_message: false, try_voice: false, explore_memory: false, visit_marketplace: false, build_agent: false };
   }
 }
 
@@ -42,7 +44,7 @@ export function dismissOnboarding(): void {
 }
 
 export function isOnboardingComplete(steps: OnboardingStepState): boolean {
-  return steps.pick_sentinel && steps.send_message && steps.try_voice && steps.explore_memory;
+  return steps.pick_sentinel && steps.send_message && steps.try_voice && steps.explore_memory && steps.visit_marketplace && steps.build_agent;
 }
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
@@ -81,6 +83,20 @@ const STEPS: {
     description: "See what your Sentinels remember about you",
     icon: <Brain className="w-3.5 h-3.5" />,
     color: "#f59e0b",
+  },
+  {
+    key: "visit_marketplace",
+    label: "Visit the Marketplace",
+    description: "Discover community agent blueprints",
+    icon: <Globe className="w-3.5 h-3.5" />,
+    color: "#10b981",
+  },
+  {
+    key: "build_agent",
+    label: "Build an agent",
+    description: "Use the Agent Builder to create your own",
+    icon: <Code2 className="w-3.5 h-3.5" />,
+    color: "#06b6d4",
   },
 ];
 

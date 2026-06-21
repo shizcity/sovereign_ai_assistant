@@ -129,7 +129,7 @@ export async function importConversation(data: any, userId: number) {
   const result = await db.insert(conversations).values({
     userId,
     title: data.conversation.title || "Imported Conversation",
-    defaultModel: data.conversation.defaultModel || "gpt-4",
+    defaultModel: data.conversation.defaultModel || "manus",
   });
 
   const conversationId = result[0].insertId;
@@ -140,7 +140,7 @@ export async function importConversation(data: any, userId: number) {
       conversationId,
       role: msg.role || 'user',
       content: msg.content || '',
-      model: msg.model || data.conversation.defaultModel || 'gpt-4',
+      model: msg.model || data.conversation.defaultModel || 'manus',
     }));
 
     await db.insert(messages).values(messageValues);

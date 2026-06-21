@@ -5,11 +5,14 @@
  * based on the selected model. It abstracts away provider-specific API differences.
  * 
  * Supported Providers:
- * - OpenAI (GPT-4, GPT-3.5 Turbo)
- * - Anthropic (Claude 3 Opus, Claude 3 Sonnet)
- * - Google AI (Gemini Pro)
- * - xAI (Grok-1)
- * - Manus Built-in (fallback)
+ * - Manus Forge Built-in (default — Gemini 2.5 Flash, no API key required)
+ * - Google AI (Gemini 2.5 Flash / Pro via GOOGLE_AI_API_KEY)
+ * - OpenAI (GPT-4o, GPT-4o Mini via OPENAI_API_KEY)
+ * - Anthropic (Claude Opus 4, Claude Sonnet 4 via ANTHROPIC_API_KEY)
+ * - xAI (Grok-3, Grok-3 Mini via XAI_API_KEY)
+ *
+ * DEFAULT_MODEL is "manus" — routes through Manus Forge (no external key needed).
+ * All other models are opt-in via user-supplied API keys in Settings.
  */
 
 import { invokeLLM as manusLLM } from "./_core/llm";
@@ -40,13 +43,28 @@ export type LLMProvider = "openai" | "anthropic" | "google" | "xai" | "manus";
 // Model Configuration
 // ============================================================================
 
-export const MODEL_CONFIG: Record<string, { provider: LLMProvider; apiModel: string }> = {
-  "gpt-4": { provider: "openai", apiModel: "gpt-4" },
-  "gpt-3.5-turbo": { provider: "openai", apiModel: "gpt-3.5-turbo" },
-  "claude-3-opus": { provider: "anthropic", apiModel: "claude-3-opus-20240229" },
-  "claude-3-sonnet": { provider: "anthropic", apiModel: "claude-3-sonnet-20240229" },
-  "gemini-pro": { provider: "google", apiModel: "gemini-flash-latest" },
-  "grok-1": { provider: "xai", apiModel: "grok-1" },
+/** The model used when no external API key is configured. Routes through Manus Forge. */
+export const DEFAULT_MODEL = "manus";
+
+export const MODEL_CONFIG: Record<string, { provider: LLMProvider; apiModel: string; label: string }> = {
+  // ── Manus Forge (always available, no API key required) ──────────────────
+  "manus": { provider: "manus", apiModel: "gemini-2.5-flash", label: "Glow AI (Default)" },
+
+  // ── Google AI (requires GOOGLE_AI_API_KEY) ───────────────────────────────
+  "gemini-2.5-flash": { provider: "google", apiModel: "gemini-2.5-flash-preview-05-20", label: "Gemini 2.5 Flash" },
+  "gemini-2.5-pro":   { provider: "google", apiModel: "gemini-2.5-pro-preview-06-05",   label: "Gemini 2.5 Pro" },
+
+  // ── OpenAI (requires OPENAI_API_KEY) ─────────────────────────────────────
+  "gpt-4o":      { provider: "openai", apiModel: "gpt-4o",      label: "GPT-4o" },
+  "gpt-4o-mini": { provider: "openai", apiModel: "gpt-4o-mini", label: "GPT-4o Mini" },
+
+  // ── Anthropic (requires ANTHROPIC_API_KEY) ───────────────────────────────
+  "claude-opus-4":   { provider: "anthropic", apiModel: "claude-opus-4-8",   label: "Claude Opus 4" },
+  "claude-sonnet-4": { provider: "anthropic", apiModel: "claude-sonnet-4-5", label: "Claude Sonnet 4" },
+
+  // ── xAI (requires XAI_API_KEY) ───────────────────────────────────────────
+  "grok-3":      { provider: "xai", apiModel: "grok-3",      label: "Grok-3" },
+  "grok-3-mini": { provider: "xai", apiModel: "grok-3-mini", label: "Grok-3 Mini" },
 };
 
 // ============================================================================

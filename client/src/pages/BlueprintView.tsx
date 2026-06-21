@@ -33,7 +33,7 @@ export default function BlueprintView() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const { data: blueprint, isLoading, error } = trpc.blueprints.getByToken.useQuery(
-    { shareToken },
+    { token: shareToken },
     { enabled: !!shareToken }
   );
 

@@ -25,31 +25,31 @@ export const LLM_PRICING: Record<
     description: string;
   }
 > = {
-  "gpt-4": {
+  "gpt-4o": {
     provider: "openai",
     inputPricePer1M: 30.0,
     outputPricePer1M: 60.0,
     description: "OpenAI GPT-4 (8K context)",
   },
-  "gpt-3.5-turbo": {
+  "gpt-4o-mini": {
     provider: "openai",
     inputPricePer1M: 0.5,
     outputPricePer1M: 1.5,
     description: "OpenAI GPT-3.5 Turbo",
   },
-  "claude-3-opus": {
+  "claude-opus-4": {
     provider: "anthropic",
     inputPricePer1M: 15.0,
     outputPricePer1M: 75.0,
     description: "Anthropic Claude 3 Opus",
   },
-  "claude-3-sonnet": {
+  "claude-sonnet-4": {
     provider: "anthropic",
     inputPricePer1M: 3.0,
     outputPricePer1M: 15.0,
     description: "Anthropic Claude 3 Sonnet",
   },
-  "gemini-pro": {
+  "gemini-2.5-flash": {
     provider: "google",
     inputPricePer1M: 0.5,
     outputPricePer1M: 1.5,
@@ -92,12 +92,12 @@ export interface CostBreakdown {
 /**
  * Calculate the cost of an LLM API call based on token usage
  * 
- * @param model - The model identifier (e.g., "gpt-4", "claude-3-opus")
+ * @param model - The model identifier (e.g., "gpt-4o", "claude-opus-4")
  * @param usage - Token usage statistics from the API response
  * @returns Detailed cost breakdown
  * 
  * @example
- * const cost = calculateCost("gpt-4", {
+ * const cost = calculateCost("gpt-4o", {
  *   promptTokens: 100,
  *   completionTokens: 50,
  *   totalTokens: 150

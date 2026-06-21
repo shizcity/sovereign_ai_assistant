@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Bot, Zap, BookOpen, Heart, Code2, Network, ArrowRight, ArrowLeft, CheckCircle2, Sparkles, Workflow, Terminal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { saveOnboardingStep } from "@/components/OnboardingChecklist";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -201,6 +202,11 @@ function getFrameworkRec(goalId: string, skillLevel: "no-code" | "some-code" | "
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AgentBuilder() {
+  // Mark onboarding step when user visits Agent Builder
+  useEffect(() => {
+    saveOnboardingStep("build_agent");
+  }, []);
+
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -219,7 +225,7 @@ export default function AgentBuilder() {
     // Create a new conversation and route to Chat with the matched Sentinel
     const conv = await createConversation.mutateAsync({
       title: `Agent: ${selectedGoal?.title}`,
-      defaultModel: "gemini-pro",
+      defaultModel: "manus",
     });
 
     // Persist agent mode and the starter prompt

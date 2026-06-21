@@ -29,7 +29,7 @@ describe("Multi-Sentinel Conversations", () => {
     conversationId = await createConversation({
       userId: testUserId,
       title: "Multi-Sentinel Test",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
   });
 
@@ -244,7 +244,7 @@ describe("Multi-Sentinel Conversations", () => {
       caller.messages.send({
         conversationId,
         content: "Test message",
-        model: "gpt-4",
+        model: "manus",
         targetSentinelId: sentinel2Id, // Not in conversation
       })
     ).rejects.toThrow("Selected Sentinel is not assigned to this conversation");

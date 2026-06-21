@@ -10,7 +10,7 @@ import { z } from "zod";
 const messageSendSchema = z.object({
   conversationId: z.number(),
   content: z.string().min(1).max(20000),
-  model: z.string().max(100).default("gpt-4"),
+  model: z.string().max(100).default("manus"),
   targetSentinelId: z.number().optional(),
 });
 

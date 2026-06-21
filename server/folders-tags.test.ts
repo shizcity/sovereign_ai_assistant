@@ -89,7 +89,7 @@ describe("Folders and Tags", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Test Conversation",
-      defaultModel: "gemini-pro",
+      defaultModel: "manus",
     });
 
     // Create a folder
@@ -114,7 +114,7 @@ describe("Folders and Tags", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Tagged Conversation",
-      defaultModel: "gemini-pro",
+      defaultModel: "manus",
     });
 
     // Create a tag
@@ -139,7 +139,7 @@ describe("Folders and Tags", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Multi-Tag Conversation",
-      defaultModel: "gemini-pro",
+      defaultModel: "manus",
     });
 
     // Create and assign multiple tags
@@ -181,7 +181,7 @@ describe("Folders and Tags", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Tag Removal Test",
-      defaultModel: "gemini-pro",
+      defaultModel: "manus",
     });
 
     // Create and assign a tag

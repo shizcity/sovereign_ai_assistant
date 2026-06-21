@@ -38,7 +38,7 @@ describe("Sentinel Operations", () => {
     testConversationId = await createConversation({
       userId: mockUser.id,
       title: "Test Sentinel Conversation",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Get the first Sentinel ID
@@ -172,7 +172,7 @@ describe("Sentinel Operations", () => {
       const freshConversationId = await createConversation({
         userId: mockUser.id,
         title: "Upsert Test Conversation",
-        defaultModel: "gpt-4",
+        defaultModel: "manus",
       });
 
       // First assignment
@@ -241,7 +241,7 @@ describe("Sentinel Operations", () => {
       const emptyConversationId = await createConversation({
         userId: mockUser.id,
         title: "Empty Test Conversation",
-        defaultModel: "gpt-4",
+        defaultModel: "manus",
       });
 
       const assignments = await caller.sentinels.getConversationSentinels({

@@ -39,7 +39,7 @@ describe("messages", () => {
     // Create a conversation first
     const conversation = await caller.conversations.create({
       title: "Test Conversation",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Get messages (should be empty initially)
@@ -57,14 +57,14 @@ describe("messages", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Test Conversation",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Send a message
     const result = await caller.messages.send({
       conversationId: conversation.id,
       content: "Hello, this is a test message",
-      model: "gpt-4",
+      model: "manus",
     });
 
     expect(result).toHaveProperty("id");
@@ -81,21 +81,21 @@ describe("messages", () => {
     // Create a conversation
     const conversation = await caller.conversations.create({
       title: "Context Test",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Send first message
     await caller.messages.send({
       conversationId: conversation.id,
       content: "My name is Alice",
-      model: "gpt-4",
+      model: "manus",
     });
 
     // Send second message that requires context
     const result = await caller.messages.send({
       conversationId: conversation.id,
       content: "What is my name?",
-      model: "gpt-4",
+      model: "manus",
     });
 
     // The AI should remember the context

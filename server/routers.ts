@@ -71,7 +71,7 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         title: z.string().min(1).max(255),
-        defaultModel: z.string().default("gpt-4"),
+        defaultModel: z.string().default("manus"),
       }))
       .mutation(async ({ ctx, input }) => {
         const { createConversation } = await import("./db");
@@ -313,7 +313,7 @@ export const appRouter = router({
       .input(z.object({
         conversationId: z.number(),
         content: z.string().min(1).max(20000),
-        model: z.string().max(100).default("gpt-4"),
+        model: z.string().max(100).default("manus"),
         targetSentinelId: z.number().optional(), // Optional: manually select which Sentinel responds
       }))
       .mutation(async ({ ctx, input }) => {
@@ -628,7 +628,7 @@ export const appRouter = router({
       .input(z.object({
         messageId: z.number(),
         content: z.string().min(1).max(20000),
-        model: z.string().max(100).default("gpt-4"),
+        model: z.string().max(100).default("manus"),
       }))
       .mutation(async ({ ctx, input }) => {
         const { updateMessage, getMessageById, deleteMessagesAfter, getConversationMessages, createMessage, getUserSettings } = await import("./db");
@@ -751,7 +751,7 @@ export const appRouter = router({
         return {
           id: 0,
           userId: ctx.user.id,
-          defaultModel: "gemini-pro",
+          defaultModel: "manus",
           theme: "dark",
           systemPrompt: DEFAULT_SYSTEM_PROMPT,
           emailDigestFrequency: "weekly" as const,
@@ -2072,32 +2072,36 @@ export const appRouter = router({
         manus: true, // Always available
       };
       
-      // Map providers to available models
-      const availableModels = [];
-      
-      if (providers.openai) {
-        availableModels.push(
-          { value: "gpt-4", label: "GPT-4", provider: "openai" },
-          { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", provider: "openai" }
-        );
-      }
-      
-      if (providers.anthropic) {
-        availableModels.push(
-          { value: "claude-3-opus", label: "Claude 3 Opus", provider: "anthropic" },
-          { value: "claude-3-sonnet", label: "Claude 3 Sonnet", provider: "anthropic" }
-        );
-      }
-      
+      // Map providers to available models — Forge is always first (no API key required)
+      const availableModels = [
+        { value: "manus", label: "Glow AI (Default)", provider: "manus" },
+      ];
+
       if (providers.google) {
         availableModels.push(
-          { value: "gemini-pro", label: "Gemini Pro", provider: "google" }
+          { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "google" },
+          { value: "gemini-2.5-pro",   label: "Gemini 2.5 Pro",   provider: "google" }
         );
       }
-      
+
+      if (providers.openai) {
+        availableModels.push(
+          { value: "gpt-4o",      label: "GPT-4o",      provider: "openai" },
+          { value: "gpt-4o-mini", label: "GPT-4o Mini", provider: "openai" }
+        );
+      }
+
+      if (providers.anthropic) {
+        availableModels.push(
+          { value: "claude-opus-4",   label: "Claude Opus 4",   provider: "anthropic" },
+          { value: "claude-sonnet-4", label: "Claude Sonnet 4", provider: "anthropic" }
+        );
+      }
+
       if (providers.xai) {
         availableModels.push(
-          { value: "grok-1", label: "Grok-1", provider: "xai" }
+          { value: "grok-3",      label: "Grok-3",      provider: "xai" },
+          { value: "grok-3-mini", label: "Grok-3 Mini", provider: "xai" }
         );
       }
       
@@ -3089,6 +3093,76 @@ export const appRouter = router({
         const { incrementAgentProgress } = await import("./db");
         const newValue = await incrementAgentProgress(ctx.user.id, input.metric);
         return { success: true, newValue };
+      }),
+  }),
+
+  // ─── Agent Blueprints ────────────────────────────────────────────────────────
+  blueprints: router({
+    /** Create a new shareable blueprint from code */
+    create: protectedProcedure
+      .input(z.object({
+        title:       z.string().min(1).max(255),
+        description: z.string().max(2000).optional(),
+        code:        z.string().min(1),
+        language:    z.string().default("python"),
+        framework:   z.string().default("custom"),
+        sentinelId:  z.number().optional(),
+        isPublic:    z.boolean().default(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createBlueprint } = await import("./db");
+        const blueprint = await createBlueprint(ctx.user.id, input);
+        const baseUrl = process.env.VITE_APP_URL || "https://glow.manus.space";
+        return {
+          id:         blueprint.id,
+          shareToken: blueprint.shareToken,
+          shareUrl:   `${baseUrl}/blueprint/${blueprint.shareToken}`,
+        };
+      }),
+
+    /** List the current user's blueprints */
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { listUserBlueprints } = await import("./db");
+      return listUserBlueprints(ctx.user.id);
+    }),
+
+    /** Toggle public/private on a blueprint */
+    toggleVisibility: protectedProcedure
+      .input(z.object({ id: z.number(), isPublic: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const { toggleBlueprintVisibility } = await import("./db");
+        return toggleBlueprintVisibility(ctx.user.id, input.id, input.isPublic);
+      }),
+
+    /** Delete a blueprint (owner only) */
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteBlueprint } = await import("./db");
+        return deleteBlueprint(ctx.user.id, input.id);
+      }),
+
+    /** Public — fetch a blueprint by share token (no auth required) */
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const { getBlueprintByToken } = await import("./db");
+        const bp = await getBlueprintByToken(input.token);
+        if (!bp) throw new TRPCError({ code: "NOT_FOUND", message: "Blueprint not found" });
+        return bp;
+      }),
+
+    /** Public — list all public blueprints for the marketplace */
+    listPublic: publicProcedure
+      .input(z.object({
+        search:   z.string().optional(),
+        language: z.string().optional(),
+        limit:    z.number().min(1).max(100).default(24),
+        offset:   z.number().min(0).default(0),
+      }))
+      .query(async ({ input }) => {
+        const { listPublicBlueprints } = await import("./db");
+        return listPublicBlueprints(input);
       }),
   }),
 });

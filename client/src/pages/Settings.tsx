@@ -33,7 +33,7 @@ const AI_MODELS = [
 export default function Settings() {
   const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
-  const [defaultModel, setDefaultModel] = useState("gpt-4");
+  const [defaultModel, setDefaultModel] = useState("manus");
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [voxMuted, setVoxMuted] = useState(false);
   const [voxSpeed, setVoxSpeed] = useState(1.0);
@@ -76,7 +76,7 @@ export default function Settings() {
   // Load settings when available
   useEffect(() => {
     if (settings) {
-      setDefaultModel(settings.defaultModel || "gpt-4");
+      setDefaultModel(settings.defaultModel || "manus");
       setTtsEnabled(settings.ttsEnabled ?? false);
       setVoxMuted((settings as any).voxMuted ?? false);
       setVoxSpeed((settings as any).voxSpeed ?? 1.0);

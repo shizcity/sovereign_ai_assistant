@@ -353,7 +353,7 @@ export default function AgentTemplates() {
     try {
       const conv = await createConversation.mutateAsync({
         title: `Agent: ${template.title}`,
-        defaultModel: "gemini-pro",
+        defaultModel: "manus",
       });
 
       try {

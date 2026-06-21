@@ -107,7 +107,7 @@ export default function MyBlueprints() {
           </div>
         ) : (
           <div className="space-y-3">
-            {blueprints.map((bp) => {
+            {blueprints.map((bp: { id: number; title: string; description: string | null; code: string; language: string; framework: string; shareToken: string; isPublic: boolean; viewCount: number; createdAt: Date; updatedAt: Date }) => {
               const frameworkColor = FRAMEWORK_COLORS[bp.framework] ?? "bg-white/10 text-white/50 border-white/20";
               const createdDate = new Date(bp.createdAt).toLocaleDateString("en-US", {
                 month: "short", day: "numeric", year: "numeric",

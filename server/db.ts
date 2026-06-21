@@ -512,3 +512,79 @@ export async function toggleBlueprintVisibility(userId: number, blueprintId: num
     .set({ isPublic })
     .where(and(eq(agentBlueprints.id, blueprintId), eq(agentBlueprints.userId, userId)));
 }
+
+// ─── Blueprint helpers — canonical names used by routers.ts ──────────────────
+
+/** Create a blueprint, generating a cryptographically random share token. */
+export async function createBlueprint(
+  userId: number,
+  data: {
+    title: string;
+    description?: string;
+    code: string;
+    language?: string;
+    framework?: string;
+    sentinelId?: number;
+    isPublic?: boolean;
+  }
+) {
+  const crypto = await import("crypto");
+  const shareToken = crypto.randomBytes(24).toString("hex");
+  return createAgentBlueprint({
+    userId,
+    title: data.title,
+    description: data.description ?? null,
+    code: data.code,
+    language: data.language ?? "python",
+    framework: data.framework ?? "custom",
+    sentinelId: data.sentinelId ?? null,
+    shareToken,
+    isPublic: data.isPublic ?? true,
+    viewCount: 0,
+  } as InsertAgentBlueprint);
+}
+
+/** List all blueprints owned by a user, newest first. */
+export async function listUserBlueprints(userId: number) {
+  return getUserBlueprints(userId);
+}
+
+/** Delete a blueprint (ownership-checked). */
+export async function deleteBlueprint(userId: number, blueprintId: number) {
+  return deleteAgentBlueprint(userId, blueprintId);
+}
+
+/** List public blueprints for the marketplace with optional search + language filter. */
+export async function listPublicBlueprints(opts: {
+  search?: string;
+  language?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { items: [] as (typeof agentBlueprints.$inferSelect)[], total: 0 };
+
+  const { limit = 24, offset = 0, search, language } = opts;
+
+  let rows = await db
+    .select()
+    .from(agentBlueprints)
+    .where(eq(agentBlueprints.isPublic, true))
+    .orderBy(desc(agentBlueprints.viewCount), desc(agentBlueprints.createdAt));
+
+  if (search) {
+    const q = search.toLowerCase();
+    rows = rows.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) ||
+        (r.description ?? "").toLowerCase().includes(q)
+    );
+  }
+  if (language) {
+    rows = rows.filter((r) => r.language === language);
+  }
+
+  const total = rows.length;
+  const items = rows.slice(offset, offset + limit);
+  return { items, total };
+}

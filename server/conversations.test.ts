@@ -38,7 +38,7 @@ describe("conversations", () => {
 
     const result = await caller.conversations.create({
       title: "Test Conversation",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     expect(result).toHaveProperty("id");
@@ -52,7 +52,7 @@ describe("conversations", () => {
     // Create a conversation first
     await caller.conversations.create({
       title: "Test Conversation",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     const conversations = await caller.conversations.list();
@@ -70,7 +70,7 @@ describe("conversations", () => {
     // Create a conversation
     const created = await caller.conversations.create({
       title: "Original Title",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Update the title
@@ -89,7 +89,7 @@ describe("conversations", () => {
     // Create a conversation
     const created = await caller.conversations.create({
       title: "To Be Deleted",
-      defaultModel: "gpt-4",
+      defaultModel: "manus",
     });
 
     // Delete it
