@@ -9,7 +9,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
+<<<<<<< Updated upstream
 import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Store } from "lucide-react";
+=======
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Globe } from "lucide-react";
+>>>>>>> Stashed changes
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -28,6 +32,7 @@ import { SentinelAvatar } from "@/components/SentinelAvatar";
 import { GlowLogo } from "@/components/GlowLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { OnboardingChecklist, loadOnboardingSteps, saveOnboardingStep, isOnboardingDismissed, dismissOnboarding, isOnboardingComplete, type OnboardingStepState } from "@/components/OnboardingChecklist";
+import { FirstRunWizard, WhatsNewBanner, hasCompletedFirstRun, markFirstRunDone, hasSeenWhatsNew, markWhatsNewSeen } from "@/components/FirstRunWizard";
 import { voiceService } from "@/lib/voice";
 import { streamingVoicePlayer } from "@/lib/streamingVoice";
 import { toast } from "sonner";
@@ -138,6 +143,8 @@ export default function Chat() {
 
   // Onboarding checklist state
   const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStepState>(() => loadOnboardingSteps());
+  const [showFirstRunWizard, setShowFirstRunWizard] = useState<boolean>(() => !hasCompletedFirstRun());
+  const [showWhatsNew, setShowWhatsNew] = useState<boolean>(() => hasCompletedFirstRun() && !hasSeenWhatsNew());
   const [onboardingVisible, setOnboardingVisible] = useState<boolean>(() => {
     if (isOnboardingDismissed()) return false;
     const steps = loadOnboardingSteps();
@@ -1043,6 +1050,12 @@ export default function Chat() {
         </div>
 
         {/* Onboarding Checklist — shown to new users until all steps complete or dismissed */}
+        {showFirstRunWizard && (
+          <FirstRunWizard onClose={() => { setShowFirstRunWizard(false); markFirstRunDone(); }} />
+        )}
+        {!showFirstRunWizard && showWhatsNew && (
+          <WhatsNewBanner onDismiss={() => { setShowWhatsNew(false); markWhatsNewSeen(); }} />
+        )}
         {onboardingVisible && (
           <OnboardingChecklist
             steps={onboardingSteps}
@@ -2191,6 +2204,14 @@ export default function Chat() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* First-run wizard and what's new banner */}
+      <FirstRunWizard />
+      <WhatsNewBanner />
+
+      {/* First-run wizard and what's new banner */}
+      <FirstRunWizard />
+      <WhatsNewBanner />
     </div>
   );
 }

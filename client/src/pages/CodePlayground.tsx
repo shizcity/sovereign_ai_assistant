@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import {useState, useRef, useEffect} from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -154,6 +154,20 @@ export default function CodePlayground() {
   const [showSetup, setShowSetup] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // ── Import from Marketplace ────────────────────────────────────────────────
+  useEffect(() => {
+    const raw = sessionStorage.getItem("playground_import");
+    if (!raw) return;
+    try {
+      const imported = JSON.parse(raw) as { code: string; language: string; title: string };
+      setCode(imported.code);
+      sessionStorage.removeItem("playground_import");
+      toast.success(`Blueprint "${imported.title}" loaded into playground`);
+    } catch {
+      sessionStorage.removeItem("playground_import");
+    }
+  }, []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const analyzeMutation = trpc.agents.analyzeCode.useMutation({

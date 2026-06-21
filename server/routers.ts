@@ -3005,12 +3005,16 @@ export const appRouter = router({
         code: z.string().min(1).max(50000),
         language: z.enum(["python", "javascript", "typescript"]),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { ENV } = await import("./_core/env");
         if (!ENV.e2bApiKey) {
           throw new TRPCError({ code: "PRECONDITION_FAILED", message: "E2B API key not configured" });
         }
+        // @ts-ignore - E2B package uses non-standard module format
+        const { Sandbox } = await import("@e2b/code-interpreter");
+        let sandbox: any = null;
         try {
+<<<<<<< Updated upstream
           // @ts-ignore - E2B package uses non-standard module format
           const { Sandbox } = await import("@e2b/code-interpreter");
           const sandbox = await Sandbox.create({ apiKey: ENV.e2bApiKey, timeoutMs: 30000 });
@@ -3039,15 +3043,41 @@ export const appRouter = router({
           } finally {
             await sandbox.kill().catch(() => {});
           }
+=======
+          sandbox = await Sandbox.create({ apiKey: ENV.e2bApiKey, timeoutMs: 30000 });
+          const codeToRun = input.language === "typescript"
+            ? input.code.replace(/:\s*[A-Za-z<>\[\]|&]+/g, "")
+            : input.code;
+          const lang = input.language === "python" ? "python" : "js";
+          const result = await sandbox.runCode(codeToRun, { language: lang, timeoutMs: 25000 });
+          const stdout = result.logs?.stdout?.join("") ?? "";
+          const stderr = result.logs?.stderr?.join("") ?? "";
+          const outputs = (result.results ?? []).map((r: any) => {
+            if (r.text) return r.text;
+            if (r.html) return "[HTML output]";
+            if (r.png) return "[Image output]";
+            return "";
+          }).filter(Boolean).join("\n");
+          return {
+            success: !result.error,
+            stdout: stdout + (outputs ? "\n" + outputs : ""),
+            stderr,
+            error: result.error ? String(result.error) : null,
+            executionTime: null,
+          };
+>>>>>>> Stashed changes
         } catch (err: any) {
           if (err?.code === "PRECONDITION_FAILED") throw err;
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: err?.message ?? "Code execution failed",
           });
+        } finally {
+          if (sandbox) { try { await sandbox.kill(); } catch (_) {} }
         }
       }),
   }),
+
 
   // ─── Agent Builder Session (Feature 2) ──────────────────────────────────────
   agentBuilder: router({
@@ -3168,3 +3198,51 @@ export const appRouter = router({
 });
 export type AppRouter = typeof appRouter;
 
+    /** Save an orchestration pipeline to a blueprint */
+    saveOrchestration: protectedProcedure
+      .input(z.object({
+    /** Save an orchestration pipeline to a blueprint */
+    saveOrchestration: protectedProcedure
+      .input(z.object({
+        blueprintId: z.number(),
+        subAgentTokens: z.array(z.string()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { saveOrchestration } = await import("./db");
+        return saveOrchestration(ctx.user.id, input.blueprintId, input.subAgentTokens);
+      }),
+    /** Get the orchestration pipeline for a blueprint */
+    getOrchestration: protectedProcedure
+      .input(z.object({ blueprintId: z.number() }))
+      .query(async ({ input }) => {
+        const { getOrchestration } = await import("./db");
+        return getOrchestration(input.blueprintId);
+      }),
+    /** Resolve orchestration pipeline — fetch sub-agent blueprints by tokens */
+    resolveOrchestration: publicProcedure
+      .input(z.object({ tokens: z.array(z.string()) }))
+      .query(async ({ input }) => {
+        const { getOrchestrationBlueprints } = await import("./db");
+        return getOrchestrationBlueprints(input.tokens);
+      }),
+        blueprintId: z.number(),
+        subAgentTokens: z.array(z.string()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { saveOrchestration } = await import("./db");
+        return saveOrchestration(ctx.user.id, input.blueprintId, input.subAgentTokens);
+      }),
+    /** Get the orchestration pipeline for a blueprint */
+    getOrchestration: protectedProcedure
+      .input(z.object({ blueprintId: z.number() }))
+      .query(async ({ input }) => {
+        const { getOrchestration } = await import("./db");
+        return getOrchestration(input.blueprintId);
+      }),
+    /** Resolve orchestration pipeline — fetch sub-agent blueprints by tokens */
+    resolveOrchestration: publicProcedure
+      .input(z.object({ tokens: z.array(z.string()) }))
+      .query(async ({ input }) => {
+        const { getOrchestrationBlueprints } = await import("./db");
+        return getOrchestrationBlueprints(input.tokens);
+      }),
