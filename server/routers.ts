@@ -3009,23 +3009,26 @@ export const appRouter = router({
         try {
           // @ts-ignore - E2B package uses non-standard module format
           const { Sandbox } = await import("@e2b/code-interpreter");
+          const sandbox = await Sandbox.create({ apiKey: ENV.e2bApiKey, timeoutMs: 30000 });
+          try {
+            // For TypeScript, transpile to JS first via a simple comment note
             const codeToRun = input.language === "typescript"
-              ? input.code.replace(/:\s*[A-Za-z<>\[\]|&]+/g, "")
+              ? `// TypeScript note: running as JavaScript (types stripped)\n${input.code.replace(/:\s*[A-Za-z<>\[\]|&]+/g, "")}`
               : input.code;
             const lang = input.language === "python" ? "python" : "js";
             const result = await sandbox.runCode(codeToRun, { language: lang, timeoutMs: 25000 });
             const stdout = result.logs?.stdout?.join("") ?? "";
             const stderr = result.logs?.stderr?.join("") ?? "";
-            const outputs = (result.results ?? []).map((r: any) => {
+            const outputs = result.results?.map((r: any) => {
               if (r.text) return r.text;
-              if (r.html) return "[HTML output]";
+              if (r.html) return "[HTML output]"; 
               if (r.png) return "[Image output]";
               return "";
-            }).filter(Boolean).join("\n");
+            }).filter(Boolean).join("\n") ?? "";
             return {
               success: !result.error,
               stdout: stdout + (outputs ? "\n" + outputs : ""),
-              stderr,
+              stderr: stderr,
               error: result.error ? String(result.error) : null,
               executionTime: null,
             };
@@ -3086,74 +3089,6 @@ export const appRouter = router({
         const { incrementAgentProgress } = await import("./db");
         const newValue = await incrementAgentProgress(ctx.user.id, input.metric);
         return { success: true, newValue };
-      }),
-  }),
-
-  // ─── Shareable Agent Blueprints ──────────────────────────────────────────────
-  blueprints: router({
-    // Create a shareable blueprint from code
-    create: protectedProcedure
-      .input(z.object({
-        title: z.string().min(1).max(255),
-        description: z.string().max(2000).optional(),
-        code: z.string().min(1).max(50000),
-        language: z.enum(["python", "javascript", "typescript"]).default("python"),
-        framework: z.string().max(64).default("custom"),
-        sentinelId: z.number().optional(),
-        isPublic: z.boolean().default(true),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const { createAgentBlueprint } = await import("./db");
-        const crypto = await import("crypto");
-        const shareToken = crypto.randomBytes(20).toString("hex");
-        const blueprint = await createAgentBlueprint({
-          userId: ctx.user.id,
-          title: input.title,
-          description: input.description ?? null,
-          code: input.code,
-          language: input.language,
-          framework: input.framework,
-          sentinelId: input.sentinelId ?? null,
-          shareToken,
-          isPublic: input.isPublic,
-          viewCount: 0,
-        });
-        return { id: blueprint.id, shareToken: blueprint.shareToken, shareUrl: `/blueprint/${blueprint.shareToken}` };
-      }),
-
-    // Get a public blueprint by share token (no auth required)
-    getByToken: publicProcedure
-      .input(z.object({ token: z.string() }))
-      .query(async ({ input }) => {
-        const { getBlueprintByToken } = await import("./db");
-        const blueprint = await getBlueprintByToken(input.token);
-        if (!blueprint) throw new TRPCError({ code: "NOT_FOUND", message: "Blueprint not found or not public" });
-        return blueprint;
-      }),
-
-    // List current user's blueprints
-    list: protectedProcedure
-      .query(async ({ ctx }) => {
-        const { getUserBlueprints } = await import("./db");
-        return getUserBlueprints(ctx.user.id);
-      }),
-
-    // Delete a blueprint
-    delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        const { deleteAgentBlueprint } = await import("./db");
-        await deleteAgentBlueprint(ctx.user.id, input.id);
-        return { success: true };
-      }),
-
-    // Toggle public/private
-    toggleVisibility: protectedProcedure
-      .input(z.object({ id: z.number(), isPublic: z.boolean() }))
-      .mutation(async ({ ctx, input }) => {
-        const { toggleBlueprintVisibility } = await import("./db");
-        await toggleBlueprintVisibility(ctx.user.id, input.id, input.isPublic);
-        return { success: true };
       }),
   }),
 });

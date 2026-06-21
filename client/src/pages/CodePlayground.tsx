@@ -26,11 +26,10 @@ import {
   FlaskConical,
   Share2,
   Globe,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AnalysisResult {
   framework: string;
@@ -42,14 +41,6 @@ interface AnalysisResult {
   dryRunOutput: string;
   isRunnable: boolean;
   suggestions: string[];
-}
-
-interface ExecutionResult {
-  success: boolean;
-  stdout: string;
-  stderr: string;
-  error: string | null;
-  executionTime: number | null;
 }
 
 const SAMPLE_CREWAI = `from crewai import Agent, Task, Crew, Process
@@ -130,24 +121,6 @@ async def main():
 asyncio.run(main())
 `;
 
-const SAMPLE_SIMPLE_PYTHON = `# Simple Python test — runs in a real E2B sandbox!
-import sys
-import math
-
-print("Hello from a real Python sandbox!")
-print(f"Python version: {sys.version.split()[0]}")
-
-# Test some math
-numbers = [1, 4, 9, 16, 25]
-roots = [math.sqrt(n) for n in numbers]
-print(f"Square roots of {numbers}:")
-print(f"  => {roots}")
-
-# Test a simple loop
-total = sum(range(1, 101))
-print(f"Sum of 1 to 100 = {total}")
-`;
-
 const LANGUAGE_OPTIONS = [
   { id: "python" as const, label: "Python 3", icon: "🐍" },
   { id: "javascript" as const, label: "JavaScript", icon: "⚡" },
@@ -178,8 +151,6 @@ export default function CodePlayground() {
   const [code, setCode] = useState(SAMPLE_CREWAI);
   const [language, setLanguage] = useState<"python" | "javascript" | "typescript">("python");
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [execResult, setExecResult] = useState<ExecutionResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"analysis" | "execution">("analysis");
   const [showSetup, setShowSetup] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -188,7 +159,6 @@ export default function CodePlayground() {
   const analyzeMutation = trpc.agents.analyzeCode.useMutation({
     onSuccess: (data) => {
       setResult(data as AnalysisResult);
-      setActiveTab("analysis");
       if ((data as AnalysisResult).issues.some(i => i.severity === "error")) {
         toast.error("Issues found in your code — check the analysis below");
       } else {
@@ -200,49 +170,12 @@ export default function CodePlayground() {
     },
   });
 
-  const executeMutation = trpc.agents.executeCode.useMutation({
-    onSuccess: (data) => {
-      setExecResult(data as ExecutionResult);
-      setActiveTab("execution");
-      if ((data as ExecutionResult).success) {
-        toast.success("Code executed successfully in E2B sandbox!");
-      } else {
-        toast.error("Execution completed with errors — see output below");
-      }
-    },
-    onError: (err) => {
-      toast.error(err.message || "Execution failed — please try again");
-    },
-  });
-
   const handleAnalyze = () => {
     if (!code.trim()) {
       toast.error("Please paste some agent code first");
       return;
     }
     analyzeMutation.mutate({ code, language });
-  };
-
-  // Blueprint sharing state
-  const [showBlueprintDialog, setShowBlueprintDialog] = useState(false);
-  const [blueprintTitle, setBlueprintTitle] = useState("");
-  const [blueprintDesc, setBlueprintDesc] = useState("");
-  const [blueprintShared, setBlueprintShared] = useState<{shareToken: string; shareUrl: string} | null>(null);
-  const blueprintMutation = trpc.blueprints.create.useMutation({
-    onSuccess: (data) => {
-      setBlueprintShared(data);
-      toast.success("Blueprint created and ready to share!");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-    const handleExecute = () => {
-    if (!code.trim()) {
-      toast.error("Please paste some code first");
-      return;
-    }
-    toast.info("Starting E2B sandbox...", { duration: 2000 });
-    executeMutation.mutate({ code, language });
   };
 
   const handleCopyCode = () => {
@@ -255,15 +188,14 @@ export default function CodePlayground() {
   const handleClear = () => {
     setCode("");
     setResult(null);
-    setExecResult(null);
     textareaRef.current?.focus();
   };
 
   const handleDebugWithSentinel = () => {
-    const errors = result?.issues.filter(i => i.severity === "error") ?? [];
-    const execError = execResult?.error ?? execResult?.stderr ?? "";
+    if (!result) return;
+    const errors = result.issues.filter(i => i.severity === "error");
     const errorText = errors.map(e => `- ${e.message}`).join("\n");
-    const debugPrompt = `I wrote this ${language} agent code and need help debugging it.\n\nHere is the code:\n\`\`\`${language}\n${code}\n\`\`\`\n\n${errors.length > 0 ? `The analysis found these issues:\n${errorText}` : ""}${execError ? `\n\nWhen I ran it, I got this error:\n${execError}` : ""}\n\nPlease help me fix these issues and explain what went wrong.`;
+    const debugPrompt = `I wrote this ${language} agent code and need help debugging it.\n\nHere is the code:\n\`\`\`${language}\n${code}\n\`\`\`\n\nThe analysis found these issues:\n${errorText || "No specific errors, but the code may not run as expected."}\n\nPlease help me fix these issues and explain what went wrong.`;
     try {
       localStorage.setItem("glow_agent_mode", "true");
       localStorage.setItem("glow_agent_builder_starter", debugPrompt);
@@ -272,8 +204,50 @@ export default function CodePlayground() {
   };
 
   const hasErrors = result?.issues.some(i => i.severity === "error") ?? false;
-  const hasExecErrors = execResult ? (!execResult.success || !!execResult.error || !!execResult.stderr) : false;
-  const isAnyLoading = analyzeMutation.isPending || executeMutation.isPending;
+
+  // ─── Blueprint sharing ────────────────────────────────────────────────────
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [blueprintTitle, setBlueprintTitle] = useState("");
+  const [blueprintDesc, setBlueprintDesc] = useState("");
+  const [sharedUrl, setSharedUrl] = useState<string | null>(null);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+
+  const createBlueprintMutation = trpc.blueprints.create.useMutation({
+    onSuccess: (data) => {
+      setSharedUrl(data.shareUrl);
+      toast.success("Blueprint created!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to create blueprint"),
+  });
+
+  const handleShareBlueprint = () => {
+    if (!code.trim()) { toast.error("No code to share"); return; }
+    setBlueprintTitle("");
+    setBlueprintDesc("");
+    setSharedUrl(null);
+    setShowShareDialog(true);
+  };
+
+  const handleCreateBlueprint = () => {
+    if (!blueprintTitle.trim()) { toast.error("Please enter a title"); return; }
+    createBlueprintMutation.mutate({
+      title: blueprintTitle.trim(),
+      description: blueprintDesc.trim() || undefined,
+      code,
+      language,
+      framework: result?.framework ?? "custom",
+    });
+  };
+
+  const handleCopyShareUrl = () => {
+    if (!sharedUrl) return;
+    const full = window.location.origin + sharedUrl;
+    navigator.clipboard.writeText(full).then(() => {
+      setCopiedShareUrl(true);
+      setTimeout(() => setCopiedShareUrl(false), 2000);
+      toast.success("Share link copied!");
+    });
+  };
 
   if (!user) {
     return (
@@ -304,10 +278,7 @@ export default function CodePlayground() {
             <span className="font-semibold text-white">Code Playground</span>
           </div>
           <Badge className="bg-cyan-500/15 text-cyan-300 border-cyan-500/30 text-[10px]">
-            <Zap className="w-2.5 h-2.5 mr-1" />AI Analysis
-          </Badge>
-          <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-500/30 text-[10px]">
-            <FlaskConical className="w-2.5 h-2.5 mr-1" />E2B Live Execution
+            <Zap className="w-2.5 h-2.5 mr-1" />AI-Powered Analysis
           </Badge>
           <div className="flex-1" />
           <Link href="/agent-builder">
@@ -356,7 +327,7 @@ export default function CodePlayground() {
               </button>
               <button
                 onClick={handleClear}
-                className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+                className="flex items-center gap-1.5 text-xs text-white/40 hover:text-red-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-500/5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Clear
@@ -364,25 +335,19 @@ export default function CodePlayground() {
             </div>
 
             {/* Quick load sample buttons */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
               <span className="text-xs text-white/30">Load sample:</span>
               <button
-                onClick={() => { setCode(SAMPLE_CREWAI); setLanguage("python"); setResult(null); setExecResult(null); }}
+                onClick={() => { setCode(SAMPLE_CREWAI); setLanguage("python"); setResult(null); }}
                 className="text-xs px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-300/70 border border-orange-500/20 hover:bg-orange-500/20 transition-colors"
               >
                 CrewAI Crew
               </button>
               <button
-                onClick={() => { setCode(SAMPLE_OPENAI_AGENTS); setLanguage("python"); setResult(null); setExecResult(null); }}
+                onClick={() => { setCode(SAMPLE_OPENAI_AGENTS); setLanguage("python"); setResult(null); }}
                 className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300/70 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
               >
                 OpenAI Agents
-              </button>
-              <button
-                onClick={() => { setCode(SAMPLE_SIMPLE_PYTHON); setLanguage("python"); setResult(null); setExecResult(null); }}
-                className="text-xs px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-300/70 border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors"
-              >
-                Simple Python ▶
               </button>
             </div>
 
@@ -402,105 +367,44 @@ export default function CodePlayground() {
                 ref={textareaRef}
                 value={code}
                 onChange={e => setCode(e.target.value)}
-                className="w-full h-[440px] bg-transparent text-white/85 font-mono text-sm p-4 resize-none outline-none leading-relaxed"
+                className="w-full h-[480px] bg-transparent text-white/85 font-mono text-sm p-4 resize-none outline-none leading-relaxed"
                 placeholder={`# Paste your agent code here...\n# Supports CrewAI, OpenAI Agents SDK, LangChain, and more`}
                 spellCheck={false}
               />
             </div>
 
-            {/* Action buttons row */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Analyse button */}
-              <Button
-                onClick={handleAnalyze}
-                disabled={isAnyLoading || !code.trim()}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {analyzeMutation.isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" />Analysing...</>
-                ) : (
-                  <><Play className="w-4 h-4" />Analyse & Dry Run</>
-                )}
-              </Button>
-
-              {/* Run (Real) button via E2B */}
-              <Button
-                onClick={handleExecute}
-                disabled={isAnyLoading || !code.trim()}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {executeMutation.isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" />Running in sandbox...</>
-                ) : (
-                  <><FlaskConical className="w-4 h-4" />Run (Real)</>
-                )}
-              </Button>
-              {/* Share as Blueprint button */}
-              <Button
-                onClick={() => { setBlueprintShared(null); setBlueprintTitle(code.slice(0, 60).trim()); setShowBlueprintDialog(true); }}
-                disabled={!code.trim()}
-                className="gap-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 font-semibold py-3 rounded-xl flex items-center justify-center"
-              >
-                <Share2 className="w-4 h-4" />Share as Blueprint
-              </Button>
-            </div>
-
-            {/* E2B info note */}
-            <p className="text-[11px] text-white/25 text-center">
-              <span className="text-emerald-400/50">▶ Run (Real)</span> executes in an isolated E2B cloud sandbox · Python & JavaScript supported
-            </p>
+            {/* Analyse button */}
+            <Button
+              onClick={handleAnalyze}
+              disabled={analyzeMutation.isPending || !code.trim()}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {analyzeMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" />Analysing with AI...</>
+              ) : (
+                <><Play className="w-4 h-4" />Analyse & Dry Run</>
+              )}
+            </Button>
           </div>
 
           {/* ── Right: Output Panel ── */}
           <div className="space-y-3">
-            {/* Tab switcher when both results exist */}
-            {(result || execResult) && (
-              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 w-fit">
-                <button
-                  onClick={() => setActiveTab("analysis")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    activeTab === "analysis"
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-                      : "text-white/40 hover:text-white/70"
-                  }`}
-                >
-                  <Code2 className="w-3 h-3" />AI Analysis
-                </button>
-                <button
-                  onClick={() => setActiveTab("execution")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    activeTab === "execution"
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                      : "text-white/40 hover:text-white/70"
-                  }`}
-                >
-                  <FlaskConical className="w-3 h-3" />Live Output
-                  {execResult && (
-                    <span className={`ml-1 w-1.5 h-1.5 rounded-full ${execResult.success ? "bg-emerald-400" : "bg-red-400"}`} />
-                  )}
-                </button>
-              </div>
-            )}
-
-            {!result && !execResult && !isAnyLoading ? (
+            {!result && !analyzeMutation.isPending ? (
               /* Empty state */
               <div className="h-full flex flex-col items-center justify-center py-20 text-center space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20 flex items-center justify-center">
                   <Terminal className="w-8 h-8 text-cyan-400/60" />
                 </div>
                 <div>
-                  <p className="text-white/50 font-medium">Paste your agent code and choose an action</p>
-                  <p className="text-white/25 text-sm mt-1">
-                    <span className="text-cyan-400/50">Analyse</span> for AI review &amp; dry run simulation<br />
-                    <span className="text-emerald-400/50">Run (Real)</span> to execute in a live E2B sandbox
-                  </p>
+                  <p className="text-white/50 font-medium">Paste your agent code and click Analyse</p>
+                  <p className="text-white/25 text-sm mt-1">The AI will review your code, detect the framework,<br />simulate a dry run, and suggest improvements.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-4 w-full max-w-sm">
                   {[
                     { icon: Code2, label: "Framework detection", color: "text-cyan-400" },
                     { icon: AlertTriangle, label: "Issue scanning", color: "text-amber-400" },
                     { icon: Terminal, label: "Dry run simulation", color: "text-emerald-400" },
-                    { icon: FlaskConical, label: "Real execution (E2B)", color: "text-teal-400" },
+                    { icon: Lightbulb, label: "Improvement tips", color: "text-purple-400" },
                   ].map(({ icon: Icon, label, color }) => (
                     <div key={label} className="flex items-center gap-2 p-3 rounded-xl bg-white/3 border border-white/8">
                       <Icon className={`w-4 h-4 ${color} shrink-0`} />
@@ -509,128 +413,19 @@ export default function CodePlayground() {
                   ))}
                 </div>
               </div>
-            ) : isAnyLoading ? (
+            ) : analyzeMutation.isPending ? (
               /* Loading state */
               <div className="h-full flex flex-col items-center justify-center py-20 text-center space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
                 </div>
                 <div>
-                  {analyzeMutation.isPending ? (
-                    <>
-                      <p className="text-white/60 font-medium">Analysing your agent code...</p>
-                      <p className="text-white/30 text-sm mt-1">Detecting framework, scanning for issues, simulating dry run</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-white/60 font-medium">Running in E2B sandbox...</p>
-                      <p className="text-white/30 text-sm mt-1">Spinning up isolated cloud environment · may take 5–15s</p>
-                    </>
-                  )}
+                  <p className="text-white/60 font-medium">Analysing your agent code...</p>
+                  <p className="text-white/30 text-sm mt-1">Detecting framework, scanning for issues, simulating dry run</p>
                 </div>
-              </div>
-            ) : activeTab === "execution" && execResult ? (
-              /* Execution output */
-              <div className="space-y-4">
-                {/* Status banner */}
-                <div className={`p-3 rounded-xl border flex items-center gap-2 ${execResult.success ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}>
-                  {execResult.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                  )}
-                  <span className={`text-sm font-medium ${execResult.success ? "text-emerald-300" : "text-red-300"}`}>
-                    {execResult.success ? "Execution successful" : "Execution failed"}
-                  </span>
-                  <Badge className="ml-auto bg-teal-500/15 text-teal-300 border-teal-500/30 text-[10px]">
-                    <FlaskConical className="w-2.5 h-2.5 mr-1" />E2B Sandbox
-                  </Badge>
-                </div>
-
-                {/* stdout */}
-                {execResult.stdout && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Terminal className="w-3.5 h-3.5 text-emerald-400/70" />
-                      <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Output (stdout)</span>
-                    </div>
-                    <div className="bg-[#0d0d14] border border-white/10 rounded-xl p-4 font-mono text-xs text-emerald-300/90 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
-                      {execResult.stdout}
-                    </div>
-                  </div>
-                )}
-
-                {/* stderr */}
-                {execResult.stderr && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400/70" />
-                      <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Warnings / stderr</span>
-                    </div>
-                    <div className="bg-[#0d0d14] border border-amber-500/20 rounded-xl p-4 font-mono text-xs text-amber-300/80 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
-                      {execResult.stderr}
-                    </div>
-                  </div>
-                )}
-
-                {/* error */}
-                {execResult.error && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Bug className="w-3.5 h-3.5 text-red-400/70" />
-                      <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Error</span>
-                    </div>
-                    <div className="bg-[#0d0d14] border border-red-500/20 rounded-xl p-4 font-mono text-xs text-red-300/80 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
-                      {execResult.error}
-                    </div>
-                  </div>
-                )}
-
-                {/* Debug CTA */}
-                {hasExecErrors && (
-                  <div className="p-4 rounded-xl border border-red-500/25 bg-gradient-to-br from-red-950/30 to-orange-950/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Bug className="w-4 h-4 text-red-400" />
-                      <span className="text-sm font-semibold text-red-300">Execution errors detected</span>
-                    </div>
-                    <p className="text-xs text-red-400/60 mb-3 leading-relaxed">
-                      A Sentinel can diagnose these runtime errors and guide you through fixing them.
-                    </p>
-                    <Button
-                      onClick={handleDebugWithSentinel}
-                      className="w-full bg-gradient-to-r from-red-500/80 to-orange-600/80 hover:from-red-400 hover:to-orange-500 text-white font-semibold text-sm py-2.5 rounded-xl flex items-center justify-center gap-2"
-                    >
-                      <Bug className="w-4 h-4" />
-                      Debug with a Sentinel
-                    </Button>
-                  </div>
-                )}
-
-                {/* Success CTA */}
-                {execResult.success && !hasExecErrors && (
-                  <div className="p-4 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/30 to-teal-950/20">
-                    <p className="text-xs text-emerald-400/60 mb-3 leading-relaxed">
-                      Your code ran successfully! A Sentinel can help you extend it, add error handling, or deploy it.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        const prompt = `I have this ${language} agent code that ran successfully. I want to improve and extend it:\n\`\`\`${language}\n${code}\n\`\`\`\n\nOutput was:\n${execResult.stdout}\n\nPlease help me: 1) Add proper error handling, 2) Make it production-ready, 3) Suggest the best way to deploy and run this agent.`;
-                        try {
-                          localStorage.setItem("glow_agent_mode", "true");
-                          localStorage.setItem("glow_agent_builder_starter", prompt);
-                        } catch {}
-                        setLocation("/chat?agentMode=1");
-                      }}
-                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-sm py-2.5 rounded-xl flex items-center justify-center gap-2"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Continue building with a Sentinel
-                    </Button>
-                  </div>
-                )}
               </div>
             ) : result ? (
-              /* Analysis results */
+              /* Results */
               <div className="space-y-4">
                 {/* Summary card */}
                 <div className="p-4 rounded-xl border border-white/10 bg-white/3 space-y-3">
@@ -800,44 +595,6 @@ export default function CodePlayground() {
           </div>
         </div>
       </div>
-      {/* Share as Blueprint Dialog */}
-      {showBlueprintDialog && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0f1117] border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4">
-            <h3 className="text-lg font-bold text-white">Share as Blueprint</h3>
-            {blueprintShared ? (
-              <div className="space-y-3">
-                <p className="text-sm text-emerald-400">Blueprint created!</p>
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
-                  <span className="text-xs text-white/60 flex-1 truncate">{window.location.origin}{blueprintShared.shareUrl}</span>
-                  <button onClick={() => { navigator.clipboard.writeText(window.location.origin + blueprintShared.shareUrl); toast.success("Link copied!"); }} className="text-cyan-400 hover:text-cyan-300 text-xs font-semibold">Copy</button>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setShowBlueprintDialog(false)} className="flex-1 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm">Close</button>
-                  <a href={blueprintShared.shareUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm text-center font-semibold">View</a>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-white/50 mb-1 block">Title</label>
-                  <input value={blueprintTitle} onChange={(e) => setBlueprintTitle(e.target.value)} placeholder="My Agent Blueprint" className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50" />
-                </div>
-                <div>
-                  <label className="text-xs text-white/50 mb-1 block">Description (optional)</label>
-                  <textarea value={blueprintDesc} onChange={(e) => setBlueprintDesc(e.target.value)} placeholder="What does this agent do?" rows={2} className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 resize-none" />
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setShowBlueprintDialog(false)} className="flex-1 py-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 text-sm">Cancel</button>
-                  <button onClick={() => blueprintMutation.mutate({ title: blueprintTitle || "Untitled Blueprint", description: blueprintDesc || undefined, code, language: language as "python" | "javascript" | "typescript", framework: "custom", isPublic: true })} disabled={blueprintMutation.isPending || !blueprintTitle.trim()} className="flex-1 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white text-sm font-semibold disabled:opacity-50">
-                    {blueprintMutation.isPending ? "Creating..." : "Create & Share"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

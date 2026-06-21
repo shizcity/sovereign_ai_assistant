@@ -37,11 +37,9 @@ const AgentTemplates = lazy(() => import("@/pages/AgentTemplates"));
 const CodePlayground = lazy(() => import("@/pages/CodePlayground"));
 const BlueprintView = lazy(() => import("@/pages/BlueprintView"));
 const MyBlueprints = lazy(() => import("@/pages/MyBlueprints"));
-const AgentProgress = lazy(() => import("@/pages/AgentProgress"));
 
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Suspense fallback={
       <div className="h-screen flex items-center justify-center bg-background">
@@ -67,7 +65,6 @@ function Router() {
       <Route path="/code-playground" component={CodePlayground} />
       <Route path="/blueprint/:token" component={BlueprintView} />
       <Route path="/my-blueprints" component={MyBlueprints} />
-      <Route path="/agent-progress" component={AgentProgress} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/session/:shareId" component={SharedSession} />
