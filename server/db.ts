@@ -562,11 +562,7 @@ export async function listPublicBlueprints(opts: {
   offset?: number;
 }) {
   const db = await getDb();
-<<<<<<< Updated upstream
-  if (!db) return { items: [] as (typeof agentBlueprints.$inferSelect)[], total: 0 };
-=======
   if (!db) return { items: [] as typeof agentBlueprints.$inferSelect[], total: 0 };
->>>>>>> Stashed changes
 
   const { limit = 24, offset = 0, search, language } = opts;
 
@@ -576,10 +572,7 @@ export async function listPublicBlueprints(opts: {
     .where(eq(agentBlueprints.isPublic, true))
     .orderBy(desc(agentBlueprints.viewCount), desc(agentBlueprints.createdAt));
 
-<<<<<<< Updated upstream
-=======
   // Apply in-memory filters (avoids complex dynamic query builder)
->>>>>>> Stashed changes
   if (search) {
     const q = search.toLowerCase();
     rows = rows.filter(
