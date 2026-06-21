@@ -2482,6 +2482,7 @@ export const appRouter = router({
           sentinelIds: z.array(z.number()).min(2).max(6),
           maxRounds: z.number().min(1).max(3).default(2),
           deliberationMode: z.enum(["parallel", "shared", "synchronous"]).default("parallel"),
+          isAgentDesign: z.boolean().default(false),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -2520,7 +2521,8 @@ export const appRouter = router({
           input.question,
           input.sentinelIds,
           input.maxRounds,
-          input.deliberationMode
+          input.deliberationMode,
+          input.isAgentDesign
         );
         // Award XP for completing a Round Table — await to surface new achievements
         const rtXp = await awardXp(ctx.user.id, "round_table_completed").catch(() => ({ xpAwarded: 0, newAchievements: [] }));

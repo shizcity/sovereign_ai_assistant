@@ -75,6 +75,7 @@ export interface RoundTableResult {
   interruptionLog: InterruptionEvent[]; // Phase 3
   streamId: string | null; // Phase 3: SSE channel ID
   sessionTags: string[]; // User-defined tags for filtering
+  sessionType: "standard" | "agent_design"; // Phase 3: agent design mode
 }
 
 // ─── SSE Streaming Bus ────────────────────────────────────────────────────────
@@ -163,7 +164,8 @@ async function runSentinelReasoning(
   memories: string[],
   mode: DeliberationMode,
   streamId: string | null,
-  injectedMessage: string | null = null
+  injectedMessage: string | null = null,
+  isAgentDesign = false
 ): Promise<SentinelReasoning> {
   const memoriesContext =
     memories.length > 0
@@ -194,11 +196,24 @@ async function runSentinelReasoning(
     ? `\n\n⚡ HUMAN INTERRUPTION: The user has injected this message mid-deliberation:\n"${injectedMessage}"\nAddress this directly in your reasoning.`
     : "";
 
+  const agentDesignLayer = isAgentDesign
+    ? `
+
+## AGENT DESIGN MODE
+This deliberation is specifically about designing an AI agent. Your job is to debate the best approach from your unique perspective. You MUST address:
+1. **Recommended Framework** — which framework (n8n, CrewAI, or OpenAI Agents SDK) best fits this challenge and why
+2. **Architecture Summary** — the key components, agents/nodes, and data flow you would design
+3. **Key Risks** — what could go wrong and how to mitigate it
+4. **Skill Level Match** — who this approach is best suited for (beginner/intermediate/advanced)
+
+Be opinionated. Disagree with other Sentinels if you genuinely believe a different approach is better. The user needs clear, actionable guidance — not vague consensus.`
+    : "";
+
   const systemPrompt = `${sentinel.systemPrompt}
 
 You are participating in a Round Table deliberation — a structured multi-Sentinel reasoning process where multiple AI perspectives collaborate to reach the best possible answer.
 
-Your role: Think deeply and honestly. Show your full reasoning chain. Do not just agree with previous Sentinels — challenge, refine, or build upon their thinking. Your unique perspective matters.${memoriesContext}`;
+Your role: Think deeply and honestly. Show your full reasoning chain. Do not just agree with previous Sentinels — challenge, refine, or build upon their thinking. Your unique perspective matters.${memoriesContext}${agentDesignLayer}`;
 
   const userPrompt = `Round ${round} of deliberation.
 
@@ -623,7 +638,8 @@ export async function runRoundTable(
   question: string,
   selectedSentinelIds: number[],
   maxRounds = 2,
-  mode: DeliberationMode = "parallel"
+  mode: DeliberationMode = "parallel",
+  isAgentDesign = false
 ): Promise<RoundTableResult> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -666,6 +682,7 @@ export async function runRoundTable(
     streamId,
     isPaused: 0,
     interruptionLog: JSON.stringify([]),
+    sessionType: isAgentDesign ? "agent_design" : "standard",
   });
 
   const sessionId = (sessionResult as any).insertId as number;
@@ -725,7 +742,8 @@ export async function runRoundTable(
             memoriesBySentinel[sentinel.id] || [],
             mode,
             streamId,
-            injectedMessage
+            injectedMessage,
+            isAgentDesign
           );
 
           allReasoning.push(reasoning);
@@ -745,7 +763,8 @@ export async function runRoundTable(
               memoriesBySentinel[sentinel.id] || [],
               mode,
               streamId,
-              null
+              null,
+              isAgentDesign
             );
           })
         );
@@ -765,7 +784,8 @@ export async function runRoundTable(
               memoriesBySentinel[sentinel.id] || [],
               mode,
               streamId,
-              null
+              null,
+              isAgentDesign
             );
           })
         );
@@ -881,6 +901,7 @@ export async function runRoundTable(
       interruptionLog,
       streamId,
       sessionTags: [],
+      sessionType: isAgentDesign ? "agent_design" : "standard",
     };
   } catch (err) {
     // Mark session as failed
@@ -1008,5 +1029,6 @@ export async function getRoundTableSession(sessionId: number, userId: number): P
     interruptionLog,
     streamId: session.streamId ?? null,
     sessionTags,
+    sessionType: (session.sessionType ?? "standard") as "standard" | "agent_design",
   };
 }

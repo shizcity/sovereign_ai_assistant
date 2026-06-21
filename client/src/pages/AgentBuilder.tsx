@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Bot, Zap, BookOpen, Heart, Code2, Network, ArrowRight, ArrowLeft, CheckCircle2, Sparkles, Workflow, Terminal } from "lucide-react";
+import { Bot, Zap, BookOpen, Heart, Code2, Network, ArrowRight, ArrowLeft, CheckCircle2, Sparkles, Workflow, Terminal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -382,6 +382,29 @@ export default function AgentBuilder() {
               <p>A new conversation opens with <strong className="text-white">{frameworkRec.sentinelName}</strong> in Agent Builder Mode.</p>
               <p>Your goal is pre-loaded as the first message — just hit Send and the build begins.</p>
               <p>The Sentinel will ask clarifying questions, design the architecture, and generate complete runnable code step by step.</p>
+            </div>
+
+            {/* Design with Round Table alternative CTA */}
+            <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Users className="w-4 h-4 text-purple-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-white text-sm mb-1">Want multiple perspectives first?</div>
+                  <p className="text-xs text-gray-400 leading-relaxed">Bring your agent challenge to the Round Table — all 6 Sentinels will debate the best framework, architecture, and risks before you start building.</p>
+                  <button
+                    onClick={() => {
+                      const q = `I want to build an agent for: ${selectedGoal?.title}. Here's my goal: ${selectedGoal?.examplePrompt}. I'm a ${selectedSkill?.id === "no-code" ? "no-code" : selectedSkill?.id === "some-code" ? "beginner-to-intermediate" : "code-first"} user. Please debate the best framework (n8n, CrewAI, or OpenAI Agents SDK), architecture, and risks for my use case.`;
+                      try { localStorage.setItem("glow_rt_agent_design_question", q); } catch {}
+                      setLocation("/round-table?agentDesign=1");
+                    }}
+                    className="mt-2 text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1 font-medium"
+                  >
+                    <Users className="w-3 h-3" /> Design with Round Table <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3">

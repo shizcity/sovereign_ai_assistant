@@ -373,6 +373,7 @@ export const roundTableSessions = mysqlTable("round_table_sessions", {
   isPaused: int("isPaused").default(0).notNull(), // 1 if session is paused for human input
   shareId: varchar("shareId", { length: 32 }), // Public share token (nanoid) — null means not shared
   sessionTags: text("sessionTags"), // JSON array of user-defined tag strings
+  sessionType: varchar("sessionType", { length: 20 }).default("standard").notNull(), // standard | agent_design
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
 });

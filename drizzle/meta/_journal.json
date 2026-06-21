@@ -176,6 +176,13 @@
       "when": 1781586840535,
       "tag": "0024_tiresome_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1782014706397,
+      "tag": "0025_pretty_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `round_table_sessions` ADD `sessionType` varchar(20) DEFAULT 'standard' NOT NULL;

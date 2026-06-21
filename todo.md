@@ -1968,3 +1968,30 @@
 ### Sentinel Handoff
 - [x] On "Build this with [Sentinel]" click: create conversation, set agentMode, store template code in localStorage, route to /chat with sentinel + conv params
 - [x] In Chat.tsx: on mount check localStorage for pending template — auto-populate input with template starter prompt
+
+## Agentic Systems — Phase 3: Round Table for Agent Design
+
+### Backend
+- [x] Add agentDesign boolean field to roundTableSessions schema (or use sessionType enum: 'standard' | 'agent_design')
+- [x] Add agent design system prompt injection in roundtable.ts — each Sentinel debates framework choice, architecture, and risk profile
+- [x] Add tRPC procedure: roundtable.createAgentDesignSession(challenge: string) — creates a pre-configured RT session with agent design framing
+- [x] Ensure each Sentinel's response in agent design mode includes: recommended framework, architecture summary, key risks, and a "Build with me" CTA signal
+
+### Frontend — Agent Design Entry Point
+- [x] Add "Design with Round Table" button to AgentBuilder.tsx step 3 (after framework recommendation)
+- [x] Add "Design with Round Table" button to AgentTemplates.tsx template detail modal
+- [x] Create /round-table/agent-design route or modal flow that pre-populates the RT challenge field
+
+### Frontend — Round Table Agent Design View
+- [x] In RoundTable.tsx: detect agentDesign session type and render Agent Design header/badge
+- [x] Show each Sentinel's framework recommendation as a highlighted card below their response
+- [x] Add "Build with [Sentinel]" button on each Sentinel response card in agent design sessions
+- [x] "Build with [Sentinel]" click: activate Agent Builder Mode, route to /chat with that Sentinel pre-selected
+
+### Navigation
+- [x] Add "Agent Design" entry point to the sidebar nav under Round Table
+- [x] Add "Design an Agent" CTA on the AgentBuilder page alongside the existing flow
+
+### Tests
+- [x] Verify agent design session creation returns all 6 Sentinel responses
+- [x] Verify "Build with [Sentinel]" handoff correctly sets agentMode and routes to Chat

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Users,
   ChevronDown,
@@ -92,6 +92,7 @@ interface RoundTableResult {
   interruptionLog?: Array<{ message: string; timestamp: string; afterRound: number }>;
   streamId?: string;
   sessionTags?: string[];
+  sessionType?: "standard" | "agent_design";
 }
 
 interface StreamEvent {
@@ -453,8 +454,36 @@ function ResultsView({
     }
   };
 
+  const [, setLocation] = useLocation();
+
+  const handleBuildWithSentinel = () => {
+    // Find the sentinel whose name matches finalSentinelName
+    const sentinel = result.sentinels.find(s => s.name === result.finalSentinelName);
+    const buildPrompt = `Based on the Round Table debate, I want to build the agent we discussed. The consensus recommendation was:\n\n${result.finalAnswer}\n\nPlease guide me through building this step by step, starting with the setup.`;
+    try {
+      localStorage.setItem("glow_agent_mode", "true");
+      localStorage.setItem("glow_agent_builder_starter", buildPrompt);
+      if (sentinel) localStorage.setItem("glow_agent_builder_sentinel", String(sentinel.id));
+    } catch {}
+    const params = sentinel ? `?sentinel=${sentinel.id}&agentMode=1` : `?agentMode=1`;
+    setLocation(`/chat${params}`);
+  };
+
   return (
     <div className="space-y-5">
+      {/* Agent Design mode banner */}
+      {result.sessionType === "agent_design" && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-purple-500/30 bg-purple-500/8">
+          <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+            <Users className="w-3.5 h-3.5 text-purple-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-purple-300">Agent Design Session</div>
+            <div className="text-xs text-purple-400/60">The Sentinels debated the best architecture for your agent</div>
+          </div>
+        </div>
+      )}
+
       {/* Question recap */}
       <div className="bg-white/4 border border-white/10 rounded-xl p-4">
         <div className="text-xs text-white/40 uppercase tracking-wider mb-1">Question</div>
@@ -609,6 +638,26 @@ function ResultsView({
             )}
           </Button>
         </div>
+
+        {/* Agent Design post-debate handoff */}
+        {result.sessionType === "agent_design" && (
+          <div className="p-4 rounded-xl border border-cyan-500/25 bg-gradient-to-br from-cyan-950/40 to-blue-950/30">
+            <div className="text-xs font-semibold text-cyan-300 mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Ready to build?
+            </div>
+            <p className="text-xs text-cyan-400/60 mb-3 leading-relaxed">
+              The debate is done. {result.finalSentinelName} will take the consensus and guide you through building your agent step by step.
+            </p>
+            <Button
+              onClick={handleBuildWithSentinel}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm py-2.5 rounded-xl flex items-center justify-center gap-2"
+            >
+              <span>{result.finalSentinelEmoji}</span>
+              Build with {result.finalSentinelName}
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
@@ -770,6 +819,23 @@ export default function RoundTable() {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
   const activeStreamId = useRef<string | null>(null);
+  const [isAgentDesign, setIsAgentDesign] = useState(false);
+  const [, setLocation] = useLocation();
+
+  // On mount: check for agentDesign=1 URL param and pre-load question from localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("agentDesign") === "1") {
+      setIsAgentDesign(true);
+      try {
+        const q = localStorage.getItem("glow_rt_agent_design_question");
+        if (q) {
+          setQuestion(q);
+          localStorage.removeItem("glow_rt_agent_design_question");
+        }
+      } catch {}
+    }
+  }, []);
 
   const { data: sentinelList } = trpc.sentinels.list.useQuery();
   const { data: history, refetch: refetchHistory } = trpc.roundTable.history.useQuery();
@@ -845,7 +911,7 @@ export default function RoundTable() {
     // the server saves streamId to the session row before running rounds.
     // We connect via useEffect once startMutation.isPending becomes true and
     // the server has emitted the 'connected' event with the streamId.
-    startMutation.mutate({ question: question.trim(), sentinelIds: selectedIds, maxRounds, deliberationMode });
+    startMutation.mutate({ question: question.trim(), sentinelIds: selectedIds, maxRounds, deliberationMode, isAgentDesign });
   };
 
   const handleInterrupt = () => {
@@ -1260,6 +1326,22 @@ export default function RoundTable() {
               <ResultsView result={result} onReset={handleReset} />
             ) : (
               <>
+                {/* ── Agent Design mode banner ── */}
+                {isAgentDesign && (
+                  <div className="flex items-center gap-3 p-3.5 rounded-xl border border-purple-500/30 bg-gradient-to-r from-purple-950/40 to-indigo-950/30">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-purple-300">Agent Design Mode</div>
+                      <p className="text-xs text-purple-400/60 leading-relaxed">Your agent challenge is pre-loaded. Select your Sentinels and start the debate — they will recommend the best framework, architecture, and approach.</p>
+                    </div>
+                    <button onClick={() => setIsAgentDesign(false)} className="text-purple-400/40 hover:text-purple-300 transition-colors shrink-0">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
                 {/* ── Presets ── */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
