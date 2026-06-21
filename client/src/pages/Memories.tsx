@@ -67,18 +67,46 @@ export default function Memories() {
   });
 
   const { data: sentinels } = trpc.sentinels.list.useQuery();
-  const { data: allMemories, refetch } = trpc.sentinels.memories.listAll.useQuery();
-  
+  const { data: allMemories } = trpc.sentinels.memories.listAll.useQuery();
+  const utils = trpc.useUtils();
+
   const deleteMemoryMutation = trpc.sentinels.memories.delete.useMutation({
-    onSuccess: () => {
-      refetch();
+    onMutate: async ({ memoryId }) => {
+      await utils.sentinels.memories.listAll.cancel();
+      const previous = utils.sentinels.memories.listAll.getData();
+      utils.sentinels.memories.listAll.setData(undefined, (old) =>
+        old ? old.filter((m: any) => m.id !== memoryId) : old
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous !== undefined) {
+        utils.sentinels.memories.listAll.setData(undefined, context.previous);
+      }
+    },
+    onSettled: () => {
+      utils.sentinels.memories.listAll.invalidate();
     },
   });
 
   const updateMemoryMutation = trpc.sentinels.memories.update.useMutation({
-    onSuccess: () => {
-      refetch();
+    onMutate: async ({ memoryId, content }) => {
+      await utils.sentinels.memories.listAll.cancel();
+      const previous = utils.sentinels.memories.listAll.getData();
+      utils.sentinels.memories.listAll.setData(undefined, (old) =>
+        old ? old.map((m: any) => m.id === memoryId ? { ...m, ...(content !== undefined ? { content } : {}) } : m) : old
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous !== undefined) {
+        utils.sentinels.memories.listAll.setData(undefined, context.previous);
+      }
+    },
+    onSettled: () => {
+      utils.sentinels.memories.listAll.invalidate();
       setEditingMemory(null);
+      setInlineEditId(null);
     },
   });
 
