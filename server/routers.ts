@@ -2908,6 +2908,64 @@ export const appRouter = router({
       return { success: true };
     }),
   }),
+
+  agents: router({
+    // Analyse agent code: detect framework, validate structure, identify issues
+    analyzeCode: protectedProcedure
+      .input(z.object({
+        code: z.string().min(1).max(50000),
+        language: z.enum(["python", "javascript", "typescript"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const systemPrompt = `You are an expert AI agent code reviewer. When given agent code, you must respond with a JSON object (no markdown, no code blocks, raw JSON only) with this exact structure:
+{
+  "framework": "crewai|openai-agents|langchain|autogen|n8n|custom|unknown",
+  "language": "python|javascript|typescript",
+  "summary": "One sentence describing what this agent does",
+  "issues": [{"severity": "error|warning|info", "line": null, "message": "description"}],
+  "dependencies": ["list", "of", "required", "packages"],
+  "setupSteps": ["Step 1: ...", "Step 2: ..."],
+  "dryRunOutput": "Simulated console output showing what would happen if this code ran successfully with mock data",
+  "isRunnable": true,
+  "suggestions": ["Improvement suggestion 1", "Improvement suggestion 2"]
+}`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Analyze this ${input.language} agent code:\n\n${input.code}` },
+          ],
+        });
+        const rawContent = response.choices[0]?.message?.content ?? "{}";
+        const raw = typeof rawContent === "string" ? rawContent : "{}";
+        try {
+          // Strip markdown code blocks if present
+          const cleaned = raw.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+          return JSON.parse(cleaned);
+        } catch {
+          return {
+            framework: "unknown",
+            language: input.language,
+            summary: "Could not parse analysis",
+            issues: [{ severity: "error", line: null, message: "Analysis failed — please try again" }],
+            dependencies: [],
+            setupSteps: [],
+            dryRunOutput: raw,
+            isRunnable: false,
+            suggestions: [],
+          };
+        }
+      }),
+
+    // Get supported languages list
+    getSupportedLanguages: publicProcedure.query(() => {
+      return [
+        { id: "python", label: "Python 3", extension: "py", placeholder: "# Paste your CrewAI, LangChain, or OpenAI Agents SDK code here" },
+        { id: "javascript", label: "JavaScript", extension: "js", placeholder: "// Paste your Node.js agent code here" },
+        { id: "typescript", label: "TypeScript", extension: "ts", placeholder: "// Paste your TypeScript agent code here" },
+      ];
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;
 

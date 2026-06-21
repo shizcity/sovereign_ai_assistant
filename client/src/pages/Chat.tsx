@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers } from "lucide-react";
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -1285,6 +1285,7 @@ export default function Chat() {
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
             { href: '/agent-builder', icon: Bot, label: 'Build an Agent' },
             { href: '/agent-templates', icon: Layers, label: 'Agent Templates' },
+            { href: '/code-playground', icon: Terminal, label: 'Code Playground' },
             { href: '/round-table', icon: Users, label: 'Round Table' },
             { href: '/achievements', icon: Trophy, label: 'Achievements' },
             { href: '/referrals', icon: Gift, label: 'Invite & Earn' },

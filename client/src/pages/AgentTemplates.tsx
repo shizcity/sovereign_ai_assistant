@@ -86,6 +86,7 @@ function TemplateModal({
 }) {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "code" | "setup">("overview");
+  const [, setLocation] = useLocation();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(template.code).then(() => {
@@ -210,29 +211,43 @@ function TemplateModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-6 border-t border-white/10 flex gap-3">
+        <div className="p-6 border-t border-white/10 space-y-3">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleCopy}
+              className="flex items-center gap-2 bg-transparent border-white/20 text-gray-300 hover:text-white hover:bg-white/10"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              {copied ? "Copied!" : "Copy Code"}
+            </Button>
+            <Button
+              onClick={() => onLaunch(template)}
+              disabled={launching}
+              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold flex items-center justify-center gap-2"
+            >
+              {launching ? (
+                <span className="animate-pulse">Launching...</span>
+              ) : (
+                <>
+                  <span>{template.sentinelEmoji}</span>
+                  Build this with {template.sentinelName}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
           <Button
             variant="outline"
-            onClick={handleCopy}
-            className="flex items-center gap-2 bg-transparent border-white/20 text-gray-300 hover:text-white hover:bg-white/10"
+            onClick={() => {
+              try { localStorage.setItem("glow_playground_code", template.code); } catch {}
+              onClose();
+              setLocation("/code-playground");
+            }}
+            className="w-full flex items-center justify-center gap-2 bg-transparent border-white/15 text-white/50 hover:text-white/80 hover:bg-white/5 text-sm"
           >
-            {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-            {copied ? "Copied!" : "Copy Code"}
-          </Button>
-          <Button
-            onClick={() => onLaunch(template)}
-            disabled={launching}
-            className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold flex items-center justify-center gap-2"
-          >
-            {launching ? (
-              <span className="animate-pulse">Launching...</span>
-            ) : (
-              <>
-                <span>{template.sentinelEmoji}</span>
-                Build this with {template.sentinelName}
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
+            <Terminal className="w-3.5 h-3.5" />
+            Try in Code Playground
           </Button>
         </div>
       </div>

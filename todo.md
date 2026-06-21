@@ -1995,3 +1995,35 @@
 ### Tests
 - [x] Verify agent design session creation returns all 6 Sentinel responses
 - [x] Verify "Build with [Sentinel]" handoff correctly sets agentMode and routes to Chat
+
+## Agentic Systems — Phase 4: Agent Execution Layer
+
+### Backend — Piston API Integration
+- [x] Add code execution tRPC procedure: agents.analyzeCode(language, code) — LLM-powered analysis + dry-run simulation
+- [x] Add agents.getSupportedLanguages query — returns supported languages (Python, JS, TS)
+- [x] Handle LLM analysis errors gracefully with fallback response
+- [x] Add code size limit (max 50KB) and JSON parse fallback
+
+### Frontend — Code Playground Page
+- [x] Create client/src/pages/CodePlayground.tsx
+- [x] Code editor textarea with syntax highlighting (terminal-style textarea with macOS window chrome)
+- [x] Language selector (Python 3, JavaScript, TypeScript) with tab switcher
+- [x] Analyse & Dry Run button with loading spinner
+- [x] Analysis output panel — framework detection, issues, dry-run output, dependencies, setup steps, suggestions
+- [x] Clear button to reset editor and output
+- [x] Copy code button
+- [x] "Debug with Sentinel" button — appears when analysis finds errors
+
+### Frontend — Sentinel Debug Handoff
+- [x] "Debug with Sentinel" click: stores code + error in localStorage, routes to /chat in Agent Builder Mode with debug starter prompt pre-loaded
+- [x] Debug starter prompt includes code + error list, pre-loaded into Agent Builder Mode chat
+
+### Navigation & Entry Points
+- [x] Register /code-playground route in App.tsx
+- [x] Add "Code Playground" to Chat sidebar nav (below Agent Templates)
+- [x] Add "Try in Playground" button to AgentTemplates.tsx template detail modal — stores code in localStorage and routes to /code-playground
+- [x] Add "Continue building with Sentinel" CTA in playground when code has no errors
+
+### Tests
+- [x] Write vitest test for agents.analyzeCode procedure (mock LLM response)
+- [x] Verify error path returns issues array with severity=error correctly
