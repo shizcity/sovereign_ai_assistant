@@ -23,11 +23,13 @@ import {
   ArrowLeft,
   Terminal,
   Zap,
+  FlaskConical,
+  Share2,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AnalysisResult {
   framework: string;
@@ -202,6 +204,50 @@ export default function CodePlayground() {
   };
 
   const hasErrors = result?.issues.some(i => i.severity === "error") ?? false;
+
+  // ─── Blueprint sharing ────────────────────────────────────────────────────
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [blueprintTitle, setBlueprintTitle] = useState("");
+  const [blueprintDesc, setBlueprintDesc] = useState("");
+  const [sharedUrl, setSharedUrl] = useState<string | null>(null);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+
+  const createBlueprintMutation = trpc.blueprints.create.useMutation({
+    onSuccess: (data) => {
+      setSharedUrl(data.shareUrl);
+      toast.success("Blueprint created!");
+    },
+    onError: (err) => toast.error(err.message || "Failed to create blueprint"),
+  });
+
+  const handleShareBlueprint = () => {
+    if (!code.trim()) { toast.error("No code to share"); return; }
+    setBlueprintTitle("");
+    setBlueprintDesc("");
+    setSharedUrl(null);
+    setShowShareDialog(true);
+  };
+
+  const handleCreateBlueprint = () => {
+    if (!blueprintTitle.trim()) { toast.error("Please enter a title"); return; }
+    createBlueprintMutation.mutate({
+      title: blueprintTitle.trim(),
+      description: blueprintDesc.trim() || undefined,
+      code,
+      language,
+      framework: result?.framework ?? "custom",
+    });
+  };
+
+  const handleCopyShareUrl = () => {
+    if (!sharedUrl) return;
+    const full = window.location.origin + sharedUrl;
+    navigator.clipboard.writeText(full).then(() => {
+      setCopiedShareUrl(true);
+      setTimeout(() => setCopiedShareUrl(false), 2000);
+      toast.success("Share link copied!");
+    });
+  };
 
   if (!user) {
     return (

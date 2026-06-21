@@ -549,3 +549,24 @@ export const agentBuilderProgress = mysqlTable("agent_builder_progress", {
 });
 export type AgentBuilderProgressRow = typeof agentBuilderProgress.$inferSelect;
 export type InsertAgentBuilderProgress = typeof agentBuilderProgress.$inferInsert;
+
+/**
+ * Agent Blueprints — shareable agent designs with public share links
+ */
+export const agentBlueprints = mysqlTable("agent_blueprints", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  code: text("code").notNull(),
+  language: varchar("language", { length: 32 }).notNull().default("python"),
+  framework: varchar("framework", { length: 64 }).notNull().default("custom"),
+  sentinelId: int("sentinelId"),
+  shareToken: varchar("shareToken", { length: 64 }).notNull().unique(),
+  isPublic: boolean("isPublic").default(true).notNull(),
+  viewCount: int("viewCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AgentBlueprint = typeof agentBlueprints.$inferSelect;
+export type InsertAgentBlueprint = typeof agentBlueprints.$inferInsert;

@@ -62,6 +62,8 @@ function Router() {
       <Route path="/agent-builder" component={AgentBuilder} />
       <Route path="/agent-templates" component={AgentTemplates} />
       <Route path="/code-playground" component={CodePlayground} />
+      <Route path="/blueprint/:token" component={BlueprintView} />
+      <Route path="/my-blueprints" component={MyBlueprints} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/session/:shareId" component={SharedSession} />

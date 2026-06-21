@@ -17,7 +17,9 @@ import {
   InsertAgentBuilderSession,
   templateInteractions,
   InsertTemplateInteraction,
-  agentBuilderProgress
+  agentBuilderProgress,
+  agentBlueprints,
+  InsertAgentBlueprint
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -461,4 +463,52 @@ export async function getAgentProgress(userId: number): Promise<Record<string, n
   const result: Record<string, number> = {};
   for (const row of rows) result[row.metric] = row.value;
   return result;
+}
+
+// ─── Agent Blueprints helpers ─────────────────────────────────────────────────
+export async function createAgentBlueprint(data: InsertAgentBlueprint) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(agentBlueprints).values(data);
+  const rows = await db.select().from(agentBlueprints)
+    .where(eq(agentBlueprints.shareToken, data.shareToken))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getBlueprintByToken(shareToken: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(agentBlueprints)
+    .where(and(eq(agentBlueprints.shareToken, shareToken), eq(agentBlueprints.isPublic, true)))
+    .limit(1);
+  if (rows[0]) {
+    await db.update(agentBlueprints)
+      .set({ viewCount: (rows[0].viewCount ?? 0) + 1 })
+      .where(eq(agentBlueprints.shareToken, shareToken));
+  }
+  return rows[0] ?? null;
+}
+
+export async function getUserBlueprints(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agentBlueprints)
+    .where(eq(agentBlueprints.userId, userId))
+    .orderBy(agentBlueprints.createdAt);
+}
+
+export async function deleteAgentBlueprint(userId: number, blueprintId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(agentBlueprints)
+    .where(and(eq(agentBlueprints.id, blueprintId), eq(agentBlueprints.userId, userId)));
+}
+
+export async function toggleBlueprintVisibility(userId: number, blueprintId: number, isPublic: boolean) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(agentBlueprints)
+    .set({ isPublic })
+    .where(and(eq(agentBlueprints.id, blueprintId), eq(agentBlueprints.userId, userId)));
 }

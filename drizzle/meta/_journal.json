@@ -190,6 +190,13 @@
       "when": 1782017230813,
       "tag": "0026_mysterious_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1782020266353,
+      "tag": "0027_heavy_stark_industries",
+      "breakpoints": true
     }
   ]
 }

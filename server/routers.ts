@@ -2994,6 +2994,57 @@ export const appRouter = router({
         { id: "typescript", label: "TypeScript", extension: "ts", placeholder: "// Paste your TypeScript agent code here" },
       ];
     }),
+
+    // Execute code in a real E2B sandbox
+    executeCode: protectedProcedure
+      .input(z.object({
+        code: z.string().min(1).max(50000),
+        language: z.enum(["python", "javascript", "typescript"]),
+      }))
+      .mutation(async ({ input }) => {
+        const { ENV } = await import("./_core/env");
+        if (!ENV.e2bApiKey) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "E2B API key not configured" });
+        }
+        try {
+          // @ts-ignore - E2B package uses non-standard module format
+          // @ts-ignore
+          // @ts-ignore - E2B package uses non-standard module format
+          const { Sandbox } = await import("@e2b/code-interpreter");
+          const sandbox = await Sandbox.create({ apiKey: ENV.e2bApiKey, timeoutMs: 30000 });
+          try {
+            // For TypeScript, transpile to JS first via a simple comment note
+            const codeToRun = input.language === "typescript"
+              ? `// TypeScript note: running as JavaScript (types stripped)\n${input.code.replace(/:\s*[A-Za-z<>\[\]|&]+/g, "")}`
+              : input.code;
+            const lang = input.language === "python" ? "python" : "js";
+            const result = await sandbox.runCode(codeToRun, { language: lang, timeoutMs: 25000 });
+            const stdout = result.logs?.stdout?.join("") ?? "";
+            const stderr = result.logs?.stderr?.join("") ?? "";
+            const outputs = result.results?.map((r: any) => {
+              if (r.text) return r.text;
+              if (r.html) return "[HTML output]"; 
+              if (r.png) return "[Image output]";
+              return "";
+            }).filter(Boolean).join("\n") ?? "";
+            return {
+              success: !result.error,
+              stdout: stdout + (outputs ? "\n" + outputs : ""),
+              stderr: stderr,
+              error: result.error ? String(result.error) : null,
+              executionTime: null,
+            };
+          } finally {
+            await sandbox.kill().catch(() => {});
+          }
+        } catch (err: any) {
+          if (err?.code === "PRECONDITION_FAILED") throw err;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: err?.message ?? "Code execution failed",
+          });
+        }
+      }),
   }),
 
   // ─── Agent Builder Session (Feature 2) ──────────────────────────────────────
