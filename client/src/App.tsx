@@ -33,6 +33,7 @@ const Achievements = lazy(() => import("@/pages/Achievements"));
 const Referrals = lazy(() => import("@/pages/Referrals"));
 const SharedSession = lazy(() => import("@/pages/SharedSession"));
 const AgentBuilder = lazy(() => import("@/pages/AgentBuilder"));
+const AgentTemplates = lazy(() => import("@/pages/AgentTemplates"));
 
 
 function Router() {
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/my-sentinels" component={MySentinels} />
       <Route path="/round-table" component={RoundTable} />
       <Route path="/agent-builder" component={AgentBuilder} />
+      <Route path="/agent-templates" component={AgentTemplates} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/session/:shareId" component={SharedSession} />

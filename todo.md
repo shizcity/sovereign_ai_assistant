@@ -1937,3 +1937,34 @@
 - [x] Step 4: Sentinel handoff — routes user to Chat with the best-matched Sentinel pre-loaded and agent mode ON
 - [x] Add "Build an Agent" entry point to the sidebar/nav
 - [x] Add "Build an Agent" CTA card on the Home/Dashboard page
+
+## Agentic Systems — Phase 2: Agent Templates Library
+
+### Data Layer
+- [x] Create client/src/data/agentTemplates.ts — static template definitions (no DB needed)
+- [x] Each template has: id, title, description, framework (n8n|crewai|openai-agents), category, difficulty, sentinelId, sentinelSlug, sentinelName, code (full runnable string), setupSteps, tags
+
+### Templates to build (9 total — 3 per framework)
+- [x] n8n: Email Digest Agent — monitors Gmail, summarises unread, sends daily briefing
+- [x] n8n: Social Media Monitor — watches keywords on Twitter/Reddit, sends alerts
+- [x] n8n: Lead Capture Agent — captures form submissions, enriches data, adds to CRM
+- [x] CrewAI: Research Crew — Researcher + Analyst + Writer agents synthesise a topic report
+- [x] CrewAI: Customer Support Crew — Triage + FAQ + Escalation agents handle support tickets
+- [x] CrewAI: Daily Briefing Crew — News + Weather + Calendar agents produce a morning briefing
+- [x] OpenAI Agents SDK: Web Search Agent — searches the web and returns structured summaries
+- [x] OpenAI Agents SDK: Data Analyst Agent — reads a CSV, analyses trends, writes a report
+- [x] OpenAI Agents SDK: Multi-Agent Handoff — orchestrator routes tasks to specialist sub-agents
+
+### AgentTemplates Page (/agent-templates)
+- [x] Create client/src/pages/AgentTemplates.tsx
+- [x] Hero section with title and subtitle
+- [x] Filter bar: All / n8n / CrewAI / OpenAI Agents SDK + difficulty filter (Beginner / Intermediate / Advanced)
+- [x] Template grid cards: icon, title, description, framework badge, difficulty badge, Sentinel avatar
+- [x] Template detail modal: full description, setup steps, full syntax-highlighted code block, copy button
+- [x] "Build this with [Sentinel]" CTA button in modal — launches Agent Builder Mode with template pre-loaded
+- [x] Register /agent-templates route in App.tsx
+- [x] Add "Agent Templates" to Chat sidebar nav
+
+### Sentinel Handoff
+- [x] On "Build this with [Sentinel]" click: create conversation, set agentMode, store template code in localStorage, route to /chat with sentinel + conv params
+- [x] In Chat.tsx: on mount check localStorage for pending template — auto-populate input with template starter prompt

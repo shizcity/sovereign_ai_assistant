@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot } from "lucide-react";
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -319,6 +319,34 @@ export default function Chat() {
       }
     }
   }, [templates]); // Run when templates are loaded
+
+  // Agent Template handoff — pick up starter prompt stored by AgentTemplates page
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const agentModeParam = params.get('agentMode');
+      const starterPrompt = localStorage.getItem('glow_agent_builder_starter');
+      const pendingConvId = localStorage.getItem('glow_agent_builder_conv');
+
+      if (agentModeParam === '1' && starterPrompt) {
+        // Activate agent mode
+        setAgentMode(true);
+        localStorage.setItem('glow_agent_mode', 'true');
+        // Pre-fill the input with the starter prompt
+        setInputMessage(starterPrompt);
+        // Clear the pending items so they don't re-fire
+        localStorage.removeItem('glow_agent_builder_starter');
+        localStorage.removeItem('glow_agent_builder_conv');
+        localStorage.removeItem('glow_agent_builder_sentinel');
+        // Clean URL
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+        // Focus the input
+        setTimeout(() => messageInputRef.current?.focus(), 300);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -1256,6 +1284,7 @@ export default function Chat() {
             { href: '/insights', icon: TrendingUp, label: 'Insights' },
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
             { href: '/agent-builder', icon: Bot, label: 'Build an Agent' },
+            { href: '/agent-templates', icon: Layers, label: 'Agent Templates' },
             { href: '/round-table', icon: Users, label: 'Round Table' },
             { href: '/achievements', icon: Trophy, label: 'Achievements' },
             { href: '/referrals', icon: Gift, label: 'Invite & Earn' },
