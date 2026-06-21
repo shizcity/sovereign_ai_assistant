@@ -9,6 +9,24 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+// Global uncaught error handlers — catch anything that escapes React's error boundary
+// (e.g. errors in event handlers, async callbacks, third-party scripts)
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error("[GlobalError] Uncaught exception:", {
+    message,
+    source,
+    lineno,
+    colno,
+    error,
+  });
+  // Return false so the browser still logs the error in DevTools
+  return false;
+};
+
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("[GlobalError] Unhandled promise rejection:", event.reason);
+});
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {

@@ -13,6 +13,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import OfflineBanner from "./components/OfflineBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 // Critical routes — eager loaded
 import Chat from "./pages/Chat";
@@ -173,6 +174,8 @@ function App() {
           <OnboardingModal open={showOnboarding} onComplete={handleOnboardingComplete} />
           {/* What's New Modal */}
           <WhatsNewModal open={showWhatsNew} onClose={() => setShowWhatsNew(false)} />
+          {/* Offline detection banner — fixed top, auto-dismisses on reconnect */}
+          <OfflineBanner />
           {/* Global ⌘K Command Palette */}
           <CommandPalette open={cmdPaletteOpen} onClose={() => setCmdPaletteOpen(false)} />
           <Router />
