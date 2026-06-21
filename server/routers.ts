@@ -1321,11 +1321,40 @@ export const appRouter = router({
     trackUsage: protectedProcedure
       .input(z.object({ templateId: z.number() }))
       .mutation(async ({ input, ctx }) => {
-        // This is a simple implementation - you could extend this to track
-        // usage in a separate table with timestamps, user info, etc.
-        // For now, we'll just return success
         return { success: true, templateId: input.templateId };
       }),
+
+    // Agent template saves & ratings (Feature 3)
+    saveAgentTemplate: protectedProcedure
+      .input(z.object({ templateId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const { saveTemplate, incrementAgentProgress } = await import("./db");
+        await saveTemplate(ctx.user.id, input.templateId);
+        await incrementAgentProgress(ctx.user.id, "templates_explored");
+        return { success: true };
+      }),
+    unsaveAgentTemplate: protectedProcedure
+      .input(z.object({ templateId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const { unsaveTemplate } = await import("./db");
+        await unsaveTemplate(ctx.user.id, input.templateId);
+        return { success: true };
+      }),
+    rateAgentTemplate: protectedProcedure
+      .input(z.object({ templateId: z.string(), rating: z.number().min(1).max(5) }))
+      .mutation(async ({ ctx, input }) => {
+        const { rateTemplate } = await import("./db");
+        await rateTemplate(ctx.user.id, input.templateId, input.rating);
+        return { success: true };
+      }),
+    getAgentTemplateInteractions: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserTemplateInteractions } = await import("./db");
+      return getUserTemplateInteractions(ctx.user.id);
+    }),
+    getAgentTemplateStats: publicProcedure.query(async () => {
+      const { getTemplateStats } = await import("./db");
+      return getTemplateStats();
+    }),
   }),
 
 
@@ -2965,6 +2994,53 @@ export const appRouter = router({
         { id: "typescript", label: "TypeScript", extension: "ts", placeholder: "// Paste your TypeScript agent code here" },
       ];
     }),
+  }),
+
+  // ─── Agent Builder Session (Feature 2) ──────────────────────────────────────
+  agentBuilder: router({
+    getSession: protectedProcedure
+      .input(z.object({ sentinelId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getAgentBuilderSession } = await import("./db");
+        return getAgentBuilderSession(ctx.user.id, input.sentinelId);
+      }),
+    saveSession: protectedProcedure
+      .input(z.object({
+        sentinelId: z.number(),
+        framework: z.string().optional(),
+        goal: z.string().optional(),
+        lastCode: z.string().optional(),
+        lastError: z.string().optional(),
+        stepReached: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { upsertAgentBuilderSession } = await import("./db");
+        const { sentinelId, ...data } = input;
+        await upsertAgentBuilderSession(ctx.user.id, sentinelId, data);
+        return { success: true };
+      }),
+    clearSession: protectedProcedure
+      .input(z.object({ sentinelId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { clearAgentBuilderSession } = await import("./db");
+        await clearAgentBuilderSession(ctx.user.id, input.sentinelId);
+        return { success: true };
+      }),
+  }),
+
+   // ─── Agent Builder Progress (Feature 4) ─────────────────────────────────────
+  agentProgress: router({
+    getProgress: protectedProcedure.query(async ({ ctx }) => {
+      const { getAgentProgress } = await import("./db");
+      return getAgentProgress(ctx.user.id);
+    }),
+    increment: protectedProcedure
+      .input(z.object({ metric: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const { incrementAgentProgress } = await import("./db");
+        const newValue = await incrementAgentProgress(ctx.user.id, input.metric);
+        return { success: true, newValue };
+      }),
   }),
 });
 export type AppRouter = typeof appRouter;

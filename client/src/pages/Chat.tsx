@@ -1286,6 +1286,7 @@ export default function Chat() {
             { href: '/agent-builder', icon: Bot, label: 'Build an Agent' },
             { href: '/agent-templates', icon: Layers, label: 'Agent Templates' },
             { href: '/code-playground', icon: Terminal, label: 'Code Playground' },
+            { href: '/agent-progress', icon: TrendingUp, label: 'My Agent Progress' },
             { href: '/round-table', icon: Users, label: 'Round Table' },
             { href: '/achievements', icon: Trophy, label: 'Achievements' },
             { href: '/referrals', icon: Gift, label: 'Invite & Earn' },

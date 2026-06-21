@@ -505,3 +505,47 @@ export const sentinelCustomisations = mysqlTable("sentinel_customisations", {
 });
 export type SentinelCustomisation = typeof sentinelCustomisations.$inferSelect;
 export type InsertSentinelCustomisation = typeof sentinelCustomisations.$inferInsert;
+
+/**
+ * Agent Builder Sessions — persists per-user per-Sentinel agent-building context
+ */
+export const agentBuilderSessions = mysqlTable("agent_builder_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sentinelId: int("sentinelId").notNull(),
+  framework: varchar("framework", { length: 64 }),
+  goal: text("goal"),
+  lastCode: text("lastCode"),
+  lastError: text("lastError"),
+  stepReached: int("stepReached").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AgentBuilderSession = typeof agentBuilderSessions.$inferSelect;
+export type InsertAgentBuilderSession = typeof agentBuilderSessions.$inferInsert;
+
+/**
+ * Template Interactions — user saves and ratings for agent templates
+ */
+export const templateInteractions = mysqlTable("template_interactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  templateId: varchar("templateId", { length: 128 }).notNull(),
+  action: varchar("action", { length: 16 }).notNull(),
+  rating: int("rating"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type TemplateInteraction = typeof templateInteractions.$inferSelect;
+export type InsertTemplateInteraction = typeof templateInteractions.$inferInsert;
+
+/**
+ * Agent Builder Progress — tracks per-user agent-building milestones
+ */
+export const agentBuilderProgress = mysqlTable("agent_builder_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  metric: varchar("metric", { length: 64 }).notNull(),
+  value: int("value").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AgentBuilderProgressRow = typeof agentBuilderProgress.$inferSelect;
+export type InsertAgentBuilderProgress = typeof agentBuilderProgress.$inferInsert;

@@ -12,7 +12,12 @@ import {
   notifications,
   InsertNotification,
   sentinelCustomisations,
-  InsertSentinelCustomisation
+  InsertSentinelCustomisation,
+  agentBuilderSessions,
+  InsertAgentBuilderSession,
+  templateInteractions,
+  InsertTemplateInteraction,
+  agentBuilderProgress
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -340,4 +345,120 @@ export async function upsertSentinelCustomisation(
       customFocus: data.customFocus ?? null,
     });
   }
+}
+
+// ─── Agent Builder Session helpers (Feature 2) ───────────────────────────────
+
+export async function getAgentBuilderSession(userId: number, sentinelId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(agentBuilderSessions)
+    .where(and(eq(agentBuilderSessions.userId, userId), eq(agentBuilderSessions.sentinelId, sentinelId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertAgentBuilderSession(
+  userId: number,
+  sentinelId: number,
+  data: Partial<InsertAgentBuilderSession>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getAgentBuilderSession(userId, sentinelId);
+  if (existing) {
+    await db.update(agentBuilderSessions)
+      .set({ ...data })
+      .where(and(eq(agentBuilderSessions.userId, userId), eq(agentBuilderSessions.sentinelId, sentinelId)));
+  } else {
+    await db.insert(agentBuilderSessions).values({ userId, sentinelId, ...data });
+  }
+}
+
+export async function clearAgentBuilderSession(userId: number, sentinelId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(agentBuilderSessions)
+    .where(and(eq(agentBuilderSessions.userId, userId), eq(agentBuilderSessions.sentinelId, sentinelId)));
+}
+
+// ─── Template Interaction helpers (Feature 3) ────────────────────────────────
+
+export async function saveTemplate(userId: number, templateId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(templateInteractions)
+    .values({ userId, templateId, action: "save" })
+    .onDuplicateKeyUpdate({ set: { action: "save" } });
+}
+
+export async function unsaveTemplate(userId: number, templateId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(templateInteractions)
+    .where(and(
+      eq(templateInteractions.userId, userId),
+      eq(templateInteractions.templateId, templateId),
+      eq(templateInteractions.action, "save")
+    ));
+}
+
+export async function rateTemplate(userId: number, templateId: string, rating: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(templateInteractions)
+    .values({ userId, templateId, action: "rate", rating })
+    .onDuplicateKeyUpdate({ set: { rating } });
+}
+
+export async function getUserTemplateInteractions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(templateInteractions)
+    .where(eq(templateInteractions.userId, userId));
+}
+
+export async function getTemplateStats(): Promise<Record<string, { saves: number; avgRating: number | null }>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db.select().from(templateInteractions);
+  const stats: Record<string, { saves: number; ratings: number[]; avgRating: number | null }> = {};
+  for (const row of rows) {
+    if (!stats[row.templateId]) stats[row.templateId] = { saves: 0, ratings: [], avgRating: null };
+    if (row.action === "save") stats[row.templateId].saves++;
+    if (row.action === "rate" && row.rating != null) stats[row.templateId].ratings.push(row.rating);
+  }
+  const result: Record<string, { saves: number; avgRating: number | null }> = {};
+  for (const [id, s] of Object.entries(stats)) {
+    result[id] = {
+      saves: s.saves,
+      avgRating: s.ratings.length > 0 ? Math.round((s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length) * 10) / 10 : null,
+    };
+  }
+  return result;
+}
+
+// ─── Agent Builder Progress helpers (Feature 4) ──────────────────────────────
+
+export async function incrementAgentProgress(userId: number, metric: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  await db.insert(agentBuilderProgress)
+    .values({ userId, metric, value: 1 })
+    .onDuplicateKeyUpdate({ set: { value: db.$count(agentBuilderProgress) } });
+  // Re-fetch the updated value
+  const rows = await db.select().from(agentBuilderProgress)
+    .where(and(eq(agentBuilderProgress.userId, userId), eq(agentBuilderProgress.metric, metric)))
+    .limit(1);
+  return rows[0]?.value ?? 1;
+}
+
+export async function getAgentProgress(userId: number): Promise<Record<string, number>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db.select().from(agentBuilderProgress)
+    .where(eq(agentBuilderProgress.userId, userId));
+  const result: Record<string, number> = {};
+  for (const row of rows) result[row.metric] = row.value;
+  return result;
 }

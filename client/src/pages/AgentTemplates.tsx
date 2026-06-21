@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   Bot, Copy, Check, ArrowLeft, ArrowRight, X, Workflow,
-  Terminal, Code2, Sparkles, Search, ChevronDown
+  Terminal, Code2, Sparkles, Search, ChevronDown, Bookmark, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,15 +78,27 @@ function TemplateModal({
   onClose,
   onLaunch,
   launching,
+  isSaved,
+  onSave,
+  onUnsave,
 }: {
   template: AgentTemplate;
   onClose: () => void;
   onLaunch: (template: AgentTemplate) => void;
   launching: boolean;
+  isSaved: boolean;
+  onSave: (id: string) => void;
+  onUnsave: (id: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "code" | "setup">("overview");
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [, setLocation] = useLocation();
+  const rateTemplate = trpc.templates.rateAgentTemplate.useMutation({
+    onSuccess: () => toast.success("Rating saved!"),
+    onError: () => toast.error("Failed to save rating"),
+  });
 
   const handleCopy = () => {
     navigator.clipboard.writeText(template.code).then(() => {
@@ -122,9 +134,18 @@ function TemplateModal({
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => isSaved ? onUnsave(template.id) : onSave(template.id)}
+              className={`p-1.5 rounded-lg transition-colors ${isSaved ? "text-cyan-400 bg-cyan-500/10" : "text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10"}`}
+              title={isSaved ? "Remove from saved" : "Save template"}
+            >
+              <Bookmark className="w-4 h-4" fill={isSaved ? "currentColor" : "none"} />
+            </button>
+            <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -168,6 +189,29 @@ function TemplateModal({
                     <div className="text-sm font-semibold text-white">{template.sentinelName} will guide you</div>
                     <div className="text-xs text-gray-400">Your assigned Sentinel for this template</div>
                   </div>
+                </div>
+              </div>
+
+              {/* Star Rating */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Rate this template</h4>
+                <div className="flex items-center gap-1">
+                  {[1,2,3,4,5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => { setUserRating(star); rateTemplate.mutate({ templateId: template.id, rating: star }); }}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="transition-colors"
+                    >
+                      <Star
+                        className="w-5 h-5"
+                        fill={(hoverRating || userRating) >= star ? "#f59e0b" : "none"}
+                        stroke={(hoverRating || userRating) >= star ? "#f59e0b" : "#6b7280"}
+                      />
+                    </button>
+                  ))}
+                  {userRating > 0 && <span className="text-xs text-gray-500 ml-2">You rated {userRating}/5</span>}
                 </div>
               </div>
             </div>
@@ -265,8 +309,26 @@ export default function AgentTemplates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const createConversation = trpc.conversations.create.useMutation();
+  const { data: interactions } = trpc.templates.getAgentTemplateInteractions.useQuery(undefined, { enabled: !!user });
+  const saveMutation = trpc.templates.saveAgentTemplate.useMutation({
+    onSuccess: (_, vars) => { setSavedIds(prev => new Set(Array.from(prev).concat(vars.templateId))); toast.success("Template saved!"); },
+    onError: () => toast.error("Failed to save template"),
+  });
+  const unsaveMutation = trpc.templates.unsaveAgentTemplate.useMutation({
+    onSuccess: (_, vars) => { setSavedIds(prev => { const s = new Set(Array.from(prev)); s.delete(vars.templateId); return s; }); toast.success("Removed from saved"); },
+    onError: () => toast.error("Failed to remove template"),
+  });
+
+  // Sync saved IDs from server
+  useMemo(() => {
+    if (interactions) {
+      const saved = interactions.filter(i => i.action === "save").map(i => i.templateId);
+      setSavedIds(new Set(saved));
+    }
+  }, [interactions]);
 
   const filteredTemplates = useMemo(() => {
     return AGENT_TEMPLATES.filter((t) => {
@@ -442,6 +504,9 @@ export default function AgentTemplates() {
           onClose={() => setSelectedTemplate(null)}
           onLaunch={handleLaunch}
           launching={launching}
+          isSaved={savedIds.has(selectedTemplate.id)}
+          onSave={(id) => saveMutation.mutate({ templateId: id })}
+          onUnsave={(id) => unsaveMutation.mutate({ templateId: id })}
         />
       )}
     </div>
