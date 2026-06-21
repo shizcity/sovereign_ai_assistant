@@ -18,6 +18,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+<<<<<<< Updated upstream
+=======
+import DashboardLayout from "@/components/DashboardLayout";
+>>>>>>> Stashed changes
 const FRAMEWORK_COLORS: Record<string, string> = {
   crewai: "bg-orange-500/20 text-orange-300 border-orange-500/30",
   "openai-agents": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
