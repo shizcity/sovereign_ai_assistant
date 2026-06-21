@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -94,8 +95,31 @@ export default function BlueprintView() {
     month: "long", day: "numeric", year: "numeric",
   });
 
+  const ogTitle = `${blueprint.title} — Glow Blueprint`;
+  const ogDescription = blueprint.description
+    ? blueprint.description.slice(0, 160)
+    : `A ${blueprint.framework} agent blueprint shared on Glow — the Multi-Sentinel AI Platform.`;
+  const ogUrl = `https://glow.manus.space/blueprint/${shareToken}`;
+  const ogImage = "https://files.manuscdn.com/user_upload_by_module/session_file/86706373/XMimnGTKzlpUegGs.png";
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <Helmet>
+        <title>{ogTitle}</title>
+        <link rel="canonical" href={ogUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:url" content={ogUrl} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={ogTitle} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImage} />
+      </Helmet>
       {/* Header */}
       <div className="border-b border-white/8 bg-black/30 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
