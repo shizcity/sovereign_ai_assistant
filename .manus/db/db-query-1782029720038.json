@@ -1,0 +1,14 @@
+{
+  "query": "SELECT COUNT(*) as total, SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END) as active FROM sentinels;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT COUNT(*) as total, SUM(CASE WHEN isActive = 1 THEN 1 ELSE 0 END) as active FROM sentinels;",
+  "rows": [
+    {
+      "total": "6",
+      "active": "6"
+    }
+  ],
+  "messages": [],
+  "stdout": "total\tactive\n6\t6\n",
+  "stderr": "",
+  "execution_time_ms": 8418
+}
