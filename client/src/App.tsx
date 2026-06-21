@@ -70,10 +70,7 @@ function Router() {
       <Route path="/my-blueprints" component={MyBlueprints} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/agent-progress" component={AgentProgress} />
-<<<<<<< Updated upstream
       <Route path="/orchestration" component={OrchestrationBuilder} />
-=======
->>>>>>> Stashed changes
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/session/:shareId" component={SharedSession} />
