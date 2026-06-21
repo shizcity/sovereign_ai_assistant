@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, slug, name, LEFT(personalityTraits, 50) as traits_preview, LEFT(specializationDomains, 50) as domains_preview, isActive FROM sentinels LIMIT 6;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute SELECT id, slug, name, LEFT(personalityTraits, 50) as traits_preview, LEFT(specializationDomains, 50) as domains_preview, isActive FROM sentinels LIMIT 6;",
+  "rows": [
+    {
+      "id": "1",
+      "slug": "vixens-den",
+      "name": "Vixen's Den",
+      "traits_preview": "[\"Pragmatic and results-oriented\",\"Patient but fir",
+      "domains_preview": "[\"Project management and execution\",\"Sustainable s",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "slug": "mischief-exe",
+      "name": "Mischief.EXE",
+      "traits_preview": "[\"Irreverent and boundary-pushing\",\"Thrives on \\\"w",
+      "domains_preview": "[\"Creative problem-solving\",\"Innovation and ideati",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "slug": "lunaris-vault",
+      "name": "Lunaris.Vault",
+      "traits_preview": "[\"Scholarly and contemplative\",\"Values depth over ",
+      "domains_preview": "[\"Knowledge synthesis and integration\",\"Historical",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "slug": "aetheris-flow",
+      "name": "Aetheris.Flow",
+      "traits_preview": "[\"Gentle but persistent\",\"Attuned to emotional cur",
+      "domains_preview": "[\"Personal transformation and growth\",\"Emotional i",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "slug": "rift-exe",
+      "name": "Rift.EXE",
+      "traits_preview": "[\"Comfortable with paradox and ambiguity\",\"Sees co",
+      "domains_preview": "[\"Identity integration and evolution\",\"Paradox hol",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "slug": "nyx",
+      "name": "Nyx",
+      "traits_preview": "[\"Sees meta-patterns across all domains\",\"Synthesi",
+      "domains_preview": "[\"Cross-domain pattern recognition\",\"Meta-level sy",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tslug\tname\ttraits_preview\tdomains_preview\tisActive\n1\tvixens-den\tVixen's Den\t[\"Pragmatic and results-oriented\",\"Patient but fir\t[\"Project management and execution\",\"Sustainable s\t1\n2\tmischief-exe\tMischief.EXE\t[\"Irreverent and boundary-pushing\",\"Thrives on \\\"w\t[\"Creative problem-solving\",\"Innovation and ideati\t1\n3\tlunaris-vault\tLunaris.Vault\t[\"Scholarly and contemplative\",\"Values depth over \t[\"Knowledge synthesis and integration\",\"Historical\t1\n4\taetheris-flow\tAetheris.Flow\t[\"Gentle but persistent\",\"Attuned to emotional cur\t[\"Personal transformation and growth\",\"Emotional i\t1\n5\trift-exe\tRift.EXE\t[\"Comfortable with paradox and ambiguity\",\"Sees co\t[\"Identity integration and evolution\",\"Paradox hol\t1\n6\tnyx\tNyx\t[\"Sees meta-patterns across all domains\",\"Synthesi\t[\"Cross-domain pattern recognition\",\"Meta-level sy\t1\n",
+  "stderr": "",
+  "execution_time_ms": 381
+}
