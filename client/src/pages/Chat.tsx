@@ -9,11 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-<<<<<<< Updated upstream
 import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Store, GitBranch, Globe } from "lucide-react";
-=======
-import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Globe, Store, GitBranch } from "lucide-react";
->>>>>>> Stashed changes
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";

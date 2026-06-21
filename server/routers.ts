@@ -3180,11 +3180,7 @@ export const appRouter = router({
         const { getOrchestration } = await import("./db");
         return getOrchestration(input.blueprintId);
       }),
-<<<<<<< Updated upstream
     /** Resolve orchestration pipeline — fetch sub-agent blueprints by tokens */
-=======
-    /** Resolve orchestration pipeline - fetch sub-agent blueprints by tokens */
->>>>>>> Stashed changes
     resolveOrchestration: publicProcedure
       .input(z.object({ tokens: z.array(z.string()) }))
       .query(async ({ input }) => {
