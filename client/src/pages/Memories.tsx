@@ -112,7 +112,7 @@ export default function Memories() {
 
   const createMemoryMutation = trpc.sentinels.memories.create.useMutation({
     onSuccess: (data) => {
-      refetch();
+      utils.sentinels.memories.listAll.invalidate();
       setIsCreateDialogOpen(false);
       showAchievementToasts(data?.newAchievements);
     },
