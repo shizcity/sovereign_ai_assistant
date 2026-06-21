@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift } from "lucide-react";
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot } from "lucide-react";
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
@@ -132,6 +132,9 @@ export default function Chat() {
     slug: string; name: string; emoji: string; reason: string; sentinelId: number;
   } | null>(null);
   const [routingDismissed, setRoutingDismissed] = useState(false);
+  const [agentMode, setAgentMode] = useState<boolean>(() => {
+    try { return localStorage.getItem("glow_agent_mode") === "true"; } catch { return false; }
+  });
 
   // Onboarding checklist state
   const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStepState>(() => loadOnboardingSteps());
@@ -539,9 +542,13 @@ export default function Chat() {
       suggestSentinel.mutate({ query: inputMessage.trim() });
     }
 
+    const agentModePrefix = agentMode
+      ? `[AGENT BUILDER MODE ACTIVE]\nThe user is in Agent Builder Mode. Apply your full agent-building expertise. Follow the structured approach in your system prompt: clarify the goal, design the solution, generate complete runnable code, and explain each component clearly. Adapt your explanation to a beginner-to-intermediate skill level.\n\nUser message: `
+      : "";
+
     sendMessage.mutate({
       conversationId: selectedConversation,
-      content: inputMessage,
+      content: agentModePrefix + inputMessage,
       model: selectedModel,
       targetSentinelId: targetSentinelId, // Include manual Sentinel selection if set
     }, {
@@ -1248,6 +1255,7 @@ export default function Chat() {
             { href: '/memories', icon: Brain, label: 'Memories' },
             { href: '/insights', icon: TrendingUp, label: 'Insights' },
             { href: '/voice', icon: Mic, label: 'Voice Chat' },
+            { href: '/agent-builder', icon: Bot, label: 'Build an Agent' },
             { href: '/round-table', icon: Users, label: 'Round Table' },
             { href: '/achievements', icon: Trophy, label: 'Achievements' },
             { href: '/referrals', icon: Gift, label: 'Invite & Earn' },
@@ -1311,6 +1319,15 @@ export default function Chat() {
       <div className="flex-1 flex flex-col relative z-10">
         {selectedConversation ? (
           <>
+            {/* Agent Builder Active Banner */}
+            {agentMode && (
+              <div className="flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-medium text-cyan-300 bg-cyan-500/10 border-b border-cyan-500/20">
+                <Bot className="w-3 h-3" />
+                <span>Agent Builder Mode Active — your Sentinel is ready to build AI agents with you</span>
+                <button onClick={() => { setAgentMode(false); try { localStorage.setItem("glow_agent_mode", "false"); } catch {} }} className="ml-2 text-cyan-400/60 hover:text-cyan-300 transition-colors">✕</button>
+              </div>
+            )}
+
             {/* Chat Header */}
             <div className="border-b border-white/10 backdrop-blur-xl p-4" style={{ background: 'linear-gradient(180deg, oklch(0.10 0.014 268 / 0.85) 0%, oklch(0.08 0.012 268 / 0.60) 100%)' }}>
               <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
@@ -1449,6 +1466,28 @@ export default function Chat() {
                     <MultiSentinelManager conversationId={selectedConversation} />
                   )}
                   
+                  {/* Agent Builder Mode Toggle */}
+                  <button
+                    onClick={() => {
+                      const next = !agentMode;
+                      setAgentMode(next);
+                      try { localStorage.setItem("glow_agent_mode", String(next)); } catch {}
+                      toast(next ? "Agent Builder Mode activated" : "Agent Builder Mode off", {
+                        description: next ? "Your Sentinel will now help you build AI agents." : "Returning to standard conversation mode.",
+                        duration: 2500,
+                      });
+                    }}
+                    title={agentMode ? "Agent Builder Mode ON — click to disable" : "Activate Agent Builder Mode"}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                      agentMode
+                        ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.3)]"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Bot className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{agentMode ? "Agent Mode" : "Build Agent"}</span>
+                  </button>
+
                   {/* Notification Bell */}
                   <NotificationBell />
 

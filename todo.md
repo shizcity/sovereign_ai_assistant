@@ -1910,3 +1910,30 @@
 - [x] Add "Customise" button to each Sentinel card in Sentinels.tsx (Pro badge gated)
 - [x] Show lock icon + upgrade prompt for free users
 - [x] Test customisation injection into LLM prompts
+
+## Agentic Systems — Phase 1: Agent Mode & Sentinel Knowledge Injection
+
+### Sentinel System Prompt Upgrades
+- [x] Inject agent-builder knowledge block into Vixen's Den (project management agents, n8n workflows, task automation)
+- [x] Inject agent-builder knowledge block into Mischief.EXE (creative automation, n8n visual builder, no-code agent design)
+- [x] Inject agent-builder knowledge block into Lunaris.Vault (research agents, CrewAI knowledge crews, data synthesis pipelines)
+- [x] Inject agent-builder knowledge block into Aetheris.Flow (personal assistant agents, habit/routine automation, CrewAI flows)
+- [x] Inject agent-builder knowledge block into Rift.EXE (OpenAI Agents SDK, tool-calling, multi-agent handoffs, debugging)
+- [x] Inject agent-builder knowledge block into Nyx (agent orchestration, multi-agent systems, cross-framework synthesis)
+
+### Agent Builder Mode — Chat UI
+- [x] Add agentMode boolean state to Chat.tsx
+- [x] Add "Agent Builder" toggle button in Chat header (bot/sparkle icon, glows cyan when active)
+- [x] When agentMode is ON: prepend agent-builder activation prefix to the system prompt context
+- [x] Show "Agent Builder Active" pill badge below the chat header when mode is on
+- [x] Persist agentMode preference per conversation in localStorage
+
+### Agent Builder Guided Flow Page
+- [x] Create /agent-builder route in App.tsx
+- [x] Create client/src/pages/AgentBuilder.tsx
+- [x] Step 1: Goal picker — 6 preset goals (Email automation, Research assistant, Customer support, Personal productivity, Data pipeline, Custom)
+- [x] Step 2: Skill level selector — No-code (n8n), Some code (CrewAI Python), Comfortable with code (OpenAI Agents SDK)
+- [x] Step 3: Framework recommendation card — explains the matched framework with pros/cons
+- [x] Step 4: Sentinel handoff — routes user to Chat with the best-matched Sentinel pre-loaded and agent mode ON
+- [x] Add "Build an Agent" entry point to the sidebar/nav
+- [x] Add "Build an Agent" CTA card on the Home/Dashboard page
