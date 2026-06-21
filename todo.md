@@ -2031,61 +2031,76 @@
 ## Agent Builder Conversation Memory (Feature 2)
 
 ### Schema
-- [x] Add agentBuilderSessions table: id, userId, sentinelId, framework, goal, lastCode TEXT, lastError TEXT, stepReached (int), updatedAt
-- [x] Push schema with webdev_execute_sql
+- [ ] Add agentBuilderSessions table: id, userId, sentinelId, framework, goal, lastCode TEXT, lastError TEXT, stepReached (int), updatedAt
+- [ ] Push schema with webdev_execute_sql
 
 ### Backend
-- [x] Add DB helpers: getAgentBuilderSession(userId, sentinelId), upsertAgentBuilderSession(userId, sentinelId, data)
-- [x] Add tRPC procedures: agentBuilder.getSession (query), agentBuilder.saveSession (mutation), agentBuilder.clearSession (mutation)
-- [x] In messages.send: after each agent-mode message, upsert the session with latest framework/goal/code extracted from conversation
+- [ ] Add DB helpers: getAgentBuilderSession(userId, sentinelId), upsertAgentBuilderSession(userId, sentinelId, data)
+- [ ] Add tRPC procedures: agentBuilder.getSession (query), agentBuilder.saveSession (mutation), agentBuilder.clearSession (mutation)
+- [ ] In messages.send: after each agent-mode message, upsert the session with latest framework/goal/code extracted from conversation
 
 ### Frontend
-- [x] In Chat.tsx: on mount in agentMode, load prior session from agentBuilder.getSession and show "Continue where you left off" banner if session exists
-- [x] Banner shows: framework, goal, last step reached, and a "Resume" button that pre-fills context
-- [x] "Start Fresh" button clears the session and resets the conversation
-- [x] In AgentBuilder.tsx: pre-select framework and goal from prior session if one exists
+- [ ] In Chat.tsx: on mount in agentMode, load prior session from agentBuilder.getSession and show "Continue where you left off" banner if session exists
+- [ ] Banner shows: framework, goal, last step reached, and a "Resume" button that pre-fills context
+- [ ] "Start Fresh" button clears the session and resets the conversation
+- [ ] In AgentBuilder.tsx: pre-select framework and goal from prior session if one exists
 
 ---
 
 ## Agent Template Ratings & Saves (Feature 3)
 
 ### Schema
-- [x] Add templateInteractions table: id, userId, templateId (varchar), action (enum: 'save' | 'rate'), rating (int 1-5, nullable), createdAt
+- [ ] Add templateInteractions table: id, userId, templateId (varchar), action (enum: 'save' | 'rate'), rating (int 1-5, nullable), createdAt
 
 ### Backend
-- [x] Add DB helpers: saveTemplate, unsaveTemplate, rateTemplate, getUserTemplateInteractions, getTemplateStats (save count + avg rating per templateId)
-- [x] Add tRPC procedures: templates.save, templates.unsave, templates.rate, templates.getUserInteractions, templates.getStats
+- [ ] Add DB helpers: saveTemplate, unsaveTemplate, rateTemplate, getUserTemplateInteractions, getTemplateStats (save count + avg rating per templateId)
+- [ ] Add tRPC procedures: templates.save, templates.unsave, templates.rate, templates.getUserInteractions, templates.getStats
 
 ### Frontend
-- [x] In AgentTemplates.tsx: add bookmark icon button to each template card (filled = saved, outline = unsaved)
-- [x] Add star rating row (1-5 stars) to template detail modal footer
-- [x] Show save count and avg rating badge on each template card
-- [x] Add "Saved" filter tab to the filter bar — shows only user's saved templates
-- [x] Sort templates by save count when "Most Popular" sort is selected
-- [x] Optimistic update on save/unsave toggle
+- [ ] In AgentTemplates.tsx: add bookmark icon button to each template card (filled = saved, outline = unsaved)
+- [ ] Add star rating row (1-5 stars) to template detail modal footer
+- [ ] Show save count and avg rating badge on each template card
+- [ ] Add "Saved" filter tab to the filter bar — shows only user's saved templates
+- [ ] Sort templates by save count when "Most Popular" sort is selected
+- [ ] Optimistic update on save/unsave toggle
 
 ---
 
 ## Agent Builder Progress Tracker (Feature 4)
 
 ### Schema
-- [x] Add agentBuilderProgress table: id, userId, metric (varchar), value (int), updatedAt
-- [x] Metrics: templates_explored, agents_built, errors_debugged, playground_runs, round_table_agent_sessions
+- [ ] Add agentBuilderProgress table: id, userId, metric (varchar), value (int), updatedAt
+- [ ] Metrics: templates_explored, agents_built, errors_debugged, playground_runs, round_table_agent_sessions
 
 ### Backend
-- [x] Add DB helpers: incrementAgentProgress(userId, metric), getAgentProgress(userId)
-- [x] Add tRPC procedure: agentBuilder.getProgress (query)
-- [x] Increment templates_explored when user opens a template modal
-- [x] Increment agents_built when user completes Agent Builder flow and launches Chat
-- [x] Increment errors_debugged when user clicks "Debug with Sentinel" in Code Playground
-- [x] Increment playground_runs when user clicks Analyse in Code Playground
-- [x] Increment round_table_agent_sessions when user starts an agent design RT session
+- [ ] Add DB helpers: incrementAgentProgress(userId, metric), getAgentProgress(userId)
+- [ ] Add tRPC procedure: agentBuilder.getProgress (query)
+- [ ] Increment templates_explored when user opens a template modal
+- [ ] Increment agents_built when user completes Agent Builder flow and launches Chat
+- [ ] Increment errors_debugged when user clicks "Debug with Sentinel" in Code Playground
+- [ ] Increment playground_runs when user clicks Analyse in Code Playground
+- [ ] Increment round_table_agent_sessions when user starts an agent design RT session
 
 ### Frontend
-- [x] Create AgentProgress widget component: shows 5 metric cards with count + icon + label
-- [x] Add progress widget to AgentBuilder.tsx page (below the step flow)
-- [x] Add XP milestone toasts: first agent built (+100 XP), 5 templates explored (+50 XP), 3 errors debugged (+75 XP)
-- [x] Wire XP milestones into existing XP/achievements system
-- [x] Add "Agent Architect" achievement: unlock when agents_built >= 1
-- [x] Add "Template Explorer" achievement: unlock when templates_explored >= 5
-- [x] Add "Debug Master" achievement: unlock when errors_debugged >= 3
+- [ ] Create AgentProgress widget component: shows 5 metric cards with count + icon + label
+- [ ] Add progress widget to AgentBuilder.tsx page (below the step flow)
+- [ ] Add XP milestone toasts: first agent built (+100 XP), 5 templates explored (+50 XP), 3 errors debugged (+75 XP)
+- [ ] Wire XP milestones into existing XP/achievements system
+- [ ] Add "Agent Architect" achievement: unlock when agents_built >= 1
+- [ ] Add "Template Explorer" achievement: unlock when templates_explored >= 5
+- [ ] Add "Debug Master" achievement: unlock when errors_debugged >= 3
+
+## Sprint: E2B Code Execution + Shareable Blueprints
+
+- [x] Install @e2b/code-interpreter SDK
+- [x] Add E2B_API_KEY to server ENV
+- [x] Add agents.executeCode tRPC procedure (real E2B sandbox execution)
+- [x] Add Run (Real) button to CodePlayground.tsx with E2B output panel
+- [x] Add agentBlueprints table to drizzle schema
+- [x] Add blueprint DB helpers (create, getByToken, getUserBlueprints, delete, toggleVisibility)
+- [x] Add blueprints tRPC router (create, getByToken, list, delete, toggleVisibility)
+- [x] Add Share as Blueprint button + dialog to CodePlayground.tsx
+- [x] Create BlueprintView.tsx public page at /blueprint/:token
+- [x] Create MyBlueprints.tsx management page at /my-blueprints
+- [x] Add blueprint routes to App.tsx
+- [x] Add My Blueprints nav item to Chat.tsx sidebar

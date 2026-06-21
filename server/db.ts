@@ -483,6 +483,7 @@ export async function getBlueprintByToken(shareToken: string) {
     .where(and(eq(agentBlueprints.shareToken, shareToken), eq(agentBlueprints.isPublic, true)))
     .limit(1);
   if (rows[0]) {
+    // Increment view count
     await db.update(agentBlueprints)
       .set({ viewCount: (rows[0].viewCount ?? 0) + 1 })
       .where(eq(agentBlueprints.shareToken, shareToken));

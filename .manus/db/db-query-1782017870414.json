@@ -1,9 +1,0 @@
-{
-  "query": "CREATE TABLE IF NOT EXISTS `agent_blueprints` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `title` varchar(255) NOT NULL,\n  `description` text,\n  `code` text NOT NULL,\n  `language` varchar(32) NOT NULL DEFAULT 'python',\n  `framework` varchar(64) NOT NULL DEFAULT 'custom',\n  `sentinelId` int,\n  `shareToken` varchar(64) NOT NULL UNIQUE,\n  `isPublic` boolean NOT NULL DEFAULT true,\n  `viewCount` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT NOW(),\n  `updatedAt` timestamp NOT NULL DEFAULT NOW() ON UPDATE NOW()\n);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3e3CFiJAzVVBdhv.root --database gERCUFGQw3Z2D55fZfBbym --execute CREATE TABLE IF NOT EXISTS `agent_blueprints` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `title` varchar(255) NOT NULL,\n  `description` text,\n  `code` text NOT NULL,\n  `language` varchar(32) NOT NULL DEFAULT 'python',\n  `framework` varchar(64) NOT NULL DEFAULT 'custom',\n  `sentinelId` int,\n  `shareToken` varchar(64) NOT NULL UNIQUE,\n  `isPublic` boolean NOT NULL DEFAULT true,\n  `viewCount` int NOT NULL DEFAULT 0,\n  `createdAt` timestamp NOT NULL DEFAULT NOW(),\n  `updatedAt` timestamp NOT NULL DEFAULT NOW() ON UPDATE NOW()\n);",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 500
-}

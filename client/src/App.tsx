@@ -35,6 +35,9 @@ const SharedSession = lazy(() => import("@/pages/SharedSession"));
 const AgentBuilder = lazy(() => import("@/pages/AgentBuilder"));
 const AgentTemplates = lazy(() => import("@/pages/AgentTemplates"));
 const CodePlayground = lazy(() => import("@/pages/CodePlayground"));
+const BlueprintView = lazy(() => import("@/pages/BlueprintView"));
+const MyBlueprints = lazy(() => import("@/pages/MyBlueprints"));
+const AgentProgress = lazy(() => import("@/pages/AgentProgress"));
 
 
 function Router() {
@@ -64,6 +67,7 @@ function Router() {
       <Route path="/code-playground" component={CodePlayground} />
       <Route path="/blueprint/:token" component={BlueprintView} />
       <Route path="/my-blueprints" component={MyBlueprints} />
+      <Route path="/agent-progress" component={AgentProgress} />
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />
       <Route path="/session/:shareId" component={SharedSession} />

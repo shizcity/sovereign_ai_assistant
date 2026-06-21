@@ -549,9 +549,8 @@ export const agentBuilderProgress = mysqlTable("agent_builder_progress", {
 });
 export type AgentBuilderProgressRow = typeof agentBuilderProgress.$inferSelect;
 export type InsertAgentBuilderProgress = typeof agentBuilderProgress.$inferInsert;
-
 /**
- * Agent Blueprints — shareable agent designs with public share links
+ * Agent Blueprints - shareable agent designs with public share links
  */
 export const agentBlueprints = mysqlTable("agent_blueprints", {
   id: int("id").autoincrement().primaryKey(),
