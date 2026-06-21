@@ -596,3 +596,46 @@ export async function listPublicBlueprints(opts: {
   const items = rows.slice(offset, offset + limit);
   return { items, total };
 }
+
+// ─── Orchestration helpers ────────────────────────────────────────────────────
+
+/** Save an orchestration pipeline (array of share tokens) to a blueprint */
+export async function saveOrchestration(
+  userId: number,
+  blueprintId: number,
+  subAgentTokens: string[]
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db
+    .update(agentBlueprints)
+    .set({ orchestration: JSON.stringify(subAgentTokens) })
+    .where(and(eq(agentBlueprints.id, blueprintId), eq(agentBlueprints.userId, userId)));
+  return { success: true };
+}
+
+/** Get the orchestration pipeline for a blueprint */
+export async function getOrchestration(blueprintId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ orchestration: agentBlueprints.orchestration })
+    .from(agentBlueprints)
+    .where(eq(agentBlueprints.id, blueprintId))
+    .limit(1);
+  if (!rows[0]?.orchestration) return [];
+  try { return JSON.parse(rows[0].orchestration) as string[]; } catch { return []; }
+}
+
+/** Resolve an orchestration pipeline: fetch blueprints by share tokens in order */
+export async function getOrchestrationBlueprints(tokens: string[]) {
+  const db = await getDb();
+  if (!db || !tokens.length) return [];
+  const rows = await db
+    .select()
+    .from(agentBlueprints)
+    .where(eq(agentBlueprints.isPublic, true));
+  return tokens
+    .map((t) => rows.find((r) => r.shareToken === t))
+    .filter(Boolean) as (typeof agentBlueprints.$inferSelect)[];
+}

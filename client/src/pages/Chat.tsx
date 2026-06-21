@@ -10,9 +10,13 @@ import {
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Store } from "lucide-react";
 =======
 import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Globe } from "lucide-react";
+>>>>>>> Stashed changes
+=======
+import { Download, DollarSign, LogOut, Menu, MessageSquare, Plus, RefreshCw, Search, Send, Settings, Trash2, X, Folder, Tag, ChevronDown, ChevronRight, FolderPlus, TagIcon, Mic, MicOff, FileText, Sparkles, Pencil, Loader2, Users, Brain, TrendingUp, Wand2, Volume2, VolumeX, Trophy, Zap, Gift, Bot, Layers, Terminal, BookOpen, Store , GitBranch } from "lucide-react";
 >>>>>>> Stashed changes
 import { UsageWidget } from "@/components/UsageWidget";
 import { Input } from "@/components/ui/input";
@@ -1300,6 +1304,7 @@ export default function Chat() {
             { href: '/agent-templates', icon: Layers, label: 'Agent Templates' },
             { href: '/code-playground', icon: Terminal, label: 'Code Playground' },
             { href: '/my-blueprints', icon: BookOpen, label: 'My Blueprints' },
+            { href: '/orchestration', icon: GitBranch, label: 'Orchestration' },
             { href: '/marketplace', icon: Store, label: 'Blueprint Marketplace' },
             { href: '/agent-progress', icon: TrendingUp, label: 'My Agent Progress' },
             { href: '/round-table', icon: Users, label: 'Round Table' },

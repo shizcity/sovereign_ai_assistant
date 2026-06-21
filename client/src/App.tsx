@@ -38,9 +38,13 @@ const CodePlayground = lazy(() => import("@/pages/CodePlayground"));
 const BlueprintView = lazy(() => import("@/pages/BlueprintView"));
 const MyBlueprints = lazy(() => import("@/pages/MyBlueprints"));
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
 const AgentProgress = lazy(() => import("@/pages/AgentProgress"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
+>>>>>>> Stashed changes
+=======
+const OrchestrationBuilder = lazy(() => import("@/pages/OrchestrationBuilder"));
 >>>>>>> Stashed changes
 
 
@@ -71,9 +75,13 @@ function Router() {
       <Route path="/blueprint/:token" component={BlueprintView} />
       <Route path="/my-blueprints" component={MyBlueprints} />
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/agent-progress" component={AgentProgress} />
+>>>>>>> Stashed changes
+=======
+      <Route path="/orchestration" component={OrchestrationBuilder} />
 >>>>>>> Stashed changes
       <Route path="/achievements" component={Achievements} />
       <Route path="/referrals" component={Referrals} />

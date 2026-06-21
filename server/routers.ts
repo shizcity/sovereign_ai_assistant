@@ -3194,9 +3194,35 @@ export const appRouter = router({
         const { listPublicBlueprints } = await import("./db");
         return listPublicBlueprints(input);
       }),
+    /** Save an orchestration pipeline to a blueprint */
+    saveOrchestration: protectedProcedure
+      .input(z.object({
+        blueprintId: z.number(),
+        subAgentTokens: z.array(z.string()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { saveOrchestration } = await import("./db");
+        return saveOrchestration(ctx.user.id, input.blueprintId, input.subAgentTokens);
+      }),
+    /** Get the orchestration pipeline for a blueprint */
+    getOrchestration: protectedProcedure
+      .input(z.object({ blueprintId: z.number() }))
+      .query(async ({ input }) => {
+        const { getOrchestration } = await import("./db");
+        return getOrchestration(input.blueprintId);
+      }),
+    /** Resolve orchestration pipeline — fetch sub-agent blueprints by tokens */
+    resolveOrchestration: publicProcedure
+      .input(z.object({ tokens: z.array(z.string()) }))
+      .query(async ({ input }) => {
+        const { getOrchestrationBlueprints } = await import("./db");
+        return getOrchestrationBlueprints(input.tokens);
+      }),
+
   }),
 });
 export type AppRouter = typeof appRouter;
+<<<<<<< Updated upstream
 
     /** Save an orchestration pipeline to a blueprint */
     saveOrchestration: protectedProcedure
@@ -3246,3 +3272,5 @@ export type AppRouter = typeof appRouter;
         const { getOrchestrationBlueprints } = await import("./db");
         return getOrchestrationBlueprints(input.tokens);
       }),
+=======
+>>>>>>> Stashed changes

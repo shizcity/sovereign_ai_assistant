@@ -565,6 +565,8 @@ export const agentBlueprints = mysqlTable("agent_blueprints", {
   shareToken: varchar("shareToken", { length: 64 }).notNull().unique(),
   isPublic: boolean("isPublic").default(true).notNull(),
   viewCount: int("viewCount").default(0).notNull(),
+  // JSON array of share tokens for sub-agent blueprints in an orchestration pipeline
+  orchestration: text("orchestration"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

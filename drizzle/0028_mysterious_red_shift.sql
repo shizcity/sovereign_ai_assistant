@@ -1,0 +1,1 @@
+ALTER TABLE `agent_blueprints` ADD `orchestration` text;
